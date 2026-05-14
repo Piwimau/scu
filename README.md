@@ -302,6 +302,7 @@ allocator (provided by the C standard library) is swapped out for a custom one
 (see [`alloc.h`](include/scu/alloc.h) for more details).
 
 > [!NOTE]
+>
 > Even if the standard allocator is swapped out for a custom one at some point,
 > previously allocated objects continue to use the original allocator, which is
 > accessed through a pointer stored alongside the object. This means that you
