@@ -93,12 +93,12 @@ ScuQueue* scu_queue_clone(const ScuQueue* queue) {
             );
             scu_memcpy(
                 clone->elems,
-                queue->elems + (queue->head * queue->elemSize),
+                queue->elems + queue->head * queue->elemSize,
                 firstChunk * queue->elemSize
             );
             isize secondChunk = queue->count - firstChunk;
             scu_memcpy(
-                clone->elems + (firstChunk * queue->elemSize),
+                clone->elems + firstChunk * queue->elemSize,
                 queue->elems,
                 secondChunk * queue->elemSize
             );
@@ -143,12 +143,12 @@ ScuError scu_queue_ensure_capacity(ScuQueue* queue, isize capacity) {
             );
             scu_memcpy(
                 newElems,
-                queue->elems + (queue->head * queue->elemSize),
+                queue->elems + queue->head * queue->elemSize,
                 firstChunk * queue->elemSize
             );
             isize secondChunk = queue->count - firstChunk;
             scu_memcpy(
-                newElems + (firstChunk * queue->elemSize),
+                newElems + firstChunk * queue->elemSize,
                 queue->elems,
                 secondChunk * queue->elemSize
             );
@@ -173,7 +173,7 @@ ScuError scu_queue_enqueue(
         return error;
     }
     scu_memcpy(
-        queue->elems + (queue->tail * queue->elemSize),
+        queue->elems + queue->tail * queue->elemSize,
         elem,
         queue->elemSize
     );
@@ -196,7 +196,7 @@ bool scu_queue_try_dequeue(ScuQueue* restrict queue, void* restrict elem) {
     }
     scu_memcpy(
         elem,
-        queue->elems + (queue->head * queue->elemSize),
+        queue->elems + queue->head * queue->elemSize,
         queue->elemSize
     );
     queue->head = (queue->head + 1) % queue->capacity;
@@ -220,7 +220,7 @@ bool scu_queue_try_peek_impl(
         *elem = nullptr;
         return false;
     }
-    *elem = queue->elems + (queue->head * queue->elemSize);
+    *elem = queue->elems + queue->head * queue->elemSize;
     return true;
 }
 
@@ -253,12 +253,12 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
             );
             scu_memcpy(
                 newElems,
-                queue->elems + (queue->head * queue->elemSize),
+                queue->elems + queue->head * queue->elemSize,
                 firstChunk * queue->elemSize
             );
             isize secondChunk = queue->count - firstChunk;
             scu_memcpy(
-                newElems + (firstChunk * queue->elemSize),
+                newElems + firstChunk * queue->elemSize,
                 queue->elems,
                 secondChunk * queue->elemSize
             );
@@ -300,7 +300,7 @@ void* scu_queue_iter_current(const ScuQueueIter* iter) {
     SCU_ASSERT(queue != nullptr);
     SCU_ASSERT((index >= 0) && (index < queue->count));
     isize actualIndex = (queue->head + index) % queue->capacity;
-    return queue->elems + (actualIndex * queue->elemSize);
+    return queue->elems + actualIndex * queue->elemSize;
 }
 
 void scu_queue_iter_reset(ScuQueueIter* iter) {

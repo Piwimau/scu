@@ -140,7 +140,7 @@ void* scu_calloc(isize count, isize size) {
     ScuAllocHeader* header = allocator->calloc(
         allocator->context,
         1,
-        SCU_SIZEOF(ScuAllocHeader) + (count * size)
+        SCU_SIZEOF(ScuAllocHeader) + count * size
     );
     if (header == nullptr) {
         return nullptr;

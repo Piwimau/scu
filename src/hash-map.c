@@ -260,7 +260,7 @@ static inline ScuBucket* scu_bucket_at(
     SCU_ASSERT(buckets != nullptr);
     SCU_ASSERT(index >= 0);
     SCU_ASSERT(bucketSize > SCU_SIZEOF(ScuBucket));
-    return (ScuBucket*) ((byte*) buckets + (index * bucketSize));
+    return (ScuBucket*) ((byte*) buckets + index * bucketSize);
 }
 
 /**
@@ -371,7 +371,7 @@ static inline void scu_hash_map_rehash_buckets(
 ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, isize capacity) {
     SCU_ASSERT(hashMap != nullptr);
     SCU_ASSERT(capacity >= 0);
-    isize minCapacity = ((capacity * SCU_MAX_LOAD_FACTOR_DEN)
+    isize minCapacity = (capacity * SCU_MAX_LOAD_FACTOR_DEN
         + SCU_MAX_LOAD_FACTOR_NUM - 1) / SCU_MAX_LOAD_FACTOR_NUM;
     if (hashMap->capacity >= minCapacity) {
         return SCU_ERROR_NONE;
@@ -433,7 +433,7 @@ ScuError scu_hash_map_try_add(
     ) {
         isize newCapacity = (hashMap->capacity == 0)
             ? SCU_DEFAULT_CAPACITY
-            : (hashMap->capacity * SCU_GROWTH_FACTOR);
+            : hashMap->capacity * SCU_GROWTH_FACTOR;
         ScuError error = scu_hash_map_ensure_capacity(hashMap, newCapacity);
         if (error != SCU_ERROR_NONE) {
             return error;
@@ -596,7 +596,7 @@ ScuError scu_hash_map_set(
     ) {
         isize newCapacity = (hashMap->capacity == 0)
             ? SCU_DEFAULT_CAPACITY
-            : (hashMap->capacity * SCU_GROWTH_FACTOR);
+            : hashMap->capacity * SCU_GROWTH_FACTOR;
         ScuError error = scu_hash_map_ensure_capacity(hashMap, newCapacity);
         if (error != SCU_ERROR_NONE) {
             return error;
@@ -788,7 +788,7 @@ ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap) {
         hashMap->capacity = 0;
         return SCU_ERROR_NONE;
     }
-    isize minCapacity = ((hashMap->count * SCU_MAX_LOAD_FACTOR_DEN)
+    isize minCapacity = (hashMap->count * SCU_MAX_LOAD_FACTOR_DEN
         + SCU_MAX_LOAD_FACTOR_NUM - 1) / SCU_MAX_LOAD_FACTOR_NUM;
     isize newCapacity = scu_next_power_of_two(minCapacity);
     if (hashMap->capacity <= newCapacity) {

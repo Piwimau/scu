@@ -65,8 +65,8 @@ static inline ScuBenchStats scu_bench_stats_from_samples(
         sumOfSquaredDiffsNs += diff * diff;
     }
     f64 medianNs = ((count % 2) == 0)
-        ? ((f64) samples[(count / 2) - 1] + (f64) samples[(count / 2)]) / 2.0
-        : (f64) samples[(count / 2)];
+        ? ((f64) samples[count / 2 - 1] + (f64) samples[count / 2]) / 2.0
+        : (f64) samples[count / 2];
     f64 stdDevNs = (count > 1)
         ? sqrt(sumOfSquaredDiffsNs / (f64) (count - 1))
         : 0.0;

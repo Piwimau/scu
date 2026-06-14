@@ -208,7 +208,7 @@ static inline ScuBucket* scu_bucket_at(
     SCU_ASSERT(buckets != nullptr);
     SCU_ASSERT(index >= 0);
     SCU_ASSERT(bucketSize > SCU_SIZEOF(ScuBucket));
-    return (ScuBucket*) ((byte*) buckets + (index * bucketSize));
+    return (ScuBucket*) ((byte*) buckets + index * bucketSize);
 }
 
 /**
@@ -318,7 +318,7 @@ static inline void scu_hash_set_rehash_buckets(
 ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, isize capacity) {
     SCU_ASSERT(hashSet != nullptr);
     SCU_ASSERT(capacity >= 0);
-    isize minCapacity = ((capacity * SCU_MAX_LOAD_FACTOR_DEN)
+    isize minCapacity = (capacity * SCU_MAX_LOAD_FACTOR_DEN
         + SCU_MAX_LOAD_FACTOR_NUM - 1) / SCU_MAX_LOAD_FACTOR_NUM;
     if (hashSet->capacity >= minCapacity) {
         return SCU_ERROR_NONE;
@@ -364,7 +364,7 @@ ScuError scu_hash_set_try_add(
     ) {
         isize newCapacity = (hashSet->capacity == 0)
             ? SCU_DEFAULT_CAPACITY
-            : (hashSet->capacity * SCU_GROWTH_FACTOR);
+            : hashSet->capacity * SCU_GROWTH_FACTOR;
         ScuError error = scu_hash_set_ensure_capacity(hashSet, newCapacity);
         if (error != SCU_ERROR_NONE) {
             return error;
@@ -536,7 +536,7 @@ ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet) {
         hashSet->capacity = 0;
         return SCU_ERROR_NONE;
     }
-    isize minCapacity = ((hashSet->count * SCU_MAX_LOAD_FACTOR_DEN)
+    isize minCapacity = (hashSet->count * SCU_MAX_LOAD_FACTOR_DEN
         + SCU_MAX_LOAD_FACTOR_NUM - 1) / SCU_MAX_LOAD_FACTOR_NUM;
     isize newCapacity = scu_next_power_of_two(minCapacity);
     if (hashSet->capacity <= newCapacity) {

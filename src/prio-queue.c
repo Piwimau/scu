@@ -194,7 +194,7 @@ ScuError scu_prio_queue_ensure_capacity(
 static inline byte* scu_node_prio(const ScuPrioQueue* prioQueue, isize index) {
     SCU_ASSERT(prioQueue != nullptr);
     SCU_ASSERT((index >= 0) && (index < prioQueue->capacity));
-    return prioQueue->nodes + (index * prioQueue->nodeSize);
+    return prioQueue->nodes + index * prioQueue->nodeSize;
 }
 
 /**
@@ -207,7 +207,7 @@ static inline byte* scu_node_prio(const ScuPrioQueue* prioQueue, isize index) {
 static inline byte* scu_node_elem(const ScuPrioQueue* prioQueue, isize index) {
     SCU_ASSERT(prioQueue != nullptr);
     SCU_ASSERT((index >= 0) && (index < prioQueue->capacity));
-    return prioQueue->nodes + (index * prioQueue->nodeSize)
+    return prioQueue->nodes + index * prioQueue->nodeSize
         + prioQueue->elemOffset;
 }
 
@@ -275,7 +275,7 @@ bool scu_prio_queue_try_dequeue(
         );
         isize index = 0;
         while (true) {
-            isize firstChildIndex = (index * SCU_HEAP_ARITY) + 1;
+            isize firstChildIndex = index * SCU_HEAP_ARITY + 1;
             if (firstChildIndex >= prioQueue->count) {
                 break;
             }

@@ -50,7 +50,7 @@ void* scu_list_new_with_capacity(isize elemSize, isize capacity) {
     SCU_ASSERT(elemSize > 0);
     SCU_ASSERT(capacity >= 0);
     ScuListHeader* header = scu_malloc(
-        SCU_SIZEOF(ScuListHeader) + (elemSize * capacity)
+        SCU_SIZEOF(ScuListHeader) + elemSize * capacity
     );
     if (header == nullptr) {
         return nullptr;
@@ -78,7 +78,7 @@ void* scu_list_clone(const void* list) {
         SCU_CONST_CAST(void*, list)
     );
     ScuListHeader* clone = scu_malloc(
-        SCU_SIZEOF(ScuListHeader) + (header->elemSize * header->capacity)
+        SCU_SIZEOF(ScuListHeader) + header->elemSize * header->capacity
     );
     if (clone == nullptr) {
         return nullptr;
@@ -115,7 +115,7 @@ ScuError scu_list_ensure_capacity_impl(void** list, isize capacity) {
         }
         ScuListHeader* newHeader = scu_realloc(
             header,
-            SCU_SIZEOF(ScuListHeader) + (header->elemSize * newCapacity)
+            SCU_SIZEOF(ScuListHeader) + header->elemSize * newCapacity
         );
         if (newHeader == nullptr) {
             return SCU_ERROR_OUT_OF_MEMORY;
@@ -137,7 +137,7 @@ ScuError scu_list_add_impl(void** restrict list, const void* restrict elem) {
     // Get the header again, as the list may have been reallocated.
     header = scu_data_to_header(*list);
     scu_memcpy(
-        header->data + (header->elemSize * header->count),
+        header->data + header->elemSize * header->count,
         elem,
         header->elemSize
     );
@@ -161,12 +161,12 @@ ScuError scu_list_insert_at_impl(
     // Get the header again, as the list may have been reallocated.
     header = scu_data_to_header(*list);
     scu_memmove(
-        header->data + (header->elemSize * (index + 1)),
-        header->data + (header->elemSize * index),
+        header->data + header->elemSize * (index + 1),
+        header->data + header->elemSize * index,
         header->elemSize * (header->count - index)
     );
     scu_memcpy(
-        header->data + (header->elemSize * index),
+        header->data + header->elemSize * index,
         elem,
         header->elemSize
     );
@@ -178,8 +178,8 @@ void scu_list_remove_at(void* list, isize index) {
     ScuListHeader* header = scu_data_to_header(list);
     SCU_ASSERT((index >= 0) && (index < header->count));
     scu_memmove(
-        header->data + (header->elemSize * index),
-        header->data + (header->elemSize * (index + 1)),
+        header->data + header->elemSize * index,
+        header->data + header->elemSize * (index + 1),
         header->elemSize * (header->count - index - 1)
     );
     header->count--;
@@ -197,7 +197,7 @@ ScuError scu_list_trim_excess_impl(void** list) {
         isize newCapacity = header->count;
         ScuListHeader* newHeader = scu_realloc(
             header,
-            SCU_SIZEOF(ScuListHeader) + (header->elemSize * newCapacity)
+            SCU_SIZEOF(ScuListHeader) + header->elemSize * newCapacity
         );
         if (newHeader == nullptr) {
             return SCU_ERROR_OUT_OF_MEMORY;

@@ -124,7 +124,7 @@ ScuError scu_stack_push(ScuStack* restrict stack, const void* restrict elem) {
         return error;
     }
     scu_memcpy(
-        stack->data + (stack->elemSize * stack->count),
+        stack->data + stack->elemSize * stack->count,
         elem,
         stack->elemSize
     );
@@ -139,7 +139,7 @@ void scu_stack_pop(ScuStack* restrict stack, void* restrict elem) {
     stack->count--;
     scu_memcpy(
         elem,
-        stack->data + (stack->elemSize * stack->count),
+        stack->data + stack->elemSize * stack->count,
         stack->elemSize
     );
 }
@@ -153,7 +153,7 @@ bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem) {
     stack->count--;
     scu_memcpy(
         elem,
-        stack->data + (stack->elemSize * stack->count),
+        stack->data + stack->elemSize * stack->count,
         stack->elemSize
     );
     return true;
@@ -163,7 +163,7 @@ void scu_stack_peek_impl(const ScuStack* restrict stack, void** restrict elem) {
     SCU_ASSERT(stack != nullptr);
     SCU_ASSERT(stack->count > 0);
     SCU_ASSERT(elem != nullptr);
-    *elem = stack->data + (stack->elemSize * (stack->count - 1));
+    *elem = stack->data + stack->elemSize * (stack->count - 1);
 }
 
 bool scu_stack_try_peek_impl(
@@ -176,7 +176,7 @@ bool scu_stack_try_peek_impl(
         *elem = nullptr;
         return false;
     }
-    *elem = stack->data + (stack->elemSize * (stack->count - 1));
+    *elem = stack->data + stack->elemSize * (stack->count - 1);
     return true;
 }
 
@@ -241,7 +241,7 @@ void* scu_stack_iter_current(const ScuStackIter* iter) {
     ScuStack* stack = iter->stack;
     isize index = iter->index;
     SCU_ASSERT((index >= 0) && (index < stack->count));
-    return stack->data + (stack->elemSize * index);
+    return stack->data + stack->elemSize * index;
 }
 
 void scu_stack_iter_reset(ScuStackIter* iter) {

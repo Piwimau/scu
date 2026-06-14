@@ -44,7 +44,7 @@ static constexpr i64 SCU_NANOS_PER_SEC = 1'000'000'000;
      */
     static inline i64 scu_timespec_to_ns(const ScuTimespec* timespec) {
         SCU_ASSERT(timespec != nullptr);
-        return (timespec->tv_sec * SCU_NANOS_PER_SEC) + timespec->tv_nsec;
+        return timespec->tv_sec * SCU_NANOS_PER_SEC + timespec->tv_nsec;
     }
 #endif
 
@@ -63,7 +63,7 @@ static inline i64 scu_wall_ns() {
     if (!QueryPerformanceFrequency(&frequency)) {
         return -1;
     }
-    return (counter.QuadPart * SCU_NANOS_PER_SEC) / frequency.QuadPart;
+    return counter.QuadPart * SCU_NANOS_PER_SEC / frequency.QuadPart;
 #else
     ScuTimespec timespec;
     if (clock_gettime(CLOCK_MONOTONIC, &timespec) != 0) {
@@ -229,8 +229,8 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
         };
     }
     return (ScuTimingResult) {
-        .wallNs = stopwatch->accWallNs + (wallNs - stopwatch->startWallNs),
-        .cpuNs = stopwatch->accCpuNs + (cpuNs - stopwatch->startCpuNs),
+        .wallNs = stopwatch->accWallNs + wallNs - stopwatch->startWallNs,
+        .cpuNs = stopwatch->accCpuNs + cpuNs - stopwatch->startCpuNs,
         .error = SCU_ERROR_NONE
     };
 }
