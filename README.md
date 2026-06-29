@@ -4,7 +4,7 @@ SCU (short for "Simple C Utilities") is a small library of reusable utilities
 for C. It includes macros and functions for a variety of common tasks, such as
 assertions and error handling, memory management, string manipulation, I/O
 operations, benchmarking, and more. Additionally, SCU provides a set of commonly
-used, generic data structures, including a dynamic array, hash map and hash set,
+used generic data structures, including a dynamic array, hash map and hash set,
 stack, queue, as well as a priority queue.
 
 ```c
@@ -335,7 +335,7 @@ library simple and efficient.
 
 Before going into more detail about how to build and use SCU, a couple of notes
 on platform support and compatibility: Although SCU was written in standard C
-and does not have any significant third-party dependencies (besides pthreads),
+and does not have any significant third-party dependencies (besides `pthreads`),
 it is definitely not meant to be used on every possible platform. The library is
 primarily intended for use on modern 64-bit desktop operating systems (i.e.,
 Windows, GNU/Linux and macOS), and it may not compile or work correctly on other
@@ -348,46 +348,44 @@ versions of popular compilers such as GCC 14+ or Clang 18+ at the moment.
 Support for older C standards may be added in the future, but is not a priority.
 
 If your platform and compiler meet the requirements described above, you can
-build SCU from source. The library uses Make as its build system for reasons of
-simplicity. Run `make help` first to get an overview of the available targets
-and options, which should produce something like this:
-
-```plaintext
-Usage: make [TARGET]... [VARIABLE]...
-
-Targets:
-  all     Build all targets (default).
-  static  Build a static library.
-  clean   Remove all build artifacts.
-  help    Display this help and exit.
-
-Variables:
-  CONFIG={debug|release}  Set the build configuration (default: debug).
-  NATIVE                  Enable machine-specific optimizations.
-  V                       Enable verbose build output.
-```
-
-To build the library, simply run `make` or `make all`. By default, this will
-build produce a debug build, which includes the aforementioned precondition
-checks and various symbols for a better debugging experience. The debug version
-of the library is identified by an additional `d` suffix in the library name
-(i.e., `libscud.a`). If you want to build a release version instead, define the
-variable `CONFIG=release` and optionally `NATIVE=1` to take advantage of
-machine-specific optimizations (although this will have an impact on the
-portability of the resulting binary, so use it with caution).
+build SCU from source. The library uses [Meson](https://mesonbuild.com/) as its
+build system, so the first step is to configure the build process:
 
 ```shell
-make CONFIG=release NATIVE=1
+meson setup build
 ```
 
-All build artifacts are generated in the `build/debug/` or `build/release/`
-directory, depending on the chosen configuration. The resulting static libraries
-(`build/debug/libscud.a` and `build/release/libscu.a`) and the headers in the
-[`include/`](include/) directory can then added to your project. As people
-prefer different ways of organizing their projects, I won't go into more detail
-on how to accomplish that. Just make sure to link against the library and
-include the appropriate headers in your source files, and you should be good to
-go.
+By default, this will configure the build process to build an unoptimized debug
+version of the library. If you want to build an optimized release version
+instead, pass the option `--buildtype=release`:
+
+```shell
+meson setup build --buildtype=release
+```
+
+> [!TIP]
+>
+> The `--default-library` option can be used to specify whether to build a
+> static or shared library (or both). For more information, see the [official
+> documentation](https://mesonbuild.com/Builtin-options.html).
+
+The next step is to compile the library:
+
+```shell
+meson compile -C build
+```
+
+Finally, you can install the library and its headers to your system:
+
+```shell
+meson install -C build
+```
+
+> [!TIP]
+>
+> Instead of installing the library system-wide, you can also include it as a
+> subproject in your own project. For more information, see the [official
+> documentation](https://mesonbuild.com/Subprojects.html).
 
 ## Contributing
 
