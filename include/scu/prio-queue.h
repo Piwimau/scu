@@ -56,7 +56,7 @@ typedef struct ScuPrioQueueEntry {
 ScuPrioQueue* scu_prio_queue_new(
     Scuisize elemSize,
     Scuisize prioSize,
-    ScuCompareFunc prioCmpFunc
+    ScuCompareFunc* prioCmpFunc
 );
 
 /**
@@ -79,7 +79,7 @@ ScuPrioQueue* scu_prio_queue_new_with_capacity(
     Scuisize elemSize,
     Scuisize prioSize,
     Scuisize capacity,
-    ScuCompareFunc prioCmpFunc
+    ScuCompareFunc* prioCmpFunc
 );
 
 /**

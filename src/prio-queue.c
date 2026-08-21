@@ -53,7 +53,7 @@ static constexpr isize SCU_HEAP_ARITY = 4;
 ScuPrioQueue* scu_prio_queue_new(
     isize elemSize,
     isize prioSize,
-    ScuCompareFunc prioCmpFunc
+    ScuCompareFunc* prioCmpFunc
 ) {
     return scu_prio_queue_new_with_capacity(
         elemSize,
@@ -85,7 +85,7 @@ ScuPrioQueue* scu_prio_queue_new_with_capacity(
     isize elemSize,
     isize prioSize,
     isize capacity,
-    ScuCompareFunc prioCmpFunc
+    ScuCompareFunc* prioCmpFunc
 ) {
     SCU_ASSERT(elemSize > 0);
     SCU_ASSERT(prioSize > 0);
