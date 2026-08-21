@@ -8,7 +8,7 @@ project(
         'warning_level=3',
     ],
     meson_version: '>=1.1',
-    version: '0.3.0',
+    version: '0.4.0',
 )
 
 cc = meson.get_compiler('c')
