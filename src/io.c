@@ -123,6 +123,7 @@ ScuError scu_fopentmp(ScuFile** file) {
     }
     *file = scu_malloc(SCU_SIZEOF(ScuFile));
     if (*file == nullptr) {
+        fclose(handle);
         return SCU_ERROR_OUT_OF_MEMORY;
     }
     (*file)->handle = handle;
