@@ -5,6 +5,13 @@ All notable changes to SCU will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and SCU adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] – 2026-09-18
+
+### Fixed
+
+* Fix a possible resource leak in `scu_fopentmp()`
+  ([e4694d2](https://github.com/Piwimau/scu/commit/e4694d24931249b868f46db3c2863efdc19b40c1)).
+
 ## [0.4.0] – 2026-08-21
 
 ### Fixed
@@ -37,6 +44,7 @@ and SCU adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 The initial release of SCU.
 
+[0.4.1]: https://github.com/Piwimau/scu/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/Piwimau/scu/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Piwimau/scu/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Piwimau/scu/compare/v0.1.0...v0.2.0
