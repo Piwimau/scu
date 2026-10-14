@@ -7,11 +7,11 @@
 #include "scu/hash.h"
 #include "scu/types.h"
 
-/** @brief Represents an unordered collection of key-value pairs. */
+/** @brief An unordered collection of key-value pairs. */
 typedef struct ScuHashMap ScuHashMap;
 
 /**
- * @brief Represents an iterator for a hash map.
+ * @brief An iterator for a hash map.
  *
  * @warning The internal representation of the iterator is an implementation
  * detail and should not be relied upon. Most importantly, the behavior is
@@ -27,7 +27,7 @@ typedef struct ScuHashMapIter {
 
 } ScuHashMapIter;
 
-/** @brief Represents an entry in a hash map. */
+/** @brief An entry in a hash map. */
 typedef struct ScuHashMapEntry {
 
     /** @brief The key of the entry. */
@@ -39,24 +39,22 @@ typedef struct ScuHashMapEntry {
 } ScuHashMapEntry;
 
 /**
- * @brief Allocates and initializes a new hash map with the specified key and
- * value sizes, hash and equality functions, and an unspecified default
- * capacity.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * @warning The caller is responsible for deallocating the hash map with
- * `scu_hash_map_free()` when it is no longer needed.
+ * @brief Constructs a hash map with the specified key and value sizes, hash and
+ * equality functions, and an unspecified default capacity.
  *
  * @param[in] keySize        The size of each key (in bytes).
  * @param[in] valueSize      The size of each value (in bytes).
  * @param[in] keyHashFunc    A function used for hashing keys.
  * @param[in] keyEqualFunc   A function used for comparing keys for equality.
  * @param[in] valueEqualFunc A function used for comparing values for equality.
- * @return A pointer to the new hash map, or `nullptr` on failure.
+ * @return A pointer to the hash map, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash map with
+ * `scu_hash_map_free()` when it is no longer needed.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
-[[nodiscard]]
 ScuHashMap* scu_hash_map_new(
     Scuisize keySize,
     Scuisize valueSize,
@@ -66,14 +64,8 @@ ScuHashMap* scu_hash_map_new(
 );
 
 /**
- * @brief Allocates and initializes a new hash map with the specified key and
- * value sizes, hash and equality functions, and initial capacity.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * @warning The caller is responsible for deallocating the hash map with
- * `scu_hash_map_free()` when it is no longer needed.
+ * @brief Constructs a hash map with the specified key and value sizes, hash and
+ * equality functions, and initial capacity.
  *
  * @param[in] keySize        The size of each key (in bytes).
  * @param[in] valueSize      The size of each value (in bytes).
@@ -82,9 +74,14 @@ ScuHashMap* scu_hash_map_new(
  * @param[in] keyHashFunc    A function used for hashing keys.
  * @param[in] keyEqualFunc   A function used for comparing keys for equality.
  * @param[in] valueEqualFunc A function used for comparing values for equality.
- * @return A pointer to the new hash map, or `nullptr` on failure.
+ * @return A pointer to the hash map, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash map with
+ * `scu_hash_map_free()` when it is no longer needed.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
-[[nodiscard]]
 ScuHashMap* scu_hash_map_new_with_capacity(
     Scuisize keySize,
     Scuisize valueSize,
@@ -95,66 +92,64 @@ ScuHashMap* scu_hash_map_new_with_capacity(
 );
 
 /**
- * @brief Creates a shallow copy of a specified hash map.
+ * @brief Creates a shallow copy of a hash map.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @param[in] hashMap The hash map to clone.
+ * @return A pointer to the cloned hash map, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned hash map with
  * `scu_hash_map_free()` when it is no longer needed.
  *
- * @param[in] hashMap The hash map to clone.
- * @return A pointer to the cloned hash map, or `nullptr` on failure.
+ * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-[[nodiscard]]
 ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap);
 
 /**
- * @brief Returns the capacity of a specified hash map, i.e., the maximum number
- * of key-value pairs that can be stored before a reallocation is required.
- *
- * @note The capacity can be influenced to a certain extent using
- * `scu_hash_map_ensure_capacity()` and `scu_hash_map_trim_excess()`. See their
- * respective documentation for details.
+ * @brief Returns the capacity of a hash map, i.e., the maximum number of
+ * key-value pairs that can be stored before a reallocation is required.
  *
  * @param[in] hashMap The hash map to examine.
- * @return The capacity of the specified hash map.
+ * @return The capacity of the hash map.
+ *
+ * @note The capacity can be influenced to a certain extent using
+ * `scu_hash_map_ensure_capacity()` and `scu_hash_map_trim_excess()`.
  */
 Scuisize scu_hash_map_capacity(const ScuHashMap* hashMap);
 
 /**
- * @brief Returns the number of key-value pairs in a specified hash map.
+ * @brief Returns the number of key-value pairs in a hash map.
  *
  * @param[in] hashMap The hash map to examine.
- * @return The number of key-value pairs in the specified hash map.
+ * @return The number of key-value pairs in the hash map.
  */
 Scuisize scu_hash_map_count(const ScuHashMap* hashMap);
 
 /**
- * @brief Ensures that a specified hash map has at least a specified capacity.
+ * @brief Ensures that a hash map has at least a specified capacity.
  *
- * @note This function dynamically allocates memory using `scu_calloc()`.
- *
- * @param[in, out] hashMap  The hash map to ensure the capacity of.
+ * @param[in, out] hashMap  The hash map whose capacity to ensure.
  * @param[in]      capacity The desired capacity (in number of key-value pairs).
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, Scuisize capacity);
 
 /**
- * @brief Adds a new key-value pair to a specified hash map.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * @warning The behavior is undefined if the key is already present in the hash
- * map. Use `scu_hash_map_try_add()` to handle this case gracefully.
+ * @brief Adds a key-value pair to a hash map.
  *
  * @param[in, out] hashMap The hash map to add the key-value pair to.
  * @param[in]      key     The key to add.
  * @param[in]      value   The value to associate with the key.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @warning The behavior is undefined if the key is already present in the hash
+ * map. Use `scu_hash_map_try_add()` to handle this case gracefully.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
 ScuError scu_hash_map_add(
     ScuHashMap* restrict hashMap,
@@ -163,10 +158,7 @@ ScuError scu_hash_map_add(
 );
 
 /**
- * @brief Tries to add a new key-value pair to a specified hash map.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @brief Tries to add a key-value pair to a hash map.
  *
  * @param[in, out] hashMap The hash map to add the key-value pair to.
  * @param[in]      key     The key to add.
@@ -174,6 +166,9 @@ ScuError scu_hash_map_add(
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
  * `SCU_ERROR_ALREADY_PRESENT` if the key is already present in the hash map, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
 ScuError scu_hash_map_try_add(
     ScuHashMap* restrict hashMap,
@@ -182,28 +177,28 @@ ScuError scu_hash_map_try_add(
 );
 
 /**
- * @brief Gets the value associated with a key in a specified hash map.
- *
- * @warning The behavior is undefined if the key is not present in the hash map.
- * Use `scu_hash_map_try_get()` to handle this case gracefully.
+ * @brief Gets the value associated with a key in a hash map.
  *
  * @param[in] hashMap The hash map to examine.
  * @param[in] key     The key to look up.
- * @return A pointer to the value associated with the specified key.
+ * @return A pointer to the value associated with the key.
+ *
+ * @warning The behavior is undefined if the key is not present in the hash map.
+ * Use `scu_hash_map_try_get()` to handle this case gracefully.
  */
 void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key);
 
 /**
- * @brief Tries to get the value associated with a key in a specified hash map.
- *
- * @note This function is an implementation detail and not intended to be called
- * directly. Use the `scu_hash_map_try_get()` macro instead.
+ * @brief Tries to get the value associated with a key in a hash map.
  *
  * @param[in]  hashMap The hash map to examine.
  * @param[in]  key     The key to look up.
  * @param[out] value   A pointer to the value associated with the specified key
- *                     on success, otherwise a `nullptr`.
- * @return `true` if the key was present in the hash map, otherwise `false`.
+ *                     on success, or `nullptr` on failure.
+ * @return `true` if the key was present in the hash map, `false` otherwise.
+ *
+ * @note This function is an implementation detail and not intended to be called
+ * directly. Use the `scu_hash_map_try_get()` macro instead.
  */
 bool scu_hash_map_try_get_impl(
     const ScuHashMap* restrict hashMap,
@@ -212,36 +207,36 @@ bool scu_hash_map_try_get_impl(
 );
 
 /**
- * @brief Tries to get the value associated with a key in a specified hash map.
+ * @brief Tries to get the value associated with a key in a hash map.
  *
  * @param[in]  hashMap The hash map to examine.
  * @param[in]  key     The key to look up.
  * @param[out] value   A pointer to the value associated with the specified key
- *                     on success, otherwise a `nullptr`.
- * @return `true` if the key was present in the hash map, otherwise `false`.
+ *                     on success, or `nullptr` on failure.
+ * @return `true` if the key was present in the hash map, `false` otherwise.
  */
 #define scu_hash_map_try_get(hashMap, key, value)             \
     scu_hash_map_try_get_impl(hashMap, key, (void**) (value))
 
 /**
- * @brief Associates a key with a new value in a specified hash map.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * If the key is already present in the specified hash map, its associated value
- * is replaced with the new value. Otherwise, a new key-value pair is added to
- * the hash map with the specified key and value. Note that this function is
- * primarily intended for updating the values of existing keys, and is optimized
- * for this use case. If it is known that the key is (likely) not present in the
- * hash map, consider using `scu_hash_map_add()` or `scu_hash_map_try_add()`
- * instead, which may be more efficient in this case.
+ * @brief Associates a key with a new value in a hash map.
  *
  * @param[in, out] hashMap The hash map to set the value in.
  * @param[in]      key     The key to associate with the new value.
  * @param[in]      value   The new value to associate with the key.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
+ *
+ * If the key is already present in the hash map, its associated value is
+ * replaced with the new value. Otherwise, a new key-value pair is added to the
+ * hash map with the specified key and value. Note that this function is
+ * primarily intended for updating the values of existing keys, and is optimized
+ * for this use case. If it is known that the key is (likely) not present in the
+ * hash map, consider using `scu_hash_map_add()` or `scu_hash_map_try_add()`
+ * instead, which may be more efficient in this case.
  */
 ScuError scu_hash_map_set(
     ScuHashMap* restrict hashMap,
@@ -250,39 +245,38 @@ ScuError scu_hash_map_set(
 );
 
 /**
- * @brief Determines whether a key is present in a specified hash map.
+ * @brief Determines whether a key is present in a hash map.
  *
  * @param[in] hashMap The hash map to examine.
  * @param[in] key     The key to search for.
- * @return `true` if the key is present in the hash map, otherwise `false`.
+ * @return `true` if the key is present in the hash map, `false` otherwise.
  */
 bool scu_hash_map_contains_key(const ScuHashMap* hashMap, const void* key);
 
 /**
- * @brief Determines whether a value is present in a specified hash map.
+ * @brief Determines whether a value is present in a hash map.
  *
  * @param[in] hashMap The hash map to examine.
  * @param[in] value   The value to search for.
- * @return `true` if the value is present in the hash map, otherwise `false`.
+ * @return `true` if the value is present in the hash map, `false` otherwise.
  */
 bool scu_hash_map_contains_value(const ScuHashMap* hashMap, const void* value);
 
 /**
- * @brief Removes a key-value pair with a specified key from a specified hash
- * map.
+ * @brief Removes a key-value pair with a specified key from a hash map.
  *
- * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
- * memory usage of the hash map after removing key-value pairs.
+ * @param[in, out] hashMap The hash map to remove the key-value pair from.
+ * @param[in]      key     The key of the key-value pair to remove.
+ * @return `true` if the key-value pair with the specified key was present and
+ * removed, `false` otherwise.
  *
  * @warning This function does not deallocate the key or value, it only removes
  * the key-value pair from the hash map. The caller is responsible for
  * deallocating the removed key and value if they are pointers to dynamically
  * allocated objects and no other references to them exist.
  *
- * @param[in, out] hashMap The hash map to remove the key-value pair from.
- * @param[in]      key     The key of the key-value pair to remove.
- * @return `true` if the key-value pair with the specified key was present and
- * removed, otherwise `false`.
+ * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
+ * memory usage of the hash map after removing key-value pairs.
  */
 bool scu_hash_map_remove(
     ScuHashMap* restrict hashMap,
@@ -290,10 +284,9 @@ bool scu_hash_map_remove(
 );
 
 /**
- * @brief Removes all key-value pairs from a specified hash map.
+ * @brief Removes all key-value pairs from a hash map.
  *
- * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
- * memory usage of the hash map after clearing it.
+ * @param[in, out] hashMap The hash map to clear.
  *
  * @warning This function does not deallocate the hash map itself nor the
  * key-value pairs contained within, it only resets the number of key-value
@@ -301,51 +294,52 @@ bool scu_hash_map_remove(
  * and values if they are pointers to dynamically allocated objects and no other
  * references to them exist.
  *
- * @param[in, out] hashMap The hash map to clear.
+ * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
+ * memory usage of the hash map after clearing it.
  */
 void scu_hash_map_clear(ScuHashMap* hashMap);
 
 /**
- * @brief Trims the excess capacity of a specified hash map to match its current
- * number of key-value pairs.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
+ * @brief Trims the excess capacity of a hash map to match its current number of
+ * key-value pairs.
  *
  * @param[in, out] hashMap The hash map to trim.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
 
 /**
- * @brief Returns an iterator for a specified hash map.
+ * @brief Returns an iterator for a hash map.
  *
- * @note The iterator is initially positioned before the first key-value pair of
- * the hash map (if any). This means that `scu_hash_map_iter_move_next()` must
- * be called before accessing the first and subsequent key-value pairs with
- * `scu_hash_map_iter_current()`.
+ * @param[in] hashMap The hash map to iterate over.
+ * @return An iterator for the hash map.
  *
  * @warning The behavior is undefined if the hash map being iterated over is
  * modified (e.g., key-value pairs are added or removed) while the iterator is
  * in use.
  *
- * @param[in] hashMap The hash map to iterate over.
- * @return An iterator for the specified hash map.
+ * @note The iterator is initially positioned before the first key-value pair of
+ * the hash map (if any). This means that `scu_hash_map_iter_move_next()` must
+ * be called before accessing the first and subsequent key-value pairs with
+ * `scu_hash_map_iter_current()`.
  */
 ScuHashMapIter scu_hash_map_iter(const ScuHashMap* hashMap);
 
 /**
- * @brief Advances a specified hash map iterator to the next key-value pair.
+ * @brief Advances a hash map iterator to the next key-value pair.
  *
  * @param[in, out] iter The iterator to advance.
  * @return `true` if the iterator was successfully advanced to the next
- * key-value pair, otherwise `false` (i.e., the hash map does not contain any
+ * key-value pair, `false` otherwise (i.e., the hash map does not contain any
  * more key-value pairs).
  */
 bool scu_hash_map_iter_move_next(ScuHashMapIter* iter);
 
 /**
- * @brief Returns the current key-value pair of a specified hash map iterator.
+ * @brief Returns the current key-value pair of a hash map iterator.
  *
  * @param[in] iter The iterator to examine.
  * @return An entry representing the current key-value pair of the iterator.
@@ -353,21 +347,21 @@ bool scu_hash_map_iter_move_next(ScuHashMapIter* iter);
 ScuHashMapEntry scu_hash_map_iter_current(const ScuHashMapIter* iter);
 
 /**
- * @brief Resets a specified hash map iterator to its initial position.
+ * @brief Resets a hash map iterator to its initial position.
+ *
+ * @param[in, out] iter The iterator to reset.
  *
  * @note The iterator is initially positioned before the first key-value pair of
  * the hash map (if any). This means that `scu_hash_map_iter_move_next()` must
  * be called before accessing the first and subsequent key-value pairs with
  * `scu_hash_map_iter_current()`.
- *
- * @param[in, out] iter The iterator to reset.
  */
 void scu_hash_map_iter_reset(ScuHashMapIter* iter);
 
 /**
- * @brief Deallocates a specified hash map.
+ * @brief Deallocates a hash map.
  *
- * @note If `hashMap` is a `nullptr`, this function does nothing.
+ * @param[in, out] hashMap The hash map to deallocate.
  *
  * @warning This function only deallocates the memory occupied by the hash map
  * itself, but not the key-value pairs contained within. The caller is
@@ -378,16 +372,16 @@ void scu_hash_map_iter_reset(ScuHashMapIter* iter);
  * The behavior is undefined if the hash map is used after it has been
  * deallocated.
  *
- * @param[in, out] hashMap The hash map to deallocate.
+ * @note If `hashMap` is `nullptr`, this function does nothing.
  */
 void scu_hash_map_free(ScuHashMap* hashMap);
 
 /**
- * @brief Iterates over each key-value pair in a specified hash map.
+ * @brief Iterates over each key-value pair in a hash map.
  *
  * This macro expands to a for loop that iterates over each key-value pair in
- * the specified hash map. During each iteration, the provided variable is
- * assigned an entry representing the current key-value pair.
+ * the hash map. During each iteration, the provided variable is assigned an
+ * entry representing the current key-value pair.
  *
  * The following example demonstrates the basic usage of this macro:
  *
@@ -403,14 +397,14 @@ void scu_hash_map_free(ScuHashMap* hashMap);
  * }
  * ```
  *
- * @note The variable `entry` must be declared manually before the loop. It must
- * be of type `ScuHashMapEntry`.
+ * @param[out] entry   An entry representing the current key-value pair.
+ * @param[in]  hashMap The hash map to iterate over.
  *
  * @warning The behavior is undefined if the hash map is modified (e.g.,
  * key-value pairs are added or removed) while being iterated over.
  *
- * @param[out] entry   An entry representing the current key-value pair.
- * @param[in]  hashMap The hash map to iterate over.
+ * @note The variable `entry` must be declared manually before the loop. It must
+ * be of type `ScuHashMapEntry`.
  */
 #define SCU_HASH_MAP_FOREACH(entry, hashMap)                                     \
     for (                                                                        \

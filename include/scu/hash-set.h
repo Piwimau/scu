@@ -7,11 +7,11 @@
 #include "scu/hash.h"
 #include "scu/types.h"
 
-/** @brief Represents an unordered hash set of elements. */
+/** @brief An unordered hash set of elements. */
 typedef struct ScuHashSet ScuHashSet;
 
 /**
- * @brief Represents an iterator for a hash set.
+ * @brief An iterator for a hash set.
  *
  * @warning The internal representation of the iterator is an implementation
  * detail and should not be relied upon. Most importantly, the behavior is
@@ -28,21 +28,20 @@ typedef struct ScuHashSetIter {
 } ScuHashSetIter;
 
 /**
- * @brief Allocates and initializes a new hash set with a specified element
- * size, hash function, equality function, and an unspecified default capacity.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * @warning The caller is responsible for deallocating the hash set with
- * `scu_hash_set_free()` when it is no longer needed.
+ * @brief Constructs a hash set with a specified element size, hash function,
+ * equality function, and an unspecified default capacity.
  *
  * @param[in] elemSize  The size of each element (in bytes).
  * @param[in] hashFunc  A function used for hashing elements.
  * @param[in] equalFunc A function used for comparing elements for equality.
- * @return A pointer to the new hash set, or `nullptr` on failure.
+ * @return A pointer to the hash set, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash set with
+ * `scu_hash_set_free()` when it is no longer needed.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
-[[nodiscard]]
 ScuHashSet* scu_hash_set_new(
     Scuisize elemSize,
     ScuHashFunc* hashFunc,
@@ -50,22 +49,21 @@ ScuHashSet* scu_hash_set_new(
 );
 
 /**
- * @brief Allocates and initializes a new hash set with a specified element
- * size, hash function, equality function, and initial capacity.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * @warning The caller is responsible for deallocating the hash set with
- * `scu_hash_set_free()` when it is no longer needed.
+ * @brief Constructs a hash set with a specified element size, hash function,
+ * equality function, and initial capacity.
  *
  * @param[in] elemSize  The size of each element (in bytes).
  * @param[in] capacity  The initial capacity (in number of elements).
  * @param[in] hashFunc  A function used for hashing elements.
  * @param[in] equalFunc A function used for comparing elements for equality.
- * @return A pointer to the new hash set, or `nullptr` on failure.
+ * @return A pointer to the hash set, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash set with
+ * `scu_hash_set_free()` when it is no longer needed.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
-[[nodiscard]]
 ScuHashSet* scu_hash_set_new_with_capacity(
     Scuisize elemSize,
     Scuisize capacity,
@@ -74,65 +72,63 @@ ScuHashSet* scu_hash_set_new_with_capacity(
 );
 
 /**
- * @brief Creates a shallow copy of a specified hash set.
+ * @brief Creates a shallow copy of a hash set.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @param[in] hashSet The hash set to clone.
+ * @return A pointer to the cloned hash set, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned hash set with
  * `scu_hash_set_free()` when it is no longer needed.
  *
- * @param[in] hashSet The hash set to clone.
- * @return A pointer to the cloned hash set, or `nullptr` on failure.
+ * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-[[nodiscard]]
 ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet);
 
 /**
- * @brief Returns the capacity of a specified hash set, i.e., the maximum number
- * of elements that can be stored before a reallocation is required.
- *
- * @note The capacity can be influenced to a certain extent using
- * `scu_hash_set_ensure_capacity()` and `scu_hash_set_trim_excess()`. See their
- * respective documentation for details.
+ * @brief Returns the capacity of a hash set, i.e., the maximum number of
+ * elements that can be stored before a reallocation is required.
  *
  * @param[in] hashSet The hash set to examine.
- * @return The capacity of the specified hash set.
+ * @return The capacity of the hash set.
+ *
+ * @note The capacity can be influenced to a certain extent using
+ * `scu_hash_set_ensure_capacity()` and `scu_hash_set_trim_excess()`.
  */
 Scuisize scu_hash_set_capacity(const ScuHashSet* hashSet);
 
 /**
- * @brief Returns the number of elements in a specified hash set.
+ * @brief Returns the number of elements in a hash set.
  *
  * @param[in] hashSet The hash set to examine.
- * @return The number of elements in the specified hash set.
+ * @return The number of elements in the hash set.
  */
 Scuisize scu_hash_set_count(const ScuHashSet* hashSet);
 
 /**
- * @brief Ensures that a specified hash set has at least a specified capacity.
+ * @brief Ensures that a hash set has at least a specified capacity.
  *
- * @note This function dynamically allocates memory using `scu_calloc()`.
- *
- * @param[in, out] hashSet  The hash set to ensure the capacity of.
+ * @param[in, out] hashSet  The hash set whose capacity to ensure.
  * @param[in]      capacity The desired capacity (in number of elements).
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
 
 /**
- * @brief Adds a new element to a specified hash set.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
- *
- * @warning The behavior is undefined if the element is already present in the
- * hash set. Use `scu_hash_set_try_add()` to handle this case gracefully.
+ * @brief Adds an element to a hash set.
  *
  * @param[in, out] hashSet The hash set to add the element to.
  * @param[in]      elem    The element to add.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @warning The behavior is undefined if the element is already present in the
+ * hash set. Use `scu_hash_set_try_add()` to handle this case gracefully.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
 ScuError scu_hash_set_add(
     ScuHashSet* restrict hashSet,
@@ -140,16 +136,16 @@ ScuError scu_hash_set_add(
 );
 
 /**
- * @brief Tries to add a new element to a specified hash set.
- *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @brief Tries to add an element to a hash set.
  *
  * @param[in, out] hashSet The hash set to add the element to.
  * @param[in]      elem    The element to add.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
  * `SCU_ERROR_ALREADY_PRESENT` if the element is already present in the hash
  * set, or `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_malloc()` and
+ * `scu_calloc()`.
  */
 ScuError scu_hash_set_try_add(
     ScuHashSet* restrict hashSet,
@@ -157,29 +153,29 @@ ScuError scu_hash_set_try_add(
 );
 
 /**
- * @brief Determines whether a specified hash set contains a specified element.
+ * @brief Determines whether a hash set contains a specified element.
  *
  * @param[in] hashSet The hash set to examine.
  * @param[in] elem    The element to search for.
- * @return `true` if the element is present in the hash set, otherwise `false`.
+ * @return `true` if the element is present in the hash set, `false` otherwise.
  */
 bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem);
 
 /**
- * @brief Removes a specified element from a specified hash set.
+ * @brief Removes a specified element from a hash set.
  *
- * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
- * memory usage of the hash set after removing elements.
+ * @param[in, out] hashSet The hash set to remove the element from.
+ * @param[in]      elem    The element to remove.
+ * @return `true` if the element was present and removed from the hash set,
+ * `false` otherwise.
  *
  * @warning This function does not deallocate the removed element, it only
  * removes it from the hash set. The caller is responsible for deallocating the
  * removed element if it is a pointer to a dynamically allocated object and no
  * other references to it exist.
  *
- * @param[in, out] hashSet The hash set to remove the element from.
- * @param[in]      elem    The element to remove.
- * @return `true` if the element was present and removed from the hash set,
- * otherwise `false`.
+ * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
+ * memory usage of the hash set after removing elements.
  */
 bool scu_hash_set_remove(
     ScuHashSet* restrict hashSet,
@@ -187,10 +183,9 @@ bool scu_hash_set_remove(
 );
 
 /**
- * @brief Removes all elements from a specified hash set.
+ * @brief Removes all elements from a hash set.
  *
- * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
- * memory usage of the hash set after clearing it.
+ * @param[in, out] hashSet The hash set to clear.
  *
  * @warning This function does not deallocate the hash set itself nor the
  * elements contained within, it only resets the number of elements to zero. The
@@ -198,49 +193,50 @@ bool scu_hash_set_remove(
  * pointers to dynamically allocated objects and no other references to them
  * exist.
  *
- * @param[in, out] hashSet The hash set to clear.
+ * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
+ * memory usage of the hash set after clearing it.
  */
 void scu_hash_set_clear(ScuHashSet* hashSet);
 
 /**
- * @brief Trims the excess capacity of a specified hash set to match its current
- * number of elements.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
+ * @brief Trims the excess capacity of a hash set to match its current number of
+ * elements.
  *
  * @param[in, out] hashSet The hash set to trim.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
 
 /**
- * @brief Returns an iterator for a specified hash set.
+ * @brief Returns an iterator for a hash set.
+ *
+ * @param[in] hashSet The hash set to iterate over.
+ * @return An iterator for the hash set.
+ *
+ * @warning The behavior is undefined if the hash set being iterated over is
+ * modified (e.g., elements are added or removed) while the iterator is in use.
  *
  * @note The iterator is initially positioned before the first element of the
  * hash set (if any). This means that `scu_hash_set_iter_move_next()` must be
  * called before accessing the first and subsequent elements with
  * `scu_hash_set_iter_current()`.
- *
- * @warning The behavior is undefined if the hash set being iterated over is
- * modified (e.g., elements are added or removed) while the iterator is in use.
- *
- * @param[in] hashSet The hash set to iterate over.
- * @return An iterator for the specified hash set.
  */
 ScuHashSetIter scu_hash_set_iter(const ScuHashSet* hashSet);
 
 /**
- * @brief Advances a specified hash set iterator to the next element.
+ * @brief Advances a hash set iterator to the next element.
  *
  * @param[in, out] iter The iterator to advance.
  * @return `true` if the iterator was successfully advanced to the next element,
- * otherwise `false` (i.e., the hash set does not contain any more elements).
+ * `false` otherwise (i.e., the hash set does not contain any more elements).
  */
 bool scu_hash_set_iter_move_next(ScuHashSetIter* iter);
 
 /**
- * @brief Returns the current element of a specified hash set iterator.
+ * @brief Returns the current element of a hash set iterator.
  *
  * @param[in] iter The iterator to examine.
  * @return A pointer to the current element.
@@ -248,21 +244,21 @@ bool scu_hash_set_iter_move_next(ScuHashSetIter* iter);
 void* scu_hash_set_iter_current(const ScuHashSetIter* iter);
 
 /**
- * @brief Resets a specified hash set iterator to its initial position.
+ * @brief Resets a hash set iterator to its initial position.
+ *
+ * @param[in, out] iter The iterator to reset.
  *
  * @note The iterator is initially positioned before the first element of the
  * hash set (if any). This means that `scu_hash_set_iter_move_next()` must be
  * called before accessing the first and subsequent elements with
  * `scu_hash_set_iter_current()`.
- *
- * @param[in, out] iter The iterator to reset.
  */
 void scu_hash_set_iter_reset(ScuHashSetIter* iter);
 
 /**
- * @brief Deallocates a specified hash set.
+ * @brief Deallocates a hash set.
  *
- * @note If `hashSet` is a `nullptr`, this function does nothing.
+ * @param[in, out] hashSet The hash set to deallocate.
  *
  * @warning This function only deallocates the memory occupied by the hash set
  * itself, but not the elements contained within. The caller is responsible for
@@ -272,16 +268,16 @@ void scu_hash_set_iter_reset(ScuHashSetIter* iter);
  * The behavior is undefined if the hash set is used after it has been
  * deallocated.
  *
- * @param[in, out] hashSet The hash set to deallocate.
+ * @note If `hashSet` is `nullptr`, this function does nothing.
  */
 void scu_hash_set_free(ScuHashSet* hashSet);
 
 /**
- * @brief Iterates over each element in a specified hash set.
+ * @brief Iterates over each element in a hash set.
  *
- * This macro expands to a for loop that iterates over each element in the
- * specified hash set. During each iteration, the provided variable is assigned
- * a pointer to the current element.
+ * This macro expands to a for loop that iterates over each element in the hash
+ * set. During each iteration, the provided variable is assigned a pointer to
+ * the current element.
  *
  * The following example demonstrates the basic usage of this macro:
  *
@@ -295,14 +291,14 @@ void scu_hash_set_free(ScuHashSet* hashSet);
  * }
  * ```
  *
- * @note The variable `elem` must be declared manually before the loop. It must
- * be of a pointer type compatible with the hash set's element type.
+ * @param[out] elem    A pointer to the current element during each iteration.
+ * @param[in]  hashSet The hash set to iterate over.
  *
  * @warning The behavior is undefined if the hash set is modified (e.g.,
  * elements are added or removed) while being iterated over.
  *
- * @param[out] elem    A pointer to the current element during each iteration.
- * @param[in]  hashSet The hash set to iterate over.
+ * @note The variable `elem` must be declared manually before the loop. It must
+ * be of a pointer type compatible with the hash set's element type.
  */
 #define SCU_HASH_SET_FOREACH(elem, hashSet)                                     \
     for (                                                                       \

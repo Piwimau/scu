@@ -12,10 +12,10 @@ void scu_array_sort(
 ) {
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(elemSize > 0);
-    SCU_ASSERT(cmpFunc != nullptr);
+    SCU_ASSERT(cmpFunc);
     if (count == 0) {
         return;
     }
-    SCU_ASSERT(array != nullptr);
+    SCU_ASSERT(array);
     qsort(array, (usize) count, (usize) elemSize, cmpFunc);
 }

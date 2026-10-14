@@ -20,38 +20,38 @@ static constexpr i64 SCU_NANOS_PER_SEC = 1'000'000'000;
     static constexpr i64 SCU_NANOS_PER_TICK = 100;
 
     /**
-     * @brief Converts a specified `FILETIME` value to nanoseconds.
+     * @brief Converts a `FILETIME` to nanoseconds.
      *
-     * @param[in] filetime The `FILETIME` value to convert.
-     * @return The converted `FILETIME` value in nanoseconds.
+     * @param[in] filetime The `FILETIME` to convert.
+     * @return The converted `FILETIME` in nanoseconds.
      */
     static inline i64 scu_filetime_to_ns(const FILETIME* filetime) {
-        SCU_ASSERT(filetime != nullptr);
+        SCU_ASSERT(filetime);
         u64 low = filetime->dwLowDateTime;
         u64 high = filetime->dwHighDateTime;
         u64 ticks = (high << 32) | low;
         return (i64) (ticks * SCU_NANOS_PER_TICK);
     }
 #else
-    /** @brief Represents a time interval in seconds and nanoseconds. */
+    /** @brief A time interval in seconds and nanoseconds. */
     typedef struct timespec ScuTimespec;
 
     /**
-     * @brief Converts a specified `ScuTimespec` value to nanoseconds.
+     * @brief Converts a `ScuTimespec` to nanoseconds.
      *
-     * @param[in] timespec The `ScuTimespec` value to convert.
-     * @return The converted `ScuTimespec` value in nanoseconds.
+     * @param[in] timespec The `ScuTimespec` to convert.
+     * @return The converted `ScuTimespec` in nanoseconds.
      */
     static inline i64 scu_timespec_to_ns(const ScuTimespec* timespec) {
-        SCU_ASSERT(timespec != nullptr);
+        SCU_ASSERT(timespec);
         return timespec->tv_sec * SCU_NANOS_PER_SEC + timespec->tv_nsec;
     }
 #endif
 
 /**
- * @brief Returns the current wall time in nanoseconds.
+ * @brief Returns the current wall time (in nanoseconds).
  *
- * @return The current wall time in nanoseconds, or `-1` on failure.
+ * @return The current wall time (in nanoseconds), or `-1` on failure.
  */
 static inline i64 scu_wall_ns() {
 #ifdef _WIN32
@@ -74,9 +74,9 @@ static inline i64 scu_wall_ns() {
 }
 
 /**
- * @brief Returns the current process CPU time in nanoseconds.
+ * @brief Returns the current process CPU time (in nanoseconds).
  *
- * @return The current process CPU time in nanoseconds, or `-1` on failure.
+ * @return The current process CPU time (in nanoseconds), or `-1` on failure.
  */
 static inline i64 scu_process_cpu_ns() {
 #ifdef _WIN32
@@ -102,9 +102,9 @@ static inline i64 scu_process_cpu_ns() {
 }
 
 /**
- * @brief Returns the current thread CPU time in nanoseconds.
+ * @brief Returns the current thread CPU time (in nanoseconds).
  *
- * @return The current thread CPU time in nanoseconds, or `-1` on failure.
+ * @return The current thread CPU time (in nanoseconds), or `-1` on failure.
  */
 static inline i64 scu_thread_cpu_ns() {
 #ifdef _WIN32
@@ -130,10 +130,10 @@ static inline i64 scu_thread_cpu_ns() {
 }
 
 /**
- * @brief Returns the current CPU time in nanoseconds.
+ * @brief Returns the current CPU time (in nanoseconds).
  *
  * @param[in] timingMode The timing mode for measuring CPU time.
- * @return The current CPU time in nanoseconds, or `-1` on failure.
+ * @return The current CPU time (in nanoseconds), or `-1` on failure.
  */
 static inline i64 scu_cpu_ns(ScuTimingMode timingMode) {
     return (timingMode == SCU_TIMING_MODE_PROCESS)
@@ -142,12 +142,12 @@ static inline i64 scu_cpu_ns(ScuTimingMode timingMode) {
 }
 
 void scu_stopwatch_init(ScuStopwatch* stopwatch, ScuTimingMode timingMode) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     *stopwatch = (ScuStopwatch) { .timingMode = timingMode };
 }
 
 bool scu_stopwatch_start(ScuStopwatch* stopwatch) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     if (!stopwatch->isRunning) {
         i64 wallNs = scu_wall_ns();
         if (wallNs == -1) {
@@ -165,7 +165,7 @@ bool scu_stopwatch_start(ScuStopwatch* stopwatch) {
 }
 
 bool scu_stopwatch_restart(ScuStopwatch* stopwatch) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     i64 wallNs = scu_wall_ns();
     if (wallNs == -1) {
         return false;
@@ -183,7 +183,7 @@ bool scu_stopwatch_restart(ScuStopwatch* stopwatch) {
 }
 
 bool scu_stopwatch_stop(ScuStopwatch* stopwatch) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     if (stopwatch->isRunning) {
         i64 wallNs = scu_wall_ns();
         if (wallNs == -1) {
@@ -201,17 +201,17 @@ bool scu_stopwatch_stop(ScuStopwatch* stopwatch) {
 }
 
 void scu_stopwatch_reset(ScuStopwatch* stopwatch) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     *stopwatch = (ScuStopwatch) { .timingMode = stopwatch->timingMode };
 }
 
 bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     return stopwatch->isRunning;
 }
 
 ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
-    SCU_ASSERT(stopwatch != nullptr);
+    SCU_ASSERT(stopwatch);
     if (!stopwatch->isRunning) {
         return (ScuTimingResult) {
             .wallNs = stopwatch->accWallNs,

@@ -49,7 +49,6 @@ static constexpr isize SCU_GROWTH_FACTOR = 2;
 /** @brief The arity of the heap used to implement the priority queue. */
 static constexpr isize SCU_HEAP_ARITY = 4;
 
-[[nodiscard]]
 ScuPrioQueue* scu_prio_queue_new(
     isize elemSize,
     isize prioSize,
@@ -64,14 +63,14 @@ ScuPrioQueue* scu_prio_queue_new(
 }
 
 /**
- * @brief Rounds up a value to the next multiple of a specified alignment.
- *
- * @warning The behavior is undefined if `alignment` is not a power of two.
+ * @brief Rounds up a value to the next multiple of an alignment.
  *
  * @param[in] value     The value to round up.
  * @param[in] alignment The required alignment.
  * @return The smallest multiple of `alignment` greater than or equal to
  * `value`.
+ *
+ * @warning The behavior is undefined if `alignment` is not a power of two.
  */
 static inline isize scu_align_up(isize value, isize alignment) {
     SCU_ASSERT(value >= 0);
@@ -80,7 +79,6 @@ static inline isize scu_align_up(isize value, isize alignment) {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
-[[nodiscard]]
 ScuPrioQueue* scu_prio_queue_new_with_capacity(
     isize elemSize,
     isize prioSize,
@@ -90,9 +88,9 @@ ScuPrioQueue* scu_prio_queue_new_with_capacity(
     SCU_ASSERT(elemSize > 0);
     SCU_ASSERT(prioSize > 0);
     SCU_ASSERT(capacity >= 0);
-    SCU_ASSERT(prioCmpFunc != nullptr);
+    SCU_ASSERT(prioCmpFunc);
     ScuPrioQueue* prioQueue = scu_malloc(SCU_SIZEOF(ScuPrioQueue));
-    if (prioQueue == nullptr) {
+    if (!prioQueue) {
         return nullptr;
     }
     prioQueue->elemSize = elemSize;
@@ -107,7 +105,7 @@ ScuPrioQueue* scu_prio_queue_new_with_capacity(
     prioQueue->prioCmpFunc = prioCmpFunc;
     if (capacity > 0) {
         prioQueue->nodes = scu_malloc(prioQueue->nodeSize * capacity);
-        if (prioQueue->nodes == nullptr) {
+        if (!prioQueue->nodes) {
             scu_free(prioQueue);
             return nullptr;
         }
@@ -118,11 +116,10 @@ ScuPrioQueue* scu_prio_queue_new_with_capacity(
     return prioQueue;
 }
 
-[[nodiscard]]
 ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     ScuPrioQueue* clone = scu_malloc(SCU_SIZEOF(ScuPrioQueue));
-    if (clone == nullptr) {
+    if (!clone) {
         return nullptr;
     }
     clone->elemSize = prioQueue->elemSize;
@@ -134,7 +131,7 @@ ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue) {
     clone->prioCmpFunc = prioQueue->prioCmpFunc;
     if (clone->capacity > 0) {
         clone->nodes = scu_malloc(clone->nodeSize * clone->capacity);
-        if (clone->nodes == nullptr) {
+        if (!clone->nodes) {
             scu_free(clone);
             return nullptr;
         }
@@ -151,12 +148,12 @@ ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue) {
 }
 
 isize scu_prio_queue_capacity(const ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     return prioQueue->capacity;
 }
 
 isize scu_prio_queue_count(const ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     return prioQueue->count;
 }
 
@@ -164,7 +161,7 @@ ScuError scu_prio_queue_ensure_capacity(
     ScuPrioQueue* prioQueue,
     isize capacity
 ) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     SCU_ASSERT(capacity >= 0);
     if (prioQueue->capacity < capacity) {
         isize newCapacity = (prioQueue->capacity > 0) ? prioQueue->capacity : 1;
@@ -175,7 +172,7 @@ ScuError scu_prio_queue_ensure_capacity(
             prioQueue->nodes,
             prioQueue->nodeSize * newCapacity
         );
-        if (newNodes == nullptr) {
+        if (!newNodes) {
             return SCU_ERROR_OUT_OF_MEMORY;
         }
         prioQueue->nodes = newNodes;
@@ -185,27 +182,27 @@ ScuError scu_prio_queue_ensure_capacity(
 }
 
 /**
- * @brief Returns a pointer to the priority of a node at a specified index.
+ * @brief Returns a pointer to the priority of a node at an index.
  *
  * @param[in] prioQueue The priority queue to examine.
  * @param[in] index     The index of the node to retrieve the priority of.
- * @return A pointer to the priority of the node at the specified index.
+ * @return A pointer to the priority of the node at the index.
  */
 static inline byte* scu_node_prio(const ScuPrioQueue* prioQueue, isize index) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     SCU_ASSERT((index >= 0) && (index < prioQueue->capacity));
     return prioQueue->nodes + index * prioQueue->nodeSize;
 }
 
 /**
- * @brief Returns a pointer to the element of a node at a specified index.
+ * @brief Returns a pointer to the element of a node at an index.
  *
  * @param[in] prioQueue The priority queue to examine.
  * @param[in] index     The index of the node to retrieve the element of.
- * @return A pointer to the element of the node at the specified index.
+ * @return A pointer to the element of the node at the index.
  */
 static inline byte* scu_node_elem(const ScuPrioQueue* prioQueue, isize index) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     SCU_ASSERT((index >= 0) && (index < prioQueue->capacity));
     return prioQueue->nodes + index * prioQueue->nodeSize
         + prioQueue->elemOffset;
@@ -216,9 +213,9 @@ ScuError scu_prio_queue_enqueue(
     const void* restrict elem,
     const void* restrict prio
 ) {
-    SCU_ASSERT(prioQueue != nullptr);
-    SCU_ASSERT(elem != nullptr);
-    SCU_ASSERT(prio != nullptr);
+    SCU_ASSERT(prioQueue);
+    SCU_ASSERT(elem);
+    SCU_ASSERT(prio);
     ScuError error = scu_prio_queue_ensure_capacity(
         prioQueue,
         prioQueue->count + 1
@@ -258,9 +255,9 @@ bool scu_prio_queue_try_dequeue(
     void* restrict elem,
     void* restrict prio
 ) {
-    SCU_ASSERT(prioQueue != nullptr);
-    SCU_ASSERT(elem != nullptr);
-    SCU_ASSERT(prio != nullptr);
+    SCU_ASSERT(prioQueue);
+    SCU_ASSERT(elem);
+    SCU_ASSERT(prio);
     if (prioQueue->count == 0) {
         return false;
     }
@@ -318,9 +315,9 @@ bool scu_prio_queue_try_peek_impl(
     void** restrict elem,
     void** restrict prio
 ) {
-    SCU_ASSERT(prioQueue != nullptr);
-    SCU_ASSERT(elem != nullptr);
-    SCU_ASSERT(prio != nullptr);
+    SCU_ASSERT(prioQueue);
+    SCU_ASSERT(elem);
+    SCU_ASSERT(prio);
     if (prioQueue->count == 0) {
         *elem = nullptr;
         *prio = nullptr;
@@ -332,12 +329,12 @@ bool scu_prio_queue_try_peek_impl(
 }
 
 void scu_prio_queue_clear(ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     prioQueue->count = 0;
 }
 
 ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     if (prioQueue->capacity > prioQueue->count) {
         if (prioQueue->count == 0) {
             scu_free(prioQueue->nodes);
@@ -350,7 +347,7 @@ ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue) {
                 prioQueue->nodes,
                 prioQueue->nodeSize * newCapacity
             );
-            if (newNodes == nullptr) {
+            if (!newNodes) {
                 return SCU_ERROR_OUT_OF_MEMORY;
             }
             prioQueue->nodes = newNodes;
@@ -361,7 +358,7 @@ ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue) {
 }
 
 ScuPrioQueueIter scu_prio_queue_iter(const ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     return (ScuPrioQueueIter) {
         .prioQueue = SCU_CONST_CAST(ScuPrioQueue*, prioQueue),
         .index = -1
@@ -369,10 +366,10 @@ ScuPrioQueueIter scu_prio_queue_iter(const ScuPrioQueue* prioQueue) {
 }
 
 bool scu_prio_queue_iter_move_next(ScuPrioQueueIter* iter) {
-    SCU_ASSERT(iter != nullptr);
+    SCU_ASSERT(iter);
     ScuPrioQueue* prioQueue = iter->prioQueue;
     isize index = iter->index;
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     SCU_ASSERT((index >= -1) && (index < prioQueue->count));
     if ((index + 1) < prioQueue->count) {
         iter->index++;
@@ -382,10 +379,10 @@ bool scu_prio_queue_iter_move_next(ScuPrioQueueIter* iter) {
 }
 
 ScuPrioQueueEntry scu_prio_queue_iter_current(const ScuPrioQueueIter* iter) {
-    SCU_ASSERT(iter != nullptr);
+    SCU_ASSERT(iter);
     ScuPrioQueue* prioQueue = iter->prioQueue;
     isize index = iter->index;
-    SCU_ASSERT(prioQueue != nullptr);
+    SCU_ASSERT(prioQueue);
     SCU_ASSERT((index >= 0) && (index < prioQueue->count));
     return (ScuPrioQueueEntry) {
         .elem = scu_node_elem(prioQueue, index),
@@ -394,18 +391,19 @@ ScuPrioQueueEntry scu_prio_queue_iter_current(const ScuPrioQueueIter* iter) {
 }
 
 void scu_prio_queue_iter_reset(ScuPrioQueueIter* iter) {
-    SCU_ASSERT(iter != nullptr);
-    SCU_ASSERT(iter->prioQueue != nullptr);
+    SCU_ASSERT(iter);
+    SCU_ASSERT(iter->prioQueue);
     SCU_ASSERT((iter->index >= -1) && (iter->index < iter->prioQueue->count));
     iter->index = -1;
 }
 
 void scu_prio_queue_free(ScuPrioQueue* prioQueue) {
-    if (prioQueue != nullptr) {
-        scu_free(prioQueue->nodes);
-        prioQueue->nodes = nullptr;
-        prioQueue->capacity = 0;
-        prioQueue->count = 0;
-        scu_free(prioQueue);
+    if (!prioQueue) {
+        return;
     }
+    scu_free(prioQueue->nodes);
+    prioQueue->nodes = nullptr;
+    prioQueue->capacity = 0;
+    prioQueue->count = 0;
+    scu_free(prioQueue);
 }

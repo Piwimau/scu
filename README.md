@@ -188,7 +188,6 @@ typedef struct ScuTimingResult {
     ScuError error;
 } ScuTimingResult;
 
-[[nodiscard]]
 ScuHashSet* scu_hash_set_new(
     Scuisize elemSize,
     ScuHashFunc* hashFunc,
@@ -262,7 +261,6 @@ different error conditions.
 
 ```c
 // Returns `nullptr` if an out-of-memory condition occurs.
-[[nodiscard]]
 ScuStack* scu_stack_new(Scuisize elemSize);
 
 // Returns `-1` if `c` is not found in `s`.
@@ -274,9 +272,9 @@ bool scu_hash_set_remove(
     const void* restrict elem
 );
 
-// Returns `SCU_ERROR_END_OF_FILE` if the end-of-file condition is reached
-// before a byte is read, `SCU_ERROR_READING_FILE` if an error occurred while
-// reading from the specified file stream, or `SCU_ERROR_NONE` on success.
+// Returns `SCU_ERROR_END_OF_FILE` if the end-of-file condition occurred before
+// a byte is read, `SCU_ERROR_READING_FILE` if an error occurred while reading
+// from the specified file stream, or `SCU_ERROR_NONE` on success.
 ScuError scu_freadc(ScuFile* restrict file, char* restrict c);
 ```
 

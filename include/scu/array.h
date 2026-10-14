@@ -7,11 +7,11 @@
 /**
  * @brief Returns the number of elements in a statically allocated array.
  *
- * @warning Do not use this macro with a pointer instead of a statically
- * allocated array, as it will yield an incorrect result.
- *
  * @param[in] array The statically allocated array.
  * @return The number of elements in the statically allocated array.
+ *
+ * @warning The behavior is undefined if `array` is not a statically allocated
+ * array.
  */
 #define SCU_COUNTOF(array) (SCU_SIZEOF(array) / SCU_SIZEOF((array)[0]))
 
@@ -19,8 +19,8 @@
  * @brief Iterates over each element in a statically allocated array.
  *
  * This macro expands to a for loop that iterates over each element in the
- * specified statically allocated array. During each iteration, the provided
- * variable is assigned a pointer to the current element.
+ * statically allocated array. During each iteration, the provided variable is
+ * assigned a pointer to the current element.
  *
  * The following example demonstrates the basic usage of this macro:
  *
@@ -34,38 +34,37 @@
  * }
  * ```
  *
- * @note The variable `elem` must be declared manually before the loop. It must
- * be of a pointer type compatible with the array's element type.
+ * @param[out] elem  A pointer to the current element.
+ * @param[in]  array The statically allocated array.
  *
  * @warning The behavior is undefined if `array` is not a statically allocated
  * array.
  *
- * @param[out] elem  A pointer to the current element during each iteration.
- * @param[in]  array The statically allocated array to iterate over.
+ * @note The variable `elem` must be declared manually before the loop. It must
+ * be of a pointer type compatible with the array's element type.
  */
 #define SCU_ARRAY_FOREACH(elem, array)                                        \
     for ((elem) = (array); (elem) < ((array) + SCU_COUNTOF(array)); (elem)++)
 
 /**
- * @brief Sorts a specified array using a provided comparison function.
- *
- * @note If `count` is zero, `array` is ignored and it may even be a `nullptr`.
- *
- * No guarantees are made regarding the complexity and stability of the
- * underlying sorting algorithm. Most importantly, if two elements are
- * considered equivalent by the provided comparison function, their relative
- * order in the sorted array may not be the same as in the original array.
- *
- * @warning The behavior is undefined if `array` does not point to a block of
- * memory of at least `count * elemSize` bytes, if `cmpFunc` modifies the
- * elements passed to it, or if `cmpFunc` returns inconsistent results when
- * called more than once with the same arguments.
+ * @brief Sorts an array using a specified comparison function.
  *
  * @param[in, out] array    The array to sort.
  * @param[in]      count    The number of elements in the array.
  * @param[in]      elemSize The size of each element (in bytes).
  * @param[in]      cmpFunc  A comparison function used to determine the order of
  *                          the elements.
+ *
+ * @warning The behavior is undefined if `array` does not point to a block of
+ * memory of at least `count * elemSize` bytes, if `count` is negative, if
+ * `elemSize` is less than or equal to zero, if `cmpFunc` is `nullptr` or
+ * modifies the elements passed to it, or if `cmpFunc` returns inconsistent
+ * results when called repeatedly with the same arguments.
+ *
+ * @note If `count` is zero, `array` is ignored and it may even be `nullptr`.
+ *
+ * No guarantees are made regarding the complexity and stability of the
+ * underlying sorting algorithm.
  */
 void scu_array_sort(
     void* array,

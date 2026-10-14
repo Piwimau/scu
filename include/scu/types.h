@@ -9,58 +9,58 @@
 #include <uchar.h>
 #include "scu/assert.h"
 
-/** @brief Represents an unsigned integer for raw memory access. */
+/** @brief An unsigned integer for raw memory access. */
 typedef unsigned char Scubyte;
 
-/** @brief Represents an 8-bit signed integer. */
+/** @brief An 8-bit signed integer. */
 typedef int8_t Scui8;
 
-/** @brief Represents a 8-bit unsigned integer. */
+/** @brief An 8-bit unsigned integer. */
 typedef uint8_t Scuu8;
 
-/** @brief Represents a 16-bit signed integer. */
+/** @brief A 16-bit signed integer. */
 typedef int16_t Scui16;
 
-/** @brief Represents a 16-bit unsigned integer. */
+/** @brief A 16-bit unsigned integer. */
 typedef uint16_t Scuu16;
 
-/** @brief Represents a 32-bit signed integer. */
+/** @brief A 32-bit signed integer. */
 typedef int32_t Scui32;
 
-/** @brief Represents a 32-bit unsigned integer. */
+/** @brief A 32-bit unsigned integer. */
 typedef uint32_t Scuu32;
 
-/** @brief Represents a 64-bit signed integer. */
+/** @brief A 64-bit signed integer. */
 typedef int64_t Scui64;
 
-/** @brief Represents a 64-bit unsigned integer. */
+/** @brief A 64-bit unsigned integer. */
 typedef uint64_t Scuu64;
 
-/** @brief Represents a signed integer capable of holding a pointer. */
+/** @brief A signed integer capable of holding a pointer. */
 typedef intptr_t Scuiptr;
 
-/** @brief Represents an unsigned integer capable of holding a pointer. */
+/** @brief An unsigned integer capable of holding a pointer. */
 typedef uintptr_t Scuuptr;
 
-/** @brief Represents a signed integer for sizes, counts and indices. */
+/** @brief A signed integer for sizes, counts and indices. */
 typedef ptrdiff_t Scuisize;
 
-/** @brief Represents an unsigned integer for sizes, counts and indices. */
+/** @brief An unsigned integer for sizes, counts and indices. */
 typedef size_t Scuusize;
 
-/** @brief Represents a 32-bit floating point number. */
+/** @brief A 32-bit floating point number. */
 typedef float Scuf32;
 
-/** @brief Represents a 64-bit floating point number. */
+/** @brief A 64-bit floating point number. */
 typedef double Scuf64;
 
-/** @brief Represents an unsigned integer used for UTF-8. */
+/** @brief An unsigned integer used for UTF-8. */
 typedef unsigned char Scuchar8;
 
-/** @brief Represents an unsigned integer used for UTF-16. */
+/** @brief An unsigned integer used for UTF-16. */
 typedef char16_t Scuchar16;
 
-/** @brief Represents an unsigned integer used for UTF-32. */
+/** @brief An unsigned integer used for UTF-32. */
 typedef char32_t Scuchar32;
 
 /** @brief The bit width of the `Scubyte` type. */
@@ -902,58 +902,58 @@ typedef char32_t Scuchar32;
 #define SCU_CHAR32_PRIX PRIXLEAST32
 
 #ifdef SCU_SHORT_ALIASES
-    /** @brief Represents an unsigned integer for raw memory access. */
+    /** @brief An unsigned integer for raw memory access. */
     typedef Scubyte byte;
 
-    /** @brief Represents an 8-bit signed integer. */
+    /** @brief An 8-bit signed integer. */
     typedef Scui8 i8;
 
-    /** @brief Represents a 8-bit unsigned integer. */
+    /** @brief An 8-bit unsigned integer. */
     typedef Scuu8 u8;
 
-    /** @brief Represents a 16-bit signed integer. */
+    /** @brief A 16-bit signed integer. */
     typedef Scui16 i16;
 
-    /** @brief Represents a 16-bit unsigned integer. */
+    /** @brief A 16-bit unsigned integer. */
     typedef Scuu16 u16;
 
-    /** @brief Represents a 32-bit signed integer. */
+    /** @brief A 32-bit signed integer. */
     typedef Scui32 i32;
 
-    /** @brief Represents a 32-bit unsigned integer. */
+    /** @brief A 32-bit unsigned integer. */
     typedef Scuu32 u32;
 
-    /** @brief Represents a 64-bit signed integer. */
+    /** @brief A 64-bit signed integer. */
     typedef Scui64 i64;
 
-    /** @brief Represents a 64-bit unsigned integer. */
+    /** @brief A 64-bit unsigned integer. */
     typedef Scuu64 u64;
 
-    /** @brief Represents a signed integer capable of holding a pointer. */
+    /** @brief A signed integer capable of holding a pointer. */
     typedef Scuiptr iptr;
 
-    /** @brief Represents an unsigned integer capable of holding a pointer. */
+    /** @brief An unsigned integer capable of holding a pointer. */
     typedef Scuuptr uptr;
 
-    /** @brief Represents a signed integer for sizes, counts and indices. */
+    /** @brief A signed integer for sizes, counts and indices. */
     typedef Scuisize isize;
 
-    /** @brief Represents an unsigned integer for sizes, counts and indices. */
+    /** @brief An unsigned integer for sizes, counts and indices. */
     typedef Scuusize usize;
 
-    /** @brief Represents a 32-bit floating point number. */
+    /** @brief A 32-bit floating point number. */
     typedef Scuf32 f32;
 
-    /** @brief Represents a 64-bit floating point number. */
+    /** @brief A 64-bit floating point number. */
     typedef Scuf64 f64;
 
-    /** @brief Represents an unsigned integer used for UTF-8. */
+    /** @brief An unsigned integer used for UTF-8. */
     typedef Scuchar8 char8;
 
-    /** @brief Represents an unsigned integer used for UTF-16. */
+    /** @brief An unsigned integer used for UTF-16. */
     typedef Scuchar16 char16;
 
-    /** @brief Represents an unsigned integer used for UTF-32. */
+    /** @brief An unsigned integer used for UTF-32. */
     typedef Scuchar32 char32;
 
     /** @brief The bit width of the `byte` type. */
@@ -1058,7 +1058,7 @@ typedef char32_t Scuchar32;
     /** @brief The lowest (most negative) value of the `f32` type. */
     #define F32_LOWEST SCU_F32_LOWEST
 
-    /** 
+    /**
      * @brief The absolute difference between one and the next value
      * representable by the `f32` type.
      */
@@ -1073,7 +1073,7 @@ typedef char32_t Scuchar32;
     /** @brief The lowest (most negative) value of the `f64` type. */
     #define F64_LOWEST SCU_F64_LOWEST
 
-    /** 
+    /**
      * @brief The absolute difference between one and the next value
      * representable by the `f64` type.
      */

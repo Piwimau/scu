@@ -8,18 +8,18 @@
 #include "scu/string.h"
 
 isize scu_strlen(const char* s) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     return (isize) strlen(s);
 }
 
 isize scu_strnlen(const char* s, isize count) {
     const char* p = scu_memchr(s, '\0', count);
-    return (p == nullptr) ? count : p - s;
+    return p ? p - s : count;
 }
 
 int scu_strcmp(const char* left, const char* right) {
-    SCU_ASSERT(left != nullptr);
-    SCU_ASSERT(right != nullptr);
+    SCU_ASSERT(left);
+    SCU_ASSERT(right);
     int cmp = strcmp(left, right);
     return (cmp < 0) ? -1 : (cmp > 0) ? 1 : 0;
 }
@@ -29,40 +29,40 @@ int scu_strncmp(const char* left, const char* right, isize count) {
     if (count == 0) {
         return 0;
     }
-    SCU_ASSERT(left != nullptr);
-    SCU_ASSERT(right != nullptr);
+    SCU_ASSERT(left);
+    SCU_ASSERT(right);
     int cmp = strncmp(left, right, (usize) count);
     return (cmp < 0) ? -1 : (cmp > 0) ? 1 : 0;
 }
 
 isize scu_str_index_of_byte(const char* s, char c) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     if (c == '\0') {
         return -1;
     }
     const char* p = strchr(s, c);
-    return (p == nullptr) ? -1 : p - s;
+    return p ? p - s : -1;
 }
 
 isize scu_str_index_of_str(const char* s, const char* other) {
-    SCU_ASSERT(s != nullptr);
-    SCU_ASSERT(other != nullptr);
+    SCU_ASSERT(s);
+    SCU_ASSERT(other);
     const char* p = strstr(s, other);
-    return (p == nullptr) ? -1 : p - s;
+    return p ? p - s : -1;
 }
 
 isize scu_str_last_index_of_byte(const char* s, char c) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     if (c == '\0') {
         return -1;
     }
     const char* p = strrchr(s, c);
-    return (p == nullptr) ? -1 : p - s;
+    return p ? p - s : -1;
 }
 
 isize scu_str_last_index_of_str(const char* s, const char* other) {
-    SCU_ASSERT(s != nullptr);
-    SCU_ASSERT(other != nullptr);
+    SCU_ASSERT(s);
+    SCU_ASSERT(other);
     isize length = scu_strlen(s);
     isize otherLength = scu_strlen(other);
     if (otherLength == 0) {
@@ -80,23 +80,23 @@ isize scu_str_last_index_of_str(const char* s, const char* other) {
 }
 
 isize scu_str_index_of_any(const char* s, const char* anyOf) {
-    SCU_ASSERT(s != nullptr);
-    SCU_ASSERT(anyOf != nullptr);
+    SCU_ASSERT(s);
+    SCU_ASSERT(anyOf);
     if (anyOf[0] == '\0') {
         return -1;
     }
     const char* p = strpbrk(s, anyOf);
-    return (p == nullptr) ? -1 : p - s;
+    return p ? p - s : -1;
 }
 
 isize scu_str_last_index_of_any(const char* s, const char* anyOf) {
-    SCU_ASSERT(s != nullptr);
-    SCU_ASSERT(anyOf != nullptr);
+    SCU_ASSERT(s);
+    SCU_ASSERT(anyOf);
     if (anyOf[0] == '\0') {
         return -1;
     }
     for (isize i = scu_strlen(s) - 1; i >= 0; i--) {
-        if (strchr(anyOf, s[i]) != nullptr) {
+        if (strchr(anyOf, s[i])) {
             return i;
         }
     }
@@ -108,7 +108,7 @@ isize scu_str_index_in_range(
     char lowInclusive,
     char highInclusive
 ) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     const byte* p = (const byte*) s;
     byte low = (byte) lowInclusive;
     byte high = (byte) highInclusive;
@@ -126,7 +126,7 @@ isize scu_str_last_index_in_range(
     char lowInclusive,
     char highInclusive
 ) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     const byte* p = (const byte*) s;
     byte low = (byte) lowInclusive;
     byte high = (byte) highInclusive;
@@ -140,13 +140,13 @@ isize scu_str_last_index_in_range(
 }
 
 bool scu_str_starts_with_byte(const char* s, char c) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     return (s[0] != '\0') && (s[0] == c);
 }
 
 bool scu_str_starts_with_str(const char* s, const char* prefix) {
-    SCU_ASSERT(s != nullptr);
-    SCU_ASSERT(prefix != nullptr);
+    SCU_ASSERT(s);
+    SCU_ASSERT(prefix);
     isize i = 0;
     while ((prefix[i] != '\0') && (s[i] == prefix[i])) {
         i++;
@@ -155,14 +155,14 @@ bool scu_str_starts_with_str(const char* s, const char* prefix) {
 }
 
 bool scu_str_ends_with_byte(const char* s, char c) {
-    SCU_ASSERT(s != nullptr);
+    SCU_ASSERT(s);
     isize length = scu_strlen(s);
     return (length > 0) && (s[length - 1] == c);
 }
 
 bool scu_str_ends_with_str(const char* s, const char* suffix) {
-    SCU_ASSERT(s != nullptr);
-    SCU_ASSERT(suffix != nullptr);
+    SCU_ASSERT(s);
+    SCU_ASSERT(suffix);
     isize suffixLength = scu_strlen(suffix);
     if (suffixLength == 0) {
         return true;
@@ -174,25 +174,23 @@ bool scu_str_ends_with_str(const char* s, const char* suffix) {
     return scu_strncmp(s + length - suffixLength, suffix, suffixLength) == 0;
 }
 
-[[nodiscard]]
 char* scu_strdup(const char* src) {
     isize length = scu_strlen(src);
     isize size = (length + 1) * SCU_SIZEOF(char);
     char* dest = scu_malloc(size);
-    if (dest != nullptr) {
+    if (dest) {
         scu_memcpy(dest, src, length * SCU_SIZEOF(char));
         dest[length] = '\0';
     }
     return dest;
 }
 
-[[nodiscard]]
 char* scu_strndup(const char* src, isize count) {
     const char* p = scu_memchr(src, '\0', count);
-    isize length = (p == nullptr) ? count : (p - src);
+    isize length = p ? p - src : count;
     isize size = (length + 1) * SCU_SIZEOF(char);
     char* dest = scu_malloc(size);
-    if (dest != nullptr) {
+    if (dest) {
         scu_memcpy(dest, src, length * SCU_SIZEOF(char));
         dest[length] = '\0';
     }
@@ -210,15 +208,15 @@ isize scu_strncpy(
     if (size == 0) {
         return 0;
     }
-    SCU_ASSERT(dest != nullptr);
+    SCU_ASSERT(dest);
     if (count == 0) {
         dest[0] = '\0';
         return 0;
     }
-    SCU_ASSERT(src != nullptr);
+    SCU_ASSERT(src);
     isize n = SCU_MIN(size - 1, count);
     char* p = scu_memccpy(dest, src, '\0', n);
-    if (p == nullptr) {
+    if (!p) {
         dest[n] = '\0';
         return n;
     }
@@ -236,8 +234,8 @@ isize scu_strncat(
     if ((size == 0) || (count == 0)) {
         return 0;
     }
-    SCU_ASSERT(dest != nullptr);
-    SCU_ASSERT(src != nullptr);
+    SCU_ASSERT(dest);
+    SCU_ASSERT(src);
     isize length = scu_strlen(dest);
     SCU_ASSERT(length < size);
     isize n = SCU_MIN(size - length - 1, count);
@@ -245,7 +243,7 @@ isize scu_strncat(
         return 0;
     }
     char* p = scu_memccpy(dest + length, src, '\0', n);
-    if (p == nullptr) {
+    if (!p) {
         dest[length + n] = '\0';
         return n;
     }

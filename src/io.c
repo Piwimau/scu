@@ -97,16 +97,16 @@ ScuError scu_fopen(
     const char* restrict name,
     const char* restrict mode
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(name != nullptr);
-    SCU_ASSERT(mode != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(name);
+    SCU_ASSERT(mode);
     FILE* handle = fopen(name, mode);
-    if (handle == nullptr) {
+    if (!handle) {
         *file = nullptr;
         return SCU_ERROR_OPENING_FILE;
     }
     *file = scu_malloc(SCU_SIZEOF(ScuFile));
-    if (*file == nullptr) {
+    if (!*file) {
         fclose(handle);
         return SCU_ERROR_OUT_OF_MEMORY;
     }
@@ -115,14 +115,14 @@ ScuError scu_fopen(
 }
 
 ScuError scu_fopentmp(ScuFile** file) {
-    SCU_ASSERT(file != nullptr);
+    SCU_ASSERT(file);
     FILE* handle = tmpfile();
-    if (handle == nullptr) {
+    if (!handle) {
         *file = nullptr;
         return SCU_ERROR_OPENING_FILE;
     }
     *file = scu_malloc(SCU_SIZEOF(ScuFile));
-    if (*file == nullptr) {
+    if (!*file) {
         fclose(handle);
         return SCU_ERROR_OUT_OF_MEMORY;
     }
@@ -135,11 +135,11 @@ ScuError scu_freopen(
     const char* restrict name,
     const char* restrict mode
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(mode != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(mode);
     FILE* handle = freopen(name, mode, file->handle);
-    if (handle == nullptr) {
+    if (!handle) {
         return SCU_ERROR_OPENING_FILE;
     }
     file->handle = handle;
@@ -147,8 +147,8 @@ ScuError scu_freopen(
 }
 
 ScuError scu_fclose(ScuFile* file) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     int result = fclose(file->handle);
     file->handle = nullptr;
     scu_free(file);
@@ -156,25 +156,25 @@ ScuError scu_fclose(ScuFile* file) {
 }
 
 ScuError scu_fflush(ScuFile* file) {
-    if (file == nullptr) {
+    if (!file) {
         return (fflush(nullptr) == EOF)
             ? SCU_ERROR_FLUSHING_FILE
             : SCU_ERROR_NONE;
     }
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file->handle);
     return (fflush(file->handle) == EOF)
         ? SCU_ERROR_FLUSHING_FILE
         : SCU_ERROR_NONE;
 }
 
 ScuError scu_fremove(const char* name) {
-    SCU_ASSERT(name != nullptr);
+    SCU_ASSERT(name);
     return (remove(name) != 0) ? SCU_ERROR_REMOVING_FILE : SCU_ERROR_NONE;
 }
 
 ScuError scu_frename(const char* oldName, const char* newName) {
-    SCU_ASSERT(oldName != nullptr);
-    SCU_ASSERT(newName != nullptr);
+    SCU_ASSERT(oldName);
+    SCU_ASSERT(newName);
     return (rename(oldName, newName) != 0)
         ? SCU_ERROR_RENAMING_FILE
         : SCU_ERROR_NONE;
@@ -186,14 +186,14 @@ isize scu_fread(
     isize count,
     isize size
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(size >= 0);
     if ((count == 0) || (size == 0)) {
         return 0;
     }
-    SCU_ASSERT(buffer != nullptr);
+    SCU_ASSERT(buffer);
     SCU_ASSERT(size <= (INT64_MAX / count));
     return (isize) fread(buffer, (usize) size, (usize) count, file->handle);
 }
@@ -208,14 +208,14 @@ isize scu_fwrite(
     isize count,
     isize size
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(size >= 0);
     if ((count == 0) || (size == 0)) {
         return 0;
     }
-    SCU_ASSERT(buffer != nullptr);
+    SCU_ASSERT(buffer);
     SCU_ASSERT(size <= (INT64_MAX / count));
     return (isize) fwrite(buffer, (usize) size, (usize) count, file->handle);
 }
@@ -225,9 +225,9 @@ isize scu_write(const void* buffer, isize count, isize size) {
 }
 
 ScuError scu_freadc(ScuFile* restrict file, char* restrict c) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(c != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(c);
     int result = fgetc(file->handle);
     if (result == EOF) {
         *c = '\0';
@@ -244,8 +244,8 @@ ScuError scu_readc(char* c) {
 }
 
 ScuError scu_fwritec(ScuFile* file, char c) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     return (fputc(c, file->handle) == EOF)
         ? SCU_ERROR_WRITING_FILE
         : SCU_ERROR_NONE;
@@ -256,21 +256,21 @@ ScuError scu_writec(char c) {
 }
 
 ScuError scu_funreadc(ScuFile* file, char c) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     return (ungetc(c, file->handle) == EOF)
         ? SCU_ERROR_WRITING_FILE
         : SCU_ERROR_NONE;
 }
 
 ScuError scu_freads(ScuFile* restrict file, char* restrict buffer, isize size) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     SCU_ASSERT(size >= 0);
     if (size == 0) {
         return SCU_ERROR_NONE;
     }
-    SCU_ASSERT(buffer != nullptr);
+    SCU_ASSERT(buffer);
     isize read = (isize) fread(
         buffer,
         sizeof(char),
@@ -292,9 +292,9 @@ ScuError scu_reads(char* buffer, isize size) {
 }
 
 ScuError scu_fwrites(ScuFile* restrict file, const char* restrict buffer) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(buffer != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(buffer);
     isize n = scu_strlen(buffer);
     isize written = (isize) fwrite(
         buffer,
@@ -310,7 +310,7 @@ ScuError scu_writes(const char* buffer) {
 }
 
 /**
- * @brief Ensures that a specified buffer has at least a required size.
+ * @brief Ensures that a buffer has at least a required size.
  *
  * This function checks if the buffer pointed to by `*buffer` has a size of at
  * least `requiredSize` bytes (determined by comparing against `*size`). If that
@@ -318,30 +318,30 @@ ScuError scu_writes(const char* buffer) {
  * has at least the required size. The new buffer is then stored in `*buffer`,
  * and its new size is reflected in `*size`.
  *
- * @note If `*size` is zero, `*buffer` must be a `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()` if
- * `requiredSize` is greater than zero.
- *
- * @warning If `*buffer` is not a `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
- *
  * @param[in, out] buffer       A pointer to a buffer that may need to be
  *                              reallocated.
  * @param[in, out] size         A pointer to the size of the buffer (in bytes).
  * @param[in]      requiredSize The required size of the buffer (in bytes).
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @warning If `*buffer` is not `nullptr`, it must have been allocated using
+ * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
+ * allocator used by these functions). The caller is expected to free `*buffer`
+ * with `scu_free()` when it is no longer needed.
+ *
+ * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
+ * this case, the function allocates a buffer using `scu_realloc()` if
+ * `requiredSize` is greater than zero.
  */
 static inline ScuError scu_ensure_size(
     char* restrict* restrict buffer,
     isize* restrict size,
     isize requiredSize
 ) {
-    SCU_ASSERT(buffer != nullptr);
-    SCU_ASSERT(size != nullptr);
-    SCU_ASSERT((*buffer == nullptr) == (*size == 0));
+    SCU_ASSERT(buffer);
+    SCU_ASSERT(size);
+    SCU_ASSERT((!*buffer) == (*size == 0));
     SCU_ASSERT(*size >= 0);
     SCU_ASSERT(requiredSize >= 0);
     if (requiredSize > *size) {
@@ -350,7 +350,7 @@ static inline ScuError scu_ensure_size(
             newSize *= SCU_GROWTH_FACTOR;
         }
         char* newBuffer = scu_realloc(*buffer, newSize * SCU_SIZEOF(char));
-        if (newBuffer == nullptr) {
+        if (!newBuffer) {
             return SCU_ERROR_OUT_OF_MEMORY;
         }
         *buffer = newBuffer;
@@ -364,11 +364,11 @@ ScuError scu_freadln(
     char* restrict* restrict buffer,
     isize* restrict size
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(buffer != nullptr);
-    SCU_ASSERT(size != nullptr);
-    SCU_ASSERT((*buffer == nullptr) == (*size == 0));
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(buffer);
+    SCU_ASSERT(size);
+    SCU_ASSERT((!*buffer) == (*size == 0));
     SCU_ASSERT(*size >= 0);
     isize used = 0;
     while (true) {
@@ -381,7 +381,7 @@ ScuError scu_freadln(
             return error;
         }
         isize available = *size - used;
-        if (fgets(*buffer + used, (int) available, file->handle) == nullptr) {
+        if (!fgets(*buffer + used, (int) available, file->handle)) {
             (*buffer)[used] = '\0';
             if (ferror(file->handle)) {
                 return SCU_ERROR_READING_FILE;
@@ -417,11 +417,11 @@ ScuError scu_freadall(
     char* restrict* restrict buffer,
     isize* restrict size
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(buffer != nullptr);
-    SCU_ASSERT(size != nullptr);
-    SCU_ASSERT((*buffer == nullptr) == (*size == 0));
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(buffer);
+    SCU_ASSERT(size);
+    SCU_ASSERT((!*buffer) == (*size == 0));
     SCU_ASSERT(*size >= 0);
     isize used = 0;
     while (true) {
@@ -460,9 +460,9 @@ isize scu_vfscanf(
     const char* restrict format,
     va_list args
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(format != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(format);
     isize n = vfscanf(file->handle, format, args);
     return (n == EOF) ? -1 : n;
 }
@@ -492,8 +492,8 @@ isize scu_vsscanf(
     const char* restrict format,
     va_list args
 ) {
-    SCU_ASSERT(buffer != nullptr);
-    SCU_ASSERT(format != nullptr);
+    SCU_ASSERT(buffer);
+    SCU_ASSERT(format);
     isize n = vsscanf(buffer, format, args);
     return (n == EOF) ? -1 : n;
 }
@@ -515,9 +515,9 @@ isize scu_vfprintf(
     const char* restrict format,
     va_list args
 ) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
-    SCU_ASSERT(format != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
+    SCU_ASSERT(format);
     isize n = vfprintf(file->handle, format, args);
     return (n < 0) ? -1 : n;
 }
@@ -549,8 +549,8 @@ isize scu_vsnprintf(
     va_list args
 ) {
     SCU_ASSERT(size >= 0);
-    SCU_ASSERT((size == 0) || (buffer != nullptr));
-    SCU_ASSERT(format != nullptr);
+    SCU_ASSERT((size == 0) || (buffer));
+    SCU_ASSERT(format);
     isize n = vsnprintf(buffer, (usize) size, format, args);
     if (n < 0) {
         if (size > 0) {
@@ -580,11 +580,11 @@ ScuError scu_vrsnprintf(
     const char* restrict format,
     va_list args
 ) {
-    SCU_ASSERT(buffer != nullptr);
-    SCU_ASSERT(size != nullptr);
-    SCU_ASSERT((*buffer == nullptr) == (*size == 0));
+    SCU_ASSERT(buffer);
+    SCU_ASSERT(size);
+    SCU_ASSERT((!*buffer) == (*size == 0));
     SCU_ASSERT(*size >= 0);
-    SCU_ASSERT(format != nullptr);
+    SCU_ASSERT(format);
     va_list argsCopy;
     va_copy(argsCopy, args);
     isize n = vsnprintf(nullptr, 0, format, argsCopy);
@@ -626,11 +626,11 @@ ScuError scu_vrasnprintf(
     const char* restrict format,
     va_list args
 ) {
-    SCU_ASSERT(buffer != nullptr);
-    SCU_ASSERT(size != nullptr);
-    SCU_ASSERT((*buffer == nullptr) == (*size == 0));
+    SCU_ASSERT(buffer);
+    SCU_ASSERT(size);
+    SCU_ASSERT((!*buffer) == (*size == 0));
     SCU_ASSERT(*size >= 0);
-    SCU_ASSERT(format != nullptr);
+    SCU_ASSERT(format);
     va_list argsCopy;
     va_copy(argsCopy, args);
     isize n = vsnprintf(nullptr, 0, format, argsCopy);
@@ -638,7 +638,7 @@ ScuError scu_vrasnprintf(
     if (n < 0) {
         return SCU_ERROR_WRITING_BUFFER;
     }
-    isize offset = (*buffer == nullptr) ? 0 : scu_strlen(*buffer);
+    isize offset = *buffer ? scu_strlen(*buffer) : 0;
     ScuError error = scu_ensure_size(
         buffer,
         size,
@@ -669,8 +669,8 @@ ScuError scu_rasnprintf(
 }
 
 isize scu_ftell(ScuFile* file) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
 #ifdef _WIN32
     return _ftelli64(file->handle);
 #else
@@ -679,8 +679,8 @@ isize scu_ftell(ScuFile* file) {
 }
 
 ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, isize offset) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     SCU_ASSERT(
         (seekOrigin == SCU_SEEK_ORIGIN_SET)
             || (seekOrigin == SCU_SEEK_ORIGIN_CUR)
@@ -712,25 +712,25 @@ ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, isize offset) {
 }
 
 void scu_frewind(ScuFile* file) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     rewind(file->handle);
 }
 
 void scu_fclear(ScuFile* file) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     clearerr(file->handle);
 }
 
 bool scu_feof(ScuFile* file) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     return feof(file->handle) != 0;
 }
 
 bool scu_ferror(ScuFile* file) {
-    SCU_ASSERT(file != nullptr);
-    SCU_ASSERT(file->handle != nullptr);
+    SCU_ASSERT(file);
+    SCU_ASSERT(file->handle);
     return ferror(file->handle) != 0;
 }

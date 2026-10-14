@@ -5,34 +5,30 @@
 #include "scu/time.h"
 #include "scu/types.h"
 
-/** @brief Represents the statistics of a benchmark. */
+/** @brief Statistics of a benchmark. */
 typedef struct ScuBenchStats {
 
-    /**
-     * @brief The minimum time taken for a single iteration (in nanoseconds).
-     */
+    /** @brief The minimum time across all iterations (in nanoseconds). */
     Scui64 minNs;
 
-    /**
-     * @brief The maximum time taken for a single iteration (in nanoseconds).
-     */
+    /** @brief The maximum time across all iterations (in nanoseconds). */
     Scui64 maxNs;
 
-    /** @brief The mean time taken for a single iteration (in nanoseconds). */
+    /** @brief The mean time across all iterations (in nanoseconds). */
     Scuf64 meanNs;
 
-    /** @brief The median time taken for a single iteration (in nanoseconds). */
+    /** @brief The median time across all iterations (in nanoseconds). */
     Scuf64 medianNs;
 
     /**
-     * @brief The standard deviation of the time taken for a single iteration
-     * (in nanoseconds).
+     * @brief The standard deviation of the time across all iterations (in
+     * nanoseconds).
      */
     Scuf64 stdDevNs;
 
 } ScuBenchStats;
 
-/** @brief Represents a result of a benchmark. */
+/** @brief A result of a benchmark. */
 typedef struct ScuBenchResult {
 
     /** @brief The wall time statistics. */
@@ -44,20 +40,20 @@ typedef struct ScuBenchResult {
     /** @brief The number of iterations performed. */
     Scuisize iterations;
 
-    /** @brief An error code indicating whether the benchmark was successful. */
+    /** @brief Whether the benchmark was successful. */
     ScuError error;
 
 } ScuBenchResult;
 
 /**
- * @brief Represents a context for a benchmark.
+ * @brief A context for a benchmark.
  *
  * @warning This structure is an implementation detail and not intended to be
- * used by callers. The internal representation should not be relied upon and
- * may change without notice. Most importantly, the behavior is undefined if its
+ * used directly. Its internal representation must not be relied upon and may
+ * change without notice. Most importantly, the behavior is undefined if its
  * fields are accessed directly.
  */
-typedef struct ScuBenchCtx {
+typedef struct ScuBenchContext {
 
     /** @brief The timing mode for measuring CPU time. */
     ScuTimingMode timingMode;
@@ -74,40 +70,42 @@ typedef struct ScuBenchCtx {
     /** @brief The number of warmup iterations. */
     Scuisize warmup;
 
-    /** @brief The number of iterations to perform (after warmup). */
+    /** @brief The number of benchmark iterations (after warmup). */
     Scuisize iterations;
 
     /** @brief The current iteration. */
     Scuisize iteration;
 
-    /** @brief An error code indicating whether the benchmark was successful. */
+    /** @brief Whether the benchmark was successful. */
     ScuError error;
 
     /** @brief A pointer for storing the result of the benchmark. */
     ScuBenchResult* benchResult;
 
-} ScuBenchCtx;
+} ScuBenchContext;
 
 /**
- * @brief Allocates and initializes a new benchmark context.
- *
- * @note This function is an implementation detail and not intended to be used
- * by callers directly. Use the `SCU_BENCH()` macro instead.
- *
- * @warning Although the returned context itself is not dynamically allocated,
- * some of its associated resources (e.g., the lists of samples) are. It must be
- * passed to `scu_bench_ctx_is_running()` and `scu_bench_ctx_advance()`, which
- * manage the underlying resources and deallocate them when the benchmark is
- * complete.
+ * @brief Constructs a benchmark context.
  *
  * @param[in] timingMode  The timing mode for measuring CPU time.
  * @param[in] warmup      The number of warmup iterations.
- * @param[in] iterations  The number of iterations to perform (after warmup).
+ * @param[in] iterations  The number of benchmark iterations (after warmup).
  * @param[in] benchResult A pointer for storing the result of the benchmark.
- * @return A new benchmark context.
+ * @return A benchmark context.
+ *
+ * @warning Although the context itself is not dynamically allocated, some of
+ * its associated resources (e.g., the samples) are. It must be passed to
+ * `scu_bench_context_is_running()` and `scu_bench_context_advance()`, which
+ * manage the underlying resources and deallocate them when the benchmark is
+ * complete.
+ *
+ * The behavior is undefined if `warmup` or `iterations` is negative, or if
+ * `benchResult` is `nullptr`.
+ *
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `SCU_BENCH()` macro instead.
  */
-[[nodiscard]]
-ScuBenchCtx scu_bench_ctx_new(
+ScuBenchContext scu_bench_context_new(
     ScuTimingMode timingMode,
     Scuisize warmup,
     Scuisize iterations,
@@ -115,33 +113,37 @@ ScuBenchCtx scu_bench_ctx_new(
 );
 
 /**
- * @brief Determines whether a specified benchmark is still running.
+ * @brief Determines whether a benchmark is still running.
+ *
+ * @param[in, out] context The context of the benchmark to examine.
+ * @return `true` if the specified benchmark is still running, `false`
+ * otherwise.
  *
  * @note This function is an implementation detail and not intended to be used
- * by callers directly. Use the `SCU_BENCH()` macro instead.
+ * directly. Use the `SCU_BENCH()` macro instead.
  *
- * @param[in, out] ctx The benchmark context to examine.
- * @return `true` if the specified benchmark is still running, otherwise
- * `false`.
+ * @warning The behavior is undefined if `context` is `nullptr`.
  */
-bool scu_bench_ctx_is_running(ScuBenchCtx* ctx);
+bool scu_bench_context_is_running(ScuBenchContext* context);
 
 /**
- * @brief Advances a specified benchmark to the next iteration.
+ * @brief Advances a benchmark to the next iteration.
+ *
+ * @param[in, out] context The context of the benchmark to advance.
  *
  * @note This function is an implementation detail and not intended to be used
- * by callers directly. Use the `SCU_BENCH()` macro instead.
+ * directly. Use the `SCU_BENCH()` macro instead.
  *
- * @param[in, out] ctx The benchmark context to advance.
+ * @warning The behavior is undefined if `context` is `nullptr`.
  */
-void scu_bench_ctx_advance(ScuBenchCtx* ctx);
+void scu_bench_context_advance(ScuBenchContext* context);
 
 /**
  * @brief Benchmarks a block of code.
  *
- * This macro simplifies the process of benchmarking a block of code. It creates
- * a new benchmark context, executes the block of code for the specified number
- * of iterations (with an optional number of warmup iterations), and stores the
+ * This macro simplifies the process of benchmarking a block of code. It
+ * constructs a benchmark context, executes the block of code for the specified
+ * number of iterations (with optional warmup iterations), and stores the
  * benchmark results in `*result`.
  *
  * The following example demonstrates the basic usage of this macro:
@@ -159,41 +161,44 @@ void scu_bench_ctx_advance(ScuBenchCtx* ctx);
  * }
  * ```
  *
- * @note If the benchmark cannot be started, the block of code is not executed.
- * In this case, `result->error` is set to an appropriate error code. This is
- * also the case if retrieving the elapsed times fails after executing the block
- * of code, or if the benchmark fails for any other reason. In all of these
- * cases, `result->wall` and `result->cpu` are zero-initialized, and
+ * @param[in] mode       The timing mode for measuring CPU time.
+ * @param[in] warmup     The number of warmup iterations.
+ * @param[in] iterations The number of benchmark iterations (after warmup).
+ * @param[in] result     A pointer for storing the result of the benchmark.
+ *
+ * @warning Exiting the block of code early by means of jump statements (such as
+ * `return` or `goto`) results in memory leaks, as the benchmark context is not
+ * properly advanced to the next iteration and deallocated when the benchmark is
+ * complete.
+ *
+ * The behavior is undefined if `warmup` or `iterations` is negative, or if
+ * `result` is `nullptr`.
+ *
+ * @note If the benchmark cannot be started, the block of code is never
+ * executed. In this case, `result->error` is set to an appropriate error code.
+ * This is also the case if retrieving the elapsed times fails after executing
+ * the block of code, or if the benchmark fails for any other reason. In all of
+ * these cases, `result->wall` and `result->cpu` are zero-initialized, and
  * `result->iterations` is set to the number of iterations that were
  * successfully completed before the error occurred (which may be zero).
  *
  * Zero may be passed both to `warmup` and `iterations` to indicate that no
- * warmup or (real) iterations are required. In this case, the benchmark is
+ * warmup or benchmark iterations are required. In this case, the benchmark is
  * still considered to be successfully executed, and `result->error` is set to
  * `SCU_ERROR_NONE`. Additionally, `result->wall`, `result->cpu`, and
  * `result->iterations` are zero-initialized.
- *
- * @warning Exiting the block of code early by means of jump statements (such as
- * `return` or `goto`) will result in memory leaks, as the underlying benchmark
- * context is not properly advanced to the next iteration or deallocated after
- * the last iteration.
- *
- * @param[in] mode       The timing mode for measuring CPU time.
- * @param[in] warmup     The number of warmup iterations.
- * @param[in] iterations The number of iterations to perform (after warmup).
- * @param[in] result     A pointer for storing the result of the benchmark.
  */
-#define SCU_BENCH(mode, warmup, iterations, result)       \
-    for (                                                 \
-        ScuBenchCtx scuCtx = scu_bench_ctx_new(           \
-            (mode),                                       \
-            (warmup),                                     \
-            (iterations),                                 \
-            (result)                                      \
-        );                                                \
-        scu_bench_ctx_is_running(&scuCtx);                \
-        scu_bench_ctx_advance(&scuCtx)                    \
-    )                                                     \
-        SCU_TIME(scuCtx.timingMode, &scuCtx.timingResult)
+#define SCU_BENCH(mode, warmup, iterations, result)               \
+    for (                                                         \
+        ScuBenchContext scuContext = scu_bench_context_new(       \
+            (mode),                                               \
+            (warmup),                                             \
+            (iterations),                                         \
+            (result)                                              \
+        );                                                        \
+        scu_bench_context_is_running(&scuContext);                \
+        scu_bench_context_advance(&scuContext)                    \
+    )                                                             \
+        SCU_TIME(scuContext.timingMode, &scuContext.timingResult)
 
 #endif

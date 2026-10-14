@@ -20,7 +20,7 @@ void scu_assert_fail(
         line,
         func
     );
-    if (fmt != nullptr) {
+    if (fmt) {
         fprintf(stderr, "Message: ");
         va_list args;
         va_start(args, fmt);

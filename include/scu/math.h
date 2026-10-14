@@ -2,25 +2,25 @@
 #define SCU_MATH_H
 
 /**
- * @brief Returns the minimum of two specified values.
+ * @brief Returns the minimum of two values.
  *
- * @param[in] a The first value.
- * @param[in] b The second value.
- * @return The minimum of `a` and `b`.
+ * @param[in] lhs The first value.
+ * @param[in] rhs The second value.
+ * @return The minimum of `lhs` and `rhs`.
  */
-#define SCU_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define SCU_MIN(lhs, rhs) (((lhs) < (rhs)) ? (lhs) : (rhs))
 
 /**
- * @brief Returns the maximum of two specified values.
+ * @brief Returns the maximum of two values.
  *
- * @param[in] a The first value.
- * @param[in] b The second value.
- * @return The maximum of `a` and `b`.
+ * @param[in] lhs The first value.
+ * @param[in] rhs The second value.
+ * @return The maximum of `lhs` and `rhs`.
  */
-#define SCU_MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define SCU_MAX(lhs, rhs) (((lhs) > (rhs)) ? (lhs) : (rhs))
 
 /**
- * @brief Returns the absolute of a specified value.
+ * @brief Returns the absolute of a value.
  *
  * @param[in] x The value to compute the absolute of.
  * @return The absolute of `x`.

@@ -4,48 +4,48 @@
 /**
  * @brief Converts an expression to a string literal.
  *
- * @note In contrast to `SCU_XSTRINGIFY()`, this macro does not expand
- * `expr` before stringifying it.
- *
- * @param[in] expr The expression to convert to a string literal.
+ * @param[in] expr The expression to convert.
  * @return A string literal representation of `expr`.
+ *
+ * @note In contrast to `SCU_XSTRINGIFY()`, this macro does not expand `expr`
+ * before stringifying it.
  */
 #define SCU_STRINGIFY(expr) #expr
 
 /**
  * @brief Expands an expression and converts it to a string literal.
  *
+ * @param[in] expr The expression to expand and convert.
+ * @return A string literal representation of the expanded `expr`.
+ *
  * @note In contrast to `SCU_STRINGIFY()`, this macro expands `expr` before
  * stringifying it.
- *
- * @param[in] expr The expression to expand and convert to a string literal.
- * @return A string literal representation of the expanded `expr`.
  */
 #define SCU_XSTRINGIFY(expr) SCU_STRINGIFY(expr)
 
 /**
- * @brief Concatenates two tokens into a single token.
+ * @brief Concatenates two tokens to a single token.
  *
- * @note In contrast to `SCU_XCONCAT()`, this macro does not expand `a` and
- * `b` before concatenating them.
- *
- * @param[in] a The first token.
- * @param[in] b The second token.
+ * @param[in] lhs The first token.
+ * @param[in] rhs The second token.
  * @return The concatenated token.
+ *
+ * @note In contrast to `SCU_XCONCAT()`, this macro does not expand `lhs` and
+ * `rhs` before concatenating them.
  */
-#define SCU_CONCAT(a, b) a##b
+#define SCU_CONCAT(lhs, rhs) lhs##rhs
 
 /**
- * @brief Expands two tokens and concatenates them into a single token.
+ * @brief Expands two tokens and concatenates them to a single token.
  *
- * @note In contrast to `SCU_CONCAT()`, this macro expands `a` and `b`
+ * @param[in] lhs The first token.
+ * @param[in] rhs The second token.
+ * @return The concatenated token after expanding `lhs` and `rhs`.
+ *
+ * @note In contrast to `SCU_CONCAT()`, this macro expands `lhs` and `rhs`
  * before concatenating them.
- *
- * @param[in] a The first token.
- * @param[in] b The second token.
- * @return The concatenated token after expanding `a` and `b`.
  */
-#define SCU_XCONCAT(a, b) SCU_CONCAT(a, b)
+#define SCU_XCONCAT(lhs, rhs) SCU_CONCAT(lhs, rhs)
 
 #ifdef _MSC_VER
     #define SCU_CONST_CAST_IMPL(type, ptr)                    \
@@ -66,7 +66,7 @@
 #endif
 
 /**
- * @brief Casts away the `const` qualifier from a specified pointer.
+ * @brief Casts away the `const` qualifier from a pointer.
  *
  * This macro is intended to be used in situations where you need to cast away
  * the `const` qualifier from a pointer for whatever reason. The following
@@ -83,9 +83,9 @@
  *
  * @warning Needless to say, this macro should be used sparingly and with
  * caution, as it can lead to undefined behavior if the resulting pointer is
- * used to modify an object that was originally declared as `const`. It exists
- * for reasons of interfacing with legacy and/or non-const-correct APIs and
- * draws attention to the fact that something rather unusual is going on.
+ * used to modify an object that was originally declared `const`. It exists
+ * solely for reasons of interfacing with legacy or non-const-correct APIs and
+ * draws attention to the fact that something unusual is going on.
  *
  * @param[in] type The (non-const) type to cast to.
  * @param[in] ptr  The pointer to cast.

@@ -12,10 +12,10 @@ void scu_fatal(
     const char* restrict fmt,
     ...
 ) {
-    SCU_ASSERT(file != nullptr);
+    SCU_ASSERT(file);
     SCU_ASSERT(line >= 0);
-    SCU_ASSERT(func != nullptr);
-    SCU_ASSERT(fmt != nullptr);
+    SCU_ASSERT(func);
+    SCU_ASSERT(fmt);
     scu_fprintf(
         SCU_STDERR,
         "SCU: Fatal error occurred at %s:%d in %s().\n",
