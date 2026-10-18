@@ -57,7 +57,6 @@ srcs = files(
     'src/queue.c',
     'src/stack.c',
     'src/string.c',
-    'src/time.c',
 )
 
 m_dep = cc.find_library('m', required: false)

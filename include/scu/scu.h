@@ -19,7 +19,6 @@
 #include "scu/queue.h"
 #include "scu/stack.h"
 #include "scu/string.h"
-#include "scu/time.h"
 #include "scu/types.h"
 #include "scu/util.h"
 
