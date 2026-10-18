@@ -101,7 +101,7 @@ ScuQueue* scu_queue_clone(const ScuQueue* queue) {
             );
         }
         clone->head = 0;
-        clone->tail = queue->count;
+        clone->tail = queue->count % clone->capacity;
     }
     else {
         clone->elems = nullptr;
@@ -263,7 +263,7 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
             queue->elems = newElems;
             queue->capacity = newCapacity;
             queue->head = 0;
-            queue->tail = queue->count;
+            queue->tail = queue->count % queue->capacity;
         }
     }
     return SCU_ERROR_NONE;
