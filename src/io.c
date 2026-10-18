@@ -195,7 +195,7 @@ isize scu_fread(
         return 0;
     }
     SCU_ASSERT(buffer);
-    SCU_ASSERT(size <= (INT64_MAX / count));
+    SCU_ASSERT(size <= ISIZE_MAX / count);
     return (isize) fread(buffer, (usize) size, (usize) count, file->handle);
 }
 
@@ -217,7 +217,7 @@ isize scu_fwrite(
         return 0;
     }
     SCU_ASSERT(buffer);
-    SCU_ASSERT(size <= (INT64_MAX / count));
+    SCU_ASSERT(size <= ISIZE_MAX / count);
     return (isize) fwrite(buffer, (usize) size, (usize) count, file->handle);
 }
 
