@@ -140,6 +140,7 @@ ScuError scu_freopen(
     SCU_ASSERT(mode);
     FILE* handle = freopen(name, mode, file->handle);
     if (!handle) {
+        file->handle = nullptr;
         return SCU_ERROR_OPENING_FILE;
     }
     file->handle = handle;

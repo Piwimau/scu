@@ -213,6 +213,9 @@ ScuError scu_fopentmp(ScuFile** file);
  * streams `SCU_STDIN`, `SCU_STDOUT` or `SCU_STDERR`, the file stream must be
  * closed with `scu_fclose()` to properly release any associated resources.
  *
+ * If the operation fails, `file` is invalidated and must not be used anymore
+ * (and especially not closed with `scu_fclose()`).
+ *
  * The behavior is undefined if `mode` is not one of the supported mode strings
  * listed above.
  *
