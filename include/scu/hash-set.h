@@ -133,8 +133,7 @@ ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
  * The behavior is undefined if the element is already present in the hash set.
  * Use `scu_hash_set_try_add()` to handle this case gracefully.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_set_add(
     ScuHashSet* restrict hashSet,
@@ -153,8 +152,7 @@ ScuError scu_hash_set_add(
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_set_begin()` and `scu_hash_set_end()`.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_set_try_add(
     ScuHashSet* restrict hashSet,

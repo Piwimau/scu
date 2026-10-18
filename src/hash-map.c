@@ -76,6 +76,9 @@ struct ScuHashMap {
      */
     ScuBucket* buckets;
 
+    /** @brief A bucket used as scratch space for insertions. */
+    ScuBucket* scratch;
+
 };
 
 /** @brief The default capacity of a hash map. */
@@ -193,6 +196,12 @@ ScuHashMap* scu_hash_map_new_with_capacity(
         hashMap->capacity = 0;
         hashMap->buckets = nullptr;
     }
+    hashMap->scratch = scu_malloc(hashMap->bucketSize);
+    if (!hashMap->scratch) {
+        scu_free(hashMap->buckets);
+        scu_free(hashMap);
+        return nullptr;
+    }
     return hashMap;
 }
 
@@ -225,6 +234,12 @@ ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap) {
     }
     else {
         clone->buckets = nullptr;
+    }
+    clone->scratch = scu_malloc(clone->bucketSize);
+    if (!clone->scratch) {
+        scu_free(clone->buckets);
+        scu_free(clone);
+        return nullptr;
     }
     return clone;
 }
@@ -432,19 +447,16 @@ ScuError scu_hash_map_try_add(
             return error;
         }
     }
-    ScuBucket* tempBucket = scu_malloc(hashMap->bucketSize);
-    if (!tempBucket) {
-        return SCU_ERROR_OUT_OF_MEMORY;
-    }
-    tempBucket->hash = hashMap->keyHashFunc(key);
-    tempBucket->isOccupied = true;
-    scu_memcpy(tempBucket->key, key, hashMap->keySize);
+    ScuBucket* scratch = hashMap->scratch;
+    scratch->hash = hashMap->keyHashFunc(key);
+    scratch->isOccupied = true;
+    scu_memcpy(scratch->key, key, hashMap->keySize);
     scu_memcpy(
-        scu_bucket_value(tempBucket, hashMap->valueOffset),
+        scu_bucket_value(scratch, hashMap->valueOffset),
         value,
         hashMap->valueSize
     );
-    isize index = scu_ideal_index(tempBucket->hash, hashMap->capacity);
+    isize index = scu_ideal_index(scratch->hash, hashMap->capacity);
     isize distance = 0;
     while (true) {
         ScuBucket* bucket = scu_bucket_at(
@@ -453,16 +465,14 @@ ScuError scu_hash_map_try_add(
             hashMap->bucketSize
         );
         if (!bucket->isOccupied) {
-            scu_memcpy(bucket, tempBucket, hashMap->bucketSize);
+            scu_memcpy(bucket, scratch, hashMap->bucketSize);
             hashMap->count++;
-            scu_free(tempBucket);
             return SCU_ERROR_NONE;
         }
         if (
-            (bucket->hash == tempBucket->hash)
-                && hashMap->keyEqualFunc(bucket->key, tempBucket->key)
+            (bucket->hash == scratch->hash)
+                && hashMap->keyEqualFunc(bucket->key, scratch->key)
         ) {
-            scu_free(tempBucket);
             return SCU_ERROR_ALREADY_PRESENT;
         }
         isize otherDistance = scu_probe_distance(
@@ -471,7 +481,7 @@ ScuError scu_hash_map_try_add(
             hashMap->capacity
         );
         if (distance > otherDistance) {
-            scu_memswap(bucket, tempBucket, hashMap->bucketSize);
+            scu_memswap(bucket, scratch, hashMap->bucketSize);
             distance = otherDistance;
         }
         index = scu_wrap_index(index + 1, hashMap->capacity);
@@ -595,19 +605,16 @@ ScuError scu_hash_map_set(
             return error;
         }
     }
-    ScuBucket* tempBucket = scu_malloc(hashMap->bucketSize);
-    if (!tempBucket) {
-        return SCU_ERROR_OUT_OF_MEMORY;
-    }
-    tempBucket->hash = hashMap->keyHashFunc(key);
-    tempBucket->isOccupied = true;
-    scu_memcpy(tempBucket->key, key, hashMap->keySize);
+    ScuBucket* scratch = hashMap->scratch;
+    scratch->hash = hashMap->keyHashFunc(key);
+    scratch->isOccupied = true;
+    scu_memcpy(scratch->key, key, hashMap->keySize);
     scu_memcpy(
-        scu_bucket_value(tempBucket, hashMap->valueOffset),
+        scu_bucket_value(scratch, hashMap->valueOffset),
         value,
         hashMap->valueSize
     );
-    isize index = scu_ideal_index(tempBucket->hash, hashMap->capacity);
+    isize index = scu_ideal_index(scratch->hash, hashMap->capacity);
     isize distance = 0;
     while (true) {
         ScuBucket* bucket = scu_bucket_at(
@@ -616,9 +623,8 @@ ScuError scu_hash_map_set(
             hashMap->bucketSize
         );
         if (!bucket->isOccupied) {
-            scu_memcpy(bucket, tempBucket, hashMap->bucketSize);
+            scu_memcpy(bucket, scratch, hashMap->bucketSize);
             hashMap->count++;
-            scu_free(tempBucket);
             return SCU_ERROR_NONE;
         }
         isize otherDistance = scu_probe_distance(
@@ -627,7 +633,7 @@ ScuError scu_hash_map_set(
             hashMap->capacity
         );
         if (distance > otherDistance) {
-            scu_memswap(bucket, tempBucket, hashMap->bucketSize);
+            scu_memswap(bucket, scratch, hashMap->bucketSize);
             distance = otherDistance;
         }
         index = scu_wrap_index(index + 1, hashMap->capacity);
@@ -810,6 +816,8 @@ void scu_hash_map_free(ScuHashMap* hashMap) {
     }
     scu_free(hashMap->buckets);
     hashMap->buckets = nullptr;
+    scu_free(hashMap->scratch);
+    hashMap->scratch = nullptr;
     hashMap->capacity = 0;
     hashMap->count = 0;
     scu_free(hashMap);

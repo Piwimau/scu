@@ -154,8 +154,7 @@ ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, Scuisize capacity);
  * The behavior is undefined if the key is already present in the hash map. Use
  * `scu_hash_map_try_add()` to handle this case gracefully.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_map_add(
     ScuHashMap* restrict hashMap,
@@ -176,8 +175,7 @@ ScuError scu_hash_map_add(
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_map_begin()` and `scu_hash_map_end()`.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_map_try_add(
     ScuHashMap* restrict hashMap,
@@ -239,8 +237,7 @@ bool scu_hash_map_try_get_impl(
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_map_begin()` and `scu_hash_map_end()`.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function dynamically allocates memory using `scu_calloc()`.
  *
  * If the key is already present in the hash map, its associated value is
  * replaced with the new value. Otherwise, a new key-value pair is added to the
