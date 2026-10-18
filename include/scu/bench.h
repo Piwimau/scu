@@ -226,8 +226,8 @@ bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch);
  * nanoseconds on success, or an appropriate error code on failure.
  *
  * @note If the stopwatch was never started before or was previously reset, the
- * the returned timing result has both `wallNs` and `cpuNs` fields set to `0`,
- * and the `error` field set to `SCU_ERROR_NONE`. Otherwise, the timing result
+ * returned timing result has both `wallNs` and `cpuNs` fields set to `0`, and
+ * the `error` field set to `SCU_ERROR_NONE`. Otherwise, the timing result
  * contains the accumulated wall and CPU time measured by the stopwatch in
  * nanoseconds up to the point when it was last stopped (if the stopwatch is
  * stopped) or up to the current point in time (if the stopwatch is running).

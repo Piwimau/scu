@@ -71,9 +71,10 @@ void* scu_memrchr(const void* block, Scubyte c, Scuisize count);
  * This function compares the byte representation of the two blocks of memory,
  * not the values of the objects they may represent. It should not be used to
  * compare objects (e.g., structs, unions, floating-point numbers, etc.) for
- * equality, as there could padding bits or multiple representations of the same
- * value. In such cases, the return value of this function may be misleading and
- * a member-wise or numerical comparison should be performed instead.
+ * equality, as there could be padding bits or multiple representations of the
+ * same value. In such cases, the return value of this function may be
+ * misleading and a member-wise or numerical comparison should be performed
+ * instead.
  *
  * @note If `count` is zero, both `left` and `right` are ignored (each may even
  * be `nullptr`), and the function returns zero.
