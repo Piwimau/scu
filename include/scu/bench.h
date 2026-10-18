@@ -121,7 +121,7 @@ typedef struct ScuBenchContext {
     Scui64* cpuSamples;
 
     /** @brief The number of warmup iterations. */
-    Scuisize warmup;
+    Scuisize warmups;
 
     /** @brief The number of benchmark iterations (after warmup). */
     Scuisize iterations;
@@ -243,7 +243,7 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch);
  * @brief Constructs a benchmark context.
  *
  * @param[in] timingMode  The timing mode for measuring CPU time.
- * @param[in] warmup      The number of warmup iterations.
+ * @param[in] warmups     The number of warmup iterations.
  * @param[in] iterations  The number of benchmark iterations (after warmup).
  * @param[in] benchResult A pointer for storing the result of the benchmark.
  * @return A benchmark context.
@@ -254,7 +254,7 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch);
  * manage the underlying resources and deallocate them when the benchmark is
  * complete.
  *
- * The behavior is undefined if `warmup` or `iterations` is negative, or if
+ * The behavior is undefined if `warmups` or `iterations` is negative, or if
  * `benchResult` is `nullptr`.
  *
  * @note This function is an implementation detail and not intended to be used
@@ -262,7 +262,7 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch);
  */
 ScuBenchContext scu_bench_context_new(
     ScuTimingMode timingMode,
-    Scuisize warmup,
+    Scuisize warmups,
     Scuisize iterations,
     ScuBenchResult* benchResult
 );
@@ -372,7 +372,7 @@ void scu_bench_context_advance(ScuBenchContext* context);
  * ```
  *
  * @param[in] mode       The timing mode for measuring CPU time.
- * @param[in] warmup     The number of warmup iterations.
+ * @param[in] warmups    The number of warmup iterations.
  * @param[in] iterations The number of benchmark iterations (after warmup).
  * @param[in] result     A pointer for storing the result of the benchmark.
  *
@@ -381,7 +381,7 @@ void scu_bench_context_advance(ScuBenchContext* context);
  * properly advanced to the next iteration and deallocated when the benchmark is
  * complete.
  *
- * The behavior is undefined if `warmup` or `iterations` is negative, or if
+ * The behavior is undefined if `warmups` or `iterations` is negative, or if
  * `result` is `nullptr`.
  *
  * @note If the benchmark cannot be started, the block of code is never
@@ -392,17 +392,17 @@ void scu_bench_context_advance(ScuBenchContext* context);
  * `result->iterations` is set to the number of iterations that were
  * successfully completed before the error occurred (which may be zero).
  *
- * Zero may be passed both to `warmup` and `iterations` to indicate that no
+ * Zero may be passed both to `warmups` and `iterations` to indicate that no
  * warmup or benchmark iterations are required. In this case, the benchmark is
  * still considered to be successfully executed, and `result->error` is set to
  * `SCU_ERROR_NONE`. Additionally, `result->wall`, `result->cpu`, and
  * `result->iterations` are zero-initialized.
  */
-#define SCU_BENCH(mode, warmup, iterations, result)               \
+#define SCU_BENCH(mode, warmups, iterations, result)              \
     for (                                                         \
         ScuBenchContext scuContext = scu_bench_context_new(       \
             (mode),                                               \
-            (warmup),                                             \
+            (warmups),                                            \
             (iterations),                                         \
             (result)                                              \
         );                                                        \

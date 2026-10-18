@@ -242,16 +242,16 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
 
 ScuBenchContext scu_bench_context_new(
     ScuTimingMode timingMode,
-    isize warmup,
+    isize warmups,
     isize iterations,
     ScuBenchResult* benchResult
 ) {
-    SCU_ASSERT(warmup >= 0);
+    SCU_ASSERT(warmups >= 0);
     SCU_ASSERT(iterations >= 0);
     SCU_ASSERT(benchResult);
     ScuBenchContext context = {
         .timingMode = timingMode,
-        .warmup = warmup,
+        .warmups = warmups,
         .iterations = iterations,
         .benchResult = benchResult
     };
@@ -314,12 +314,14 @@ bool scu_bench_context_is_running(ScuBenchContext* context) {
     SCU_ASSERT(context);
     if (context->error != SCU_ERROR_NONE) {
         *context->benchResult = (ScuBenchResult) {
-            .iterations = context->iteration,
+            .iterations = (context->iteration > context->warmups)
+                ? context->iteration - context->warmups
+                : 0,
             .error = context->error
         };
         return false;
     }
-    if (context->iteration < context->warmup + context->iterations) {
+    if (context->iteration < context->warmups + context->iterations) {
         return true;
     }
     context->benchResult->iterations = context->iterations;
@@ -355,8 +357,8 @@ void scu_bench_context_advance(ScuBenchContext* context) {
         context->error = SCU_ERROR_TIMING_FAILED;
         return;
     }
-    if (context->iteration >= context->warmup) {
-        isize sampleIdx = context->iteration - context->warmup;
+    if (context->iteration >= context->warmups) {
+        isize sampleIdx = context->iteration - context->warmups;
         context->wallSamples[sampleIdx] = context->timingResult.wallNs;
         context->cpuSamples[sampleIdx] = context->timingResult.cpuNs;
     }
