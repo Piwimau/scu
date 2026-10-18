@@ -89,6 +89,23 @@ ScuHashSet* scu_hash_set_new(
 }
 
 /**
+ * @brief Rounds up a value to the next multiple of an alignment.
+ *
+ * @param[in] value     The value to round up.
+ * @param[in] alignment The required alignment.
+ * @return The smallest multiple of `alignment` greater than or equal to
+ * `value`.
+ *
+ * @warning The behavior is undefined if `alignment` is not a power of two.
+ */
+static inline isize scu_align_up(isize value, isize alignment) {
+    SCU_ASSERT(value >= 0);
+    SCU_ASSERT(alignment > 0);
+    SCU_ASSERT((alignment & (alignment - 1)) == 0);
+    return (value + alignment - 1) & ~(alignment - 1);
+}
+
+/**
  * @brief Returns the smallest power of two greater than or equal to a value.
  *
  * @param[in] n The value to examine.
@@ -128,7 +145,10 @@ ScuHashSet* scu_hash_set_new_with_capacity(
         return nullptr;
     }
     hashSet->elemSize = elemSize;
-    hashSet->bucketSize = SCU_SIZEOF(ScuBucket) + elemSize;
+    hashSet->bucketSize = scu_align_up(
+        SCU_SIZEOF(ScuBucket) + elemSize,
+        SCU_ALIGNOF(max_align_t)
+    );
     hashSet->count = 0;
     hashSet->hashFunc = hashFunc;
     hashSet->equalFunc = equalFunc;
