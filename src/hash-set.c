@@ -415,7 +415,7 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem) {
     isize index = scu_ideal_index(hash, hashSet->capacity);
     isize distance = 0;
     while (true) {
-        ScuBucket* bucket = scu_bucket_at(
+        const ScuBucket* bucket = scu_bucket_at(
             hashSet->buckets,
             index,
             hashSet->bucketSize
@@ -452,7 +452,7 @@ bool scu_hash_set_remove(
     isize index = scu_ideal_index(hash, hashSet->capacity);
     isize distance = 0;
     while (true) {
-        ScuBucket* bucket = scu_bucket_at(
+        const ScuBucket* bucket = scu_bucket_at(
             hashSet->buckets,
             index,
             hashSet->bucketSize
@@ -549,63 +549,6 @@ ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet) {
     return SCU_ERROR_NONE;
 }
 
-ScuHashSetIter scu_hash_set_iter(const ScuHashSet* hashSet) {
-    SCU_ASSERT(hashSet);
-    return (ScuHashSetIter) {
-        .hashSet = SCU_CONST_CAST(ScuHashSet*, hashSet),
-        .index = -1
-    };
-}
-
-bool scu_hash_set_iter_move_next(ScuHashSetIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->hashSet);
-    ScuHashSet* hashSet = iter->hashSet;
-    isize index = iter->index;
-    SCU_ASSERT((index >= -1) && (index <= hashSet->capacity));
-    if (hashSet->count == 0) {
-        iter->index = hashSet->capacity;
-        return false;
-    }
-    index++;
-    while (index < hashSet->capacity) {
-        ScuBucket* bucket = scu_bucket_at(
-            hashSet->buckets,
-            index,
-            hashSet->bucketSize
-        );
-        if (bucket->isOccupied) {
-            iter->index = index;
-            return true;
-        }
-        index++;
-    }
-    iter->index = hashSet->capacity;
-    return false;
-}
-
-void* scu_hash_set_iter_current(const ScuHashSetIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->hashSet);
-    ScuHashSet* hashSet = iter->hashSet;
-    isize index = iter->index;
-    SCU_ASSERT((index >= 0) && (index < hashSet->capacity));
-    ScuBucket* bucket = scu_bucket_at(
-        hashSet->buckets,
-        index,
-        hashSet->bucketSize
-    );
-    SCU_ASSERT(bucket->isOccupied);
-    return bucket->elem;
-}
-
-void scu_hash_set_iter_reset(ScuHashSetIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->hashSet);
-    SCU_ASSERT((iter->index >= -1) && (iter->index <= iter->hashSet->capacity));
-    iter->index = -1;
-}
-
 void scu_hash_set_free(ScuHashSet* hashSet) {
     if (!hashSet) {
         return;
@@ -615,4 +558,99 @@ void scu_hash_set_free(ScuHashSet* hashSet) {
     hashSet->capacity = 0;
     hashSet->count = 0;
     scu_free(hashSet);
+}
+
+/**
+ * @brief Returns the index of the first occupied bucket at or after an index.
+ *
+ * @param[in] hashSet  The hash set to examine.
+ * @param[in] startIdx The index to start the search at.
+ * @return The index of the first occupied bucket, or the capacity if there is
+ * none.
+ */
+static inline isize scu_next_occupied_index(
+    const ScuHashSet* hashSet,
+    isize startIdx
+) {
+    SCU_ASSERT(hashSet);
+    SCU_ASSERT(startIdx >= 0);
+    for (isize i = startIdx; i < hashSet->capacity; i++) {
+        const ScuBucket* bucket = scu_bucket_at(
+            hashSet->buckets,
+            i,
+            hashSet->bucketSize
+        );
+        if (bucket->isOccupied) {
+            return i;
+        }
+    }
+    return hashSet->capacity;
+}
+
+ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet) {
+    SCU_ASSERT(hashSet);
+    return (ScuHashSetIterator) {
+        .hashSet = SCU_CONST_CAST(ScuHashSet*, hashSet),
+        .index = scu_next_occupied_index(hashSet, 0)
+    };
+}
+
+ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet) {
+    SCU_ASSERT(hashSet);
+    return (ScuHashSetIterator) {
+        .hashSet = SCU_CONST_CAST(ScuHashSet*, hashSet),
+        .index = hashSet->capacity
+    };
+}
+
+bool scu_hash_set_iterator_equal(
+    const ScuHashSetIterator* lhs,
+    const ScuHashSetIterator* rhs
+) {
+    SCU_ASSERT(lhs);
+    SCU_ASSERT(rhs);
+    SCU_ASSERT(lhs->hashSet == rhs->hashSet);
+    return lhs->index == rhs->index;
+}
+
+void scu_hash_set_iterator_next(ScuHashSetIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index < iterator->hashSet->capacity);
+    iterator->index = scu_next_occupied_index(
+        iterator->hashSet,
+        iterator->index + 1
+    );
+}
+
+void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator) {
+    SCU_ASSERT(iterator);
+    ScuHashSet* hashSet = iterator->hashSet;
+    isize index = iterator->index - 1;
+    while (index >= 0) {
+        const ScuBucket* bucket = scu_bucket_at(
+            hashSet->buckets,
+            index,
+            hashSet->bucketSize
+        );
+        if (bucket->isOccupied) {
+            break;
+        }
+        index--;
+    }
+    SCU_ASSERT(index >= 0);
+    iterator->index = index;
+}
+
+void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator) {
+    SCU_ASSERT(iterator);
+    ScuHashSet* hashSet = iterator->hashSet;
+    isize index = iterator->index;
+    SCU_ASSERT((index >= 0) && (index < hashSet->capacity));
+    ScuBucket* bucket = scu_bucket_at(
+        hashSet->buckets,
+        index,
+        hashSet->bucketSize
+    );
+    SCU_ASSERT(bucket->isOccupied);
+    return bucket->elem;
 }

@@ -17,7 +17,7 @@ typedef struct ScuHashMap ScuHashMap;
  * detail and should not be relied upon. Most importantly, the behavior is
  * undefined if its fields are accessed directly.
  */
-typedef struct ScuHashMapIter {
+typedef struct ScuHashMapIterator {
 
     /** @brief The hash map being iterated over. */
     ScuHashMap* hashMap;
@@ -25,7 +25,7 @@ typedef struct ScuHashMapIter {
     /** @brief The current index within the hash map. */
     Scuisize index;
 
-} ScuHashMapIter;
+} ScuHashMapIterator;
 
 /** @brief An entry in a hash map. */
 typedef struct ScuHashMapEntry {
@@ -132,6 +132,9 @@ Scuisize scu_hash_map_count(const ScuHashMap* hashMap);
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
+ *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, Scuisize capacity);
@@ -145,8 +148,11 @@ ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, Scuisize capacity);
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
- * @warning The behavior is undefined if the key is already present in the hash
- * map. Use `scu_hash_map_try_add()` to handle this case gracefully.
+ * @warning This function invalidates any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
+ *
+ * The behavior is undefined if the key is already present in the hash map. Use
+ * `scu_hash_map_try_add()` to handle this case gracefully.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -166,6 +172,9 @@ ScuError scu_hash_map_add(
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
  * `SCU_ERROR_ALREADY_PRESENT` if the key is already present in the hash map, or
  * `SCU_ERROR_NONE` on success.
+ *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -227,6 +236,9 @@ bool scu_hash_map_try_get_impl(
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
+ *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
  *
@@ -270,10 +282,13 @@ bool scu_hash_map_contains_value(const ScuHashMap* hashMap, const void* value);
  * @return `true` if the key-value pair with the specified key was present and
  * removed, `false` otherwise.
  *
- * @warning This function does not deallocate the key or value, it only removes
- * the key-value pair from the hash map. The caller is responsible for
- * deallocating the removed key and value if they are pointers to dynamically
- * allocated objects and no other references to them exist.
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
+ *
+ * This function does not deallocate the key or value, it only removes the
+ * key-value pair from the hash map. The caller is responsible for deallocating
+ * the removed key and value if they are pointers to dynamically allocated
+ * objects and no other references to them exist.
  *
  * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
  * memory usage of the hash map after removing key-value pairs.
@@ -288,11 +303,14 @@ bool scu_hash_map_remove(
  *
  * @param[in, out] hashMap The hash map to clear.
  *
- * @warning This function does not deallocate the hash map itself nor the
- * key-value pairs contained within, it only resets the number of key-value
- * pairs to zero. The caller is responsible for deallocating the individual keys
- * and values if they are pointers to dynamically allocated objects and no other
- * references to them exist.
+ * @warning This function invalidates any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
+ *
+ * This function does not deallocate the hash map itself nor the key-value pairs
+ * contained within, it only resets the number of key-value pairs to zero. The
+ * caller is responsible for deallocating the individual keys and values if they
+ * are pointers to dynamically allocated objects and no other references to them
+ * exist.
  *
  * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
  * memory usage of the hash map after clearing it.
@@ -307,56 +325,12 @@ void scu_hash_map_clear(ScuHashMap* hashMap);
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_map_begin()` and `scu_hash_map_end()`.
+ *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
-
-/**
- * @brief Returns an iterator for a hash map.
- *
- * @param[in] hashMap The hash map to iterate over.
- * @return An iterator for the hash map.
- *
- * @warning The behavior is undefined if the hash map being iterated over is
- * modified (e.g., key-value pairs are added or removed) while the iterator is
- * in use.
- *
- * @note The iterator is initially positioned before the first key-value pair of
- * the hash map (if any). This means that `scu_hash_map_iter_move_next()` must
- * be called before accessing the first and subsequent key-value pairs with
- * `scu_hash_map_iter_current()`.
- */
-ScuHashMapIter scu_hash_map_iter(const ScuHashMap* hashMap);
-
-/**
- * @brief Advances a hash map iterator to the next key-value pair.
- *
- * @param[in, out] iter The iterator to advance.
- * @return `true` if the iterator was successfully advanced to the next
- * key-value pair, `false` otherwise (i.e., the hash map does not contain any
- * more key-value pairs).
- */
-bool scu_hash_map_iter_move_next(ScuHashMapIter* iter);
-
-/**
- * @brief Returns the current key-value pair of a hash map iterator.
- *
- * @param[in] iter The iterator to examine.
- * @return An entry representing the current key-value pair of the iterator.
- */
-ScuHashMapEntry scu_hash_map_iter_current(const ScuHashMapIter* iter);
-
-/**
- * @brief Resets a hash map iterator to its initial position.
- *
- * @param[in, out] iter The iterator to reset.
- *
- * @note The iterator is initially positioned before the first key-value pair of
- * the hash map (if any). This means that `scu_hash_map_iter_move_next()` must
- * be called before accessing the first and subsequent key-value pairs with
- * `scu_hash_map_iter_current()`.
- */
-void scu_hash_map_iter_reset(ScuHashMapIter* iter);
 
 /**
  * @brief Deallocates a hash map.
@@ -375,6 +349,72 @@ void scu_hash_map_iter_reset(ScuHashMapIter* iter);
  * @note If `hashMap` is `nullptr`, this function does nothing.
  */
 void scu_hash_map_free(ScuHashMap* hashMap);
+
+/**
+ * @brief Returns an iterator to an entry in a hash map.
+ *
+ * @param[in] hashMap The hash map to iterate over.
+ * @return An iterator to an entry in the hash map.
+ *
+ * @note If `hashMap` is empty, this function behaves identically to
+ * `scu_hash_map_end(hashMap)`, i.e., it returns the end iterator.
+ */
+ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap);
+
+/**
+ * @brief Returns the end iterator for a hash map.
+ *
+ * @param[in] hashMap The hash map to iterate over.
+ * @return The end iterator for the hash map.
+ */
+ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap);
+
+/**
+ * @brief Determines whether two iterators are equal.
+ *
+ * @param[in] lhs The first iterator.
+ * @param[in] rhs The second iterator.
+ * @return `true` if the two iterators are equal, `false` otherwise.
+ *
+ * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
+ * same hash map.
+ */
+bool scu_hash_map_iterator_equal(
+    const ScuHashMapIterator* lhs,
+    const ScuHashMapIterator* rhs
+);
+
+/**
+ * @brief Moves an iterator to the next entry.
+ *
+ * @param[in, out] iterator The iterator to move.
+ *
+ * @warning The behavior is undefined if moving `iterator` would cause it to
+ * point after the end iterator returned by `scu_hash_map_end()`.
+ */
+void scu_hash_map_iterator_next(ScuHashMapIterator* iterator);
+
+/**
+ * @brief Moves an iterator to the previous entry.
+ *
+ * @param[in, out] iterator The iterator to move.
+ *
+ * @warning The behavior is undefined if moving `iterator` would cause it to
+ * point before the begin iterator returned by `scu_hash_map_begin()`.
+ */
+void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator);
+
+/**
+ * @brief Returns an entry for the current element an iterator points to.
+ *
+ * @param[in] iterator The iterator to dereference.
+ * @return An entry for the current element the iterator points to.
+ *
+ * @warning The behavior is undefined if `iterator` points before the begin
+ * iterator returned by `scu_hash_map_begin()`, if it is the end iterator
+ * returned by `scu_hash_map_end()`, or if it points after the end iterator.
+ */
+ScuHashMapEntry scu_hash_map_iterator_deref(const ScuHashMapIterator* iterator);
 
 /**
  * @brief Iterates over each key-value pair in a hash map.
@@ -406,14 +446,19 @@ void scu_hash_map_free(ScuHashMap* hashMap);
  * @note The variable `entry` must be declared manually before the loop. It must
  * be of type `ScuHashMapEntry`.
  */
-#define SCU_HASH_MAP_FOREACH(entry, hashMap)                                     \
-    for (                                                                        \
-        ScuHashMapIter SCU_XCONCAT(it, __LINE__) = scu_hash_map_iter(hashMap);   \
-        scu_hash_map_iter_move_next(&SCU_XCONCAT(it, __LINE__))                  \
-            && (                                                                 \
-                (entry) = scu_hash_map_iter_current(&SCU_XCONCAT(it, __LINE__)), \
-                true                                                             \
-            );                                                                   \
+#define SCU_HASH_MAP_FOREACH(entry, hashMap)                                        \
+    for (                                                                           \
+        ScuHashMapIterator SCU_XCONCAT(it, __LINE__) = scu_hash_map_begin(hashMap), \
+        SCU_XCONCAT(end, __LINE__) = scu_hash_map_end(hashMap);                     \
+        !scu_hash_map_iterator_equal(                                               \
+            &SCU_XCONCAT(it, __LINE__),                                             \
+            &SCU_XCONCAT(end, __LINE__)                                             \
+        )                                                                           \
+            && (                                                                    \
+                (entry) = scu_hash_map_iterator_deref(&SCU_XCONCAT(it, __LINE__)),  \
+                true                                                                \
+            );                                                                      \
+        scu_hash_map_iterator_next(&SCU_XCONCAT(it, __LINE__))                      \
     )
 
 #endif

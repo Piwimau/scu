@@ -282,8 +282,11 @@ bool scu_prio_queue_try_dequeue(
             );
             isize minChildIndex = firstChildIndex;
             for (isize i = firstChildIndex + 1; i < lastChildIndex; i++) {
-                byte* childPrio = scu_node_prio(prioQueue, i);
-                byte* minChildPrio = scu_node_prio(prioQueue, minChildIndex);
+                const byte* childPrio = scu_node_prio(prioQueue, i);
+                const byte* minChildPrio = scu_node_prio(
+                    prioQueue,
+                    minChildIndex
+                );
                 if (prioQueue->prioCmpFunc(childPrio, minChildPrio) < 0) {
                     minChildIndex = i;
                 }
@@ -357,46 +360,6 @@ ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue) {
     return SCU_ERROR_NONE;
 }
 
-ScuPrioQueueIter scu_prio_queue_iter(const ScuPrioQueue* prioQueue) {
-    SCU_ASSERT(prioQueue);
-    return (ScuPrioQueueIter) {
-        .prioQueue = SCU_CONST_CAST(ScuPrioQueue*, prioQueue),
-        .index = -1
-    };
-}
-
-bool scu_prio_queue_iter_move_next(ScuPrioQueueIter* iter) {
-    SCU_ASSERT(iter);
-    ScuPrioQueue* prioQueue = iter->prioQueue;
-    isize index = iter->index;
-    SCU_ASSERT(prioQueue);
-    SCU_ASSERT((index >= -1) && (index < prioQueue->count));
-    if ((index + 1) < prioQueue->count) {
-        iter->index++;
-        return true;
-    }
-    return false;
-}
-
-ScuPrioQueueEntry scu_prio_queue_iter_current(const ScuPrioQueueIter* iter) {
-    SCU_ASSERT(iter);
-    ScuPrioQueue* prioQueue = iter->prioQueue;
-    isize index = iter->index;
-    SCU_ASSERT(prioQueue);
-    SCU_ASSERT((index >= 0) && (index < prioQueue->count));
-    return (ScuPrioQueueEntry) {
-        .elem = scu_node_elem(prioQueue, index),
-        .prio = scu_node_prio(prioQueue, index)
-    };
-}
-
-void scu_prio_queue_iter_reset(ScuPrioQueueIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->prioQueue);
-    SCU_ASSERT((iter->index >= -1) && (iter->index < iter->prioQueue->count));
-    iter->index = -1;
-}
-
 void scu_prio_queue_free(ScuPrioQueue* prioQueue) {
     if (!prioQueue) {
         return;
@@ -406,4 +369,55 @@ void scu_prio_queue_free(ScuPrioQueue* prioQueue) {
     prioQueue->capacity = 0;
     prioQueue->count = 0;
     scu_free(prioQueue);
+}
+
+ScuPrioQueueIterator scu_prio_queue_begin(const ScuPrioQueue* prioQueue) {
+    SCU_ASSERT(prioQueue);
+    return (ScuPrioQueueIterator) {
+        .prioQueue = SCU_CONST_CAST(ScuPrioQueue*, prioQueue),
+        .index = 0
+    };
+}
+
+ScuPrioQueueIterator scu_prio_queue_end(const ScuPrioQueue* prioQueue) {
+    SCU_ASSERT(prioQueue);
+    return (ScuPrioQueueIterator) {
+        .prioQueue = SCU_CONST_CAST(ScuPrioQueue*, prioQueue),
+        .index = prioQueue->count
+    };
+}
+
+bool scu_prio_queue_iterator_equal(
+    const ScuPrioQueueIterator* lhs,
+    const ScuPrioQueueIterator* rhs
+) {
+    SCU_ASSERT(lhs);
+    SCU_ASSERT(rhs);
+    SCU_ASSERT(lhs->prioQueue == rhs->prioQueue);
+    return lhs->index == rhs->index;
+}
+
+void scu_prio_queue_iterator_next(ScuPrioQueueIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index < iterator->prioQueue->count);
+    iterator->index++;
+}
+
+void scu_prio_queue_iterator_prev(ScuPrioQueueIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index > 0);
+    iterator->index--;
+}
+
+ScuPrioQueueEntry scu_prio_queue_iterator_deref(
+    const ScuPrioQueueIterator* iterator
+) {
+    SCU_ASSERT(iterator);
+    const ScuPrioQueue* prioQueue = iterator->prioQueue;
+    isize index = iterator->index;
+    SCU_ASSERT((index >= 0) && (index < prioQueue->count));
+    return (ScuPrioQueueEntry) {
+        .elem = scu_node_elem(prioQueue, index),
+        .prio = scu_node_prio(prioQueue, index)
+    };
 }

@@ -205,49 +205,6 @@ ScuError scu_stack_trim_excess(ScuStack* stack) {
     return SCU_ERROR_NONE;
 }
 
-ScuStackIter scu_stack_iter(const ScuStack* stack) {
-    SCU_ASSERT(stack);
-    return (ScuStackIter) {
-        .stack = SCU_CONST_CAST(ScuStack*, stack),
-        .index = stack->count
-    };
-}
-
-bool scu_stack_iter_move_next(ScuStackIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->stack);
-    ScuStack* stack = iter->stack;
-    isize index = iter->index;
-    SCU_ASSERT((index >= 0) && (index <= stack->count));
-    if (stack->count == 0) {
-        iter->index = 0;
-        return false;
-    }
-    index--;
-    if (index >= 0) {
-        iter->index = index;
-        return true;
-    }
-    iter->index = 0;
-    return false;
-}
-
-void* scu_stack_iter_current(const ScuStackIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->stack);
-    ScuStack* stack = iter->stack;
-    isize index = iter->index;
-    SCU_ASSERT((index >= 0) && (index < stack->count));
-    return stack->data + stack->elemSize * index;
-}
-
-void scu_stack_iter_reset(ScuStackIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->stack);
-    SCU_ASSERT((iter->index >= 0) && (iter->index <= iter->stack->count));
-    iter->index = iter->stack->count;
-}
-
 void scu_stack_free(ScuStack* stack) {
     if (!stack) {
         return;
@@ -257,4 +214,50 @@ void scu_stack_free(ScuStack* stack) {
     stack->capacity = 0;
     stack->count = 0;
     scu_free(stack);
+}
+
+ScuStackIterator scu_stack_begin(const ScuStack* stack) {
+    SCU_ASSERT(stack);
+    return (ScuStackIterator) {
+        .stack = SCU_CONST_CAST(ScuStack*, stack),
+        .index = stack->count - 1
+    };
+}
+
+ScuStackIterator scu_stack_end(const ScuStack* stack) {
+    SCU_ASSERT(stack);
+    return (ScuStackIterator) {
+        .stack = SCU_CONST_CAST(ScuStack*, stack),
+        .index = -1
+    };
+}
+
+bool scu_stack_iterator_equal(
+    const ScuStackIterator* lhs,
+    const ScuStackIterator* rhs
+) {
+    SCU_ASSERT(lhs);
+    SCU_ASSERT(rhs);
+    SCU_ASSERT(lhs->stack == rhs->stack);
+    return lhs->index == rhs->index;
+}
+
+void scu_stack_iterator_next(ScuStackIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index >= 0);
+    iterator->index--;
+}
+
+void scu_stack_iterator_prev(ScuStackIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index < iterator->stack->count - 1);
+    iterator->index++;
+}
+
+void* scu_stack_iterator_deref(const ScuStackIterator* iterator) {
+    SCU_ASSERT(iterator);
+    const ScuStack* stack = iterator->stack;
+    isize index = iterator->index;
+    SCU_ASSERT((index >= 0) && (index < stack->count));
+    return stack->data + stack->elemSize * index;
 }

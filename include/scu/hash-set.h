@@ -17,7 +17,7 @@ typedef struct ScuHashSet ScuHashSet;
  * detail and should not be relied upon. Most importantly, the behavior is
  * undefined if its fields are accessed directly.
  */
-typedef struct ScuHashSetIter {
+typedef struct ScuHashSetIterator {
 
     /** @brief The hash set being iterated over. */
     ScuHashSet* hashSet;
@@ -25,7 +25,7 @@ typedef struct ScuHashSetIter {
     /** @brief The current index within the hash set. */
     Scuisize index;
 
-} ScuHashSetIter;
+} ScuHashSetIterator;
 
 /**
  * @brief Constructs a hash set with a specified element size, hash function,
@@ -112,6 +112,9 @@ Scuisize scu_hash_set_count(const ScuHashSet* hashSet);
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_set_begin()` and `scu_hash_set_end()`.
+ *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
@@ -124,8 +127,11 @@ ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
- * @warning The behavior is undefined if the element is already present in the
- * hash set. Use `scu_hash_set_try_add()` to handle this case gracefully.
+ * @warning This function invalidates any iterators previously created with
+ * `scu_hash_set_begin()` and `scu_hash_set_end()`.
+ *
+ * The behavior is undefined if the element is already present in the hash set.
+ * Use `scu_hash_set_try_add()` to handle this case gracefully.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -143,6 +149,9 @@ ScuError scu_hash_set_add(
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
  * `SCU_ERROR_ALREADY_PRESENT` if the element is already present in the hash
  * set, or `SCU_ERROR_NONE` on success.
+ *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_set_begin()` and `scu_hash_set_end()`.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -169,10 +178,13 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem);
  * @return `true` if the element was present and removed from the hash set,
  * `false` otherwise.
  *
- * @warning This function does not deallocate the removed element, it only
- * removes it from the hash set. The caller is responsible for deallocating the
- * removed element if it is a pointer to a dynamically allocated object and no
- * other references to it exist.
+ * @warning This function invalidates any iterators previously created with
+ * `scu_hash_set_begin()` and `scu_hash_set_end()`.
+ *
+ * This function does not deallocate the removed element, it only removes it
+ * from the hash set. The caller is responsible for deallocating the removed
+ * element if it is a pointer to a dynamically allocated object and no other
+ * references to it exist.
  *
  * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
  * memory usage of the hash set after removing elements.
@@ -187,11 +199,13 @@ bool scu_hash_set_remove(
  *
  * @param[in, out] hashSet The hash set to clear.
  *
- * @warning This function does not deallocate the hash set itself nor the
- * elements contained within, it only resets the number of elements to zero. The
- * caller is responsible for deallocating the individual elements if they are
- * pointers to dynamically allocated objects and no other references to them
- * exist.
+ * @warning This function invalidates any iterators previously created with
+ * `scu_hash_set_begin()` and `scu_hash_set_end()`.
+ *
+ * This function does not deallocate the hash set itself nor the elements
+ * contained within, it only resets the number of elements to zero. The caller
+ * is responsible for deallocating the individual elements if they are pointers
+ * to dynamically allocated objects and no other references to them exist.
  *
  * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
  * memory usage of the hash set after clearing it.
@@ -206,54 +220,12 @@ void scu_hash_set_clear(ScuHashSet* hashSet);
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
  * `SCU_ERROR_NONE` on success.
  *
+ * @warning This function may invalidate any iterators previously created with
+ * `scu_hash_set_begin()` and `scu_hash_set_end()`.
+ *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
-
-/**
- * @brief Returns an iterator for a hash set.
- *
- * @param[in] hashSet The hash set to iterate over.
- * @return An iterator for the hash set.
- *
- * @warning The behavior is undefined if the hash set being iterated over is
- * modified (e.g., elements are added or removed) while the iterator is in use.
- *
- * @note The iterator is initially positioned before the first element of the
- * hash set (if any). This means that `scu_hash_set_iter_move_next()` must be
- * called before accessing the first and subsequent elements with
- * `scu_hash_set_iter_current()`.
- */
-ScuHashSetIter scu_hash_set_iter(const ScuHashSet* hashSet);
-
-/**
- * @brief Advances a hash set iterator to the next element.
- *
- * @param[in, out] iter The iterator to advance.
- * @return `true` if the iterator was successfully advanced to the next element,
- * `false` otherwise (i.e., the hash set does not contain any more elements).
- */
-bool scu_hash_set_iter_move_next(ScuHashSetIter* iter);
-
-/**
- * @brief Returns the current element of a hash set iterator.
- *
- * @param[in] iter The iterator to examine.
- * @return A pointer to the current element.
- */
-void* scu_hash_set_iter_current(const ScuHashSetIter* iter);
-
-/**
- * @brief Resets a hash set iterator to its initial position.
- *
- * @param[in, out] iter The iterator to reset.
- *
- * @note The iterator is initially positioned before the first element of the
- * hash set (if any). This means that `scu_hash_set_iter_move_next()` must be
- * called before accessing the first and subsequent elements with
- * `scu_hash_set_iter_current()`.
- */
-void scu_hash_set_iter_reset(ScuHashSetIter* iter);
 
 /**
  * @brief Deallocates a hash set.
@@ -271,6 +243,72 @@ void scu_hash_set_iter_reset(ScuHashSetIter* iter);
  * @note If `hashSet` is `nullptr`, this function does nothing.
  */
 void scu_hash_set_free(ScuHashSet* hashSet);
+
+/**
+ * @brief Returns an iterator to an element of a hash set.
+ *
+ * @param[in] hashSet The hash set to iterate over.
+ * @return An iterator to an element of the hash set.
+ *
+ * @note If `hashSet` is empty, this function behaves identically to
+ * `scu_hash_set_end(hashSet)`, i.e., it returns the end iterator.
+ */
+ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet);
+
+/**
+ * @brief Returns the end iterator for a hash set.
+ *
+ * @param[in] hashSet The hash set to iterate over.
+ * @return The end iterator for the hash set.
+ */
+ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet);
+
+/**
+ * @brief Determines whether two iterators are equal.
+ *
+ * @param[in] lhs The first iterator.
+ * @param[in] rhs The second iterator.
+ * @return `true` if the two iterators are equal, `false` otherwise.
+ *
+ * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
+ * same hash set.
+ */
+bool scu_hash_set_iterator_equal(
+    const ScuHashSetIterator* lhs,
+    const ScuHashSetIterator* rhs
+);
+
+/**
+ * @brief Moves an iterator to the next element.
+ *
+ * @param[in, out] iterator The iterator to move.
+ *
+ * @warning The behavior is undefined if moving `iterator` would cause it to
+ * point after the end iterator returned by `scu_hash_set_end()`.
+ */
+void scu_hash_set_iterator_next(ScuHashSetIterator* iterator);
+
+/**
+ * @brief Moves an iterator to the previous element.
+ *
+ * @param[in, out] iterator The iterator to move.
+ *
+ * @warning The behavior is undefined if moving `iterator` would cause it to
+ * point before the begin iterator returned by `scu_hash_set_begin()`.
+ */
+void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator);
+
+/**
+ * @brief Returns a pointer to the current element an iterator points to.
+ *
+ * @param[in] iterator The iterator to dereference.
+ * @return A pointer to the current element the iterator points to.
+ *
+ * The behavior is undefined if `iterator` points before the begin iterator
+ * returned by `scu_hash_set_begin()`, if it is the end iterator returned by
+ * `scu_hash_set_end()`, or if it points after the end iterator.
+ */
+void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator);
 
 /**
  * @brief Iterates over each element in a hash set.
@@ -300,14 +338,19 @@ void scu_hash_set_free(ScuHashSet* hashSet);
  * @note The variable `elem` must be declared manually before the loop. It must
  * be of a pointer type compatible with the hash set's element type.
  */
-#define SCU_HASH_SET_FOREACH(elem, hashSet)                                     \
-    for (                                                                       \
-        ScuHashSetIter SCU_XCONCAT(it, __LINE__) = scu_hash_set_iter(hashSet);  \
-        scu_hash_set_iter_move_next(&SCU_XCONCAT(it, __LINE__))                 \
-            && (                                                                \
-                (elem) = scu_hash_set_iter_current(&SCU_XCONCAT(it, __LINE__)), \
-                true                                                            \
-            );                                                                  \
+#define SCU_HASH_SET_FOREACH(elem, hashSet)                                         \
+    for (                                                                           \
+        ScuHashSetIterator SCU_XCONCAT(it, __LINE__) = scu_hash_set_begin(hashSet), \
+        SCU_XCONCAT(end, __LINE__) = scu_hash_set_end(hashSet);                     \
+        !scu_hash_set_iterator_equal(                                               \
+            &SCU_XCONCAT(it, __LINE__),                                             \
+            &SCU_XCONCAT(end, __LINE__)                                             \
+        )                                                                           \
+            && (                                                                    \
+                (elem) = scu_hash_set_iterator_deref(&SCU_XCONCAT(it, __LINE__)),   \
+                true                                                                \
+            );                                                                      \
+        scu_hash_set_iterator_next(&SCU_XCONCAT(it, __LINE__))                      \
     )
 
 #endif

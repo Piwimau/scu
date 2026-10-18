@@ -269,44 +269,6 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
     return SCU_ERROR_NONE;
 }
 
-ScuQueueIter scu_queue_iter(const ScuQueue* queue) {
-    SCU_ASSERT(queue);
-    return (ScuQueueIter) {
-        .queue = SCU_CONST_CAST(ScuQueue*, queue),
-        .index = -1
-    };
-}
-
-bool scu_queue_iter_move_next(ScuQueueIter* iter) {
-    SCU_ASSERT(iter);
-    ScuQueue* queue = iter->queue;
-    isize index = iter->index;
-    SCU_ASSERT(queue);
-    SCU_ASSERT((index >= -1) && (index < queue->count));
-    if ((index + 1) < queue->count) {
-        iter->index++;
-        return true;
-    }
-    return false;
-}
-
-void* scu_queue_iter_current(const ScuQueueIter* iter) {
-    SCU_ASSERT(iter);
-    ScuQueue* queue = iter->queue;
-    isize index = iter->index;
-    SCU_ASSERT(queue);
-    SCU_ASSERT((index >= 0) && (index < queue->count));
-    isize actualIndex = (queue->head + index) % queue->capacity;
-    return queue->elems + actualIndex * queue->elemSize;
-}
-
-void scu_queue_iter_reset(ScuQueueIter* iter) {
-    SCU_ASSERT(iter);
-    SCU_ASSERT(iter->queue);
-    SCU_ASSERT((iter->index >= -1) && (iter->index < iter->queue->count));
-    iter->index = -1;
-}
-
 void scu_queue_free(ScuQueue* queue) {
     if (!queue) {
         return;
@@ -318,4 +280,51 @@ void scu_queue_free(ScuQueue* queue) {
     queue->head = 0;
     queue->tail = 0;
     scu_free(queue);
+}
+
+ScuQueueIterator scu_queue_begin(const ScuQueue* queue) {
+    SCU_ASSERT(queue);
+    return (ScuQueueIterator) {
+        .queue = SCU_CONST_CAST(ScuQueue*, queue),
+        .index = 0
+    };
+}
+
+ScuQueueIterator scu_queue_end(const ScuQueue* queue) {
+    SCU_ASSERT(queue);
+    return (ScuQueueIterator) {
+        .queue = SCU_CONST_CAST(ScuQueue*, queue),
+        .index = queue->count
+    };
+}
+
+bool scu_queue_iterator_equal(
+    const ScuQueueIterator* lhs,
+    const ScuQueueIterator* rhs
+) {
+    SCU_ASSERT(lhs);
+    SCU_ASSERT(rhs);
+    SCU_ASSERT(lhs->queue == rhs->queue);
+    return lhs->index == rhs->index;
+}
+
+void scu_queue_iterator_next(ScuQueueIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index < iterator->queue->count);
+    iterator->index++;
+}
+
+void scu_queue_iterator_prev(ScuQueueIterator* iterator) {
+    SCU_ASSERT(iterator);
+    SCU_ASSERT(iterator->index > 0);
+    iterator->index--;
+}
+
+void* scu_queue_iterator_deref(const ScuQueueIterator* iterator) {
+    SCU_ASSERT(iterator);
+    const ScuQueue* queue = iterator->queue;
+    isize index = iterator->index;
+    SCU_ASSERT((index >= 0) && (index < queue->count));
+    index = (queue->head + index) % queue->capacity;
+    return queue->elems + queue->elemSize * index;
 }
