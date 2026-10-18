@@ -247,5 +247,5 @@ isize scu_strncat(
         dest[length + n] = '\0';
         return n;
     }
-    return p - dest + length - 1;
+    return p - dest - length - 1;
 }
