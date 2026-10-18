@@ -86,7 +86,7 @@ static inline i64 scu_wall_ns() {
 static inline i64 scu_process_cpu_ns() {
 #ifdef _WIN32
     FILETIME creationTime, exitTime, kernelTime, userTime;
-    WINBOOL success = GetProcessTimes(
+    BOOL success = GetProcessTimes(
         GetCurrentProcess(),
         &creationTime,
         &exitTime,
@@ -114,7 +114,7 @@ static inline i64 scu_process_cpu_ns() {
 static inline i64 scu_thread_cpu_ns() {
 #ifdef _WIN32
     FILETIME creationTime, exitTime, kernelTime, userTime;
-    WINBOOL success = GetThreadTimes(
+    BOOL success = GetThreadTimes(
         GetCurrentThread(),
         &creationTime,
         &exitTime,
