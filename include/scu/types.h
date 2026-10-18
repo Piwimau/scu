@@ -188,7 +188,7 @@ typedef char32_t Scuchar32;
 #define SCU_IPTR_MIN INTPTR_MIN
 
 /** @brief The minimum value of the `Scuuptr` type. */
-#define SCU_UPTR_MIN UINTPTR_MIN
+#define SCU_UPTR_MIN 0
 
 /** @brief The minimum value of the `Scuisize` type. */
 #define SCU_ISIZE_MIN PTRDIFF_MIN
