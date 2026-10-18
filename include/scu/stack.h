@@ -1,9 +1,9 @@
 #ifndef SCU_STACK_H
 #define SCU_STACK_H
 
-#include "scu/common.h"
 #include "scu/error.h"
 #include "scu/types.h"
+#include "scu/util.h"
 
 /** @brief A last-in-first-out (LIFO) collection of elements. */
 typedef struct ScuStack ScuStack;

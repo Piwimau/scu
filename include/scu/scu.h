@@ -5,7 +5,6 @@
 #include "scu/array.h"
 #include "scu/assert.h"
 #include "scu/bench.h"
-#include "scu/common.h"
 #include "scu/compare.h"
 #include "scu/equal.h"
 #include "scu/error.h"
@@ -22,6 +21,7 @@
 #include "scu/string.h"
 #include "scu/time.h"
 #include "scu/types.h"
+#include "scu/util.h"
 
 /** @brief The major version number of SCU. */
 #define SCU_VERSION_MAJOR 0

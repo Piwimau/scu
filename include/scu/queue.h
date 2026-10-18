@@ -1,9 +1,9 @@
 #ifndef SCU_QUEUE_H
 #define SCU_QUEUE_H
 
-#include "scu/common.h"
 #include "scu/error.h"
 #include "scu/types.h"
+#include "scu/util.h"
 
 /** @brief A first-in-first-out (FIFO) collection of elements. */
 typedef struct ScuQueue ScuQueue;

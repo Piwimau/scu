@@ -4,9 +4,9 @@
 #include "scu/alloc.h"
 #include "scu/array.h"
 #include "scu/assert.h"
-#include "scu/common.h"
 #include "scu/list.h"
 #include "scu/memory.h"
+#include "scu/util.h"
 
 /** @brief A header stored before the actual data of the list. */
 typedef struct ScuListHeader {

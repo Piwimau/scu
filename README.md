@@ -121,7 +121,6 @@ modules and a one-sentence description of their contents:
 | `array.h`      | Utilities for working with arrays, including the ubiquitous `SCU_COUNTOF()` and `SCU_ARRAY_FOREACH()` macros.                            |
 | `assert.h`     | Macros for compile-time and runtime assertions.                                                                                          |
 | `bench.h`      | A small benchmarking framework for measuring the performance of code blocks.                                                             |
-| `common.h`     | Common (preprocessor) macros.                                                                                                            |
 | `compare.h`    | Functions for comparing values of various types, designed to be used with the data structures provided by the library.                   |
 | `equal.h`      | Functions for determining the equality of values of various types, designed to be used with the data structures provided by the library. |
 | `error.h`      | Error handling utilities, including an error code type used consistently across the library.                                             |
@@ -139,6 +138,7 @@ modules and a one-sentence description of their contents:
 | `string.h`     | Utilities for working with null-terminated byte strings.                                                                                 |
 | `time.h`       | Utilities for timing code blocks.                                                                                                        |
 | `types.h`      | Common typedefs and constants used across the library.                                                                                   |
+| `util.h`       | Common preprocessor macros and utilities.                                                                                                |
 
 ## Common Conventions
 

@@ -1,10 +1,10 @@
 #ifndef SCU_PRIO_QUEUE_H
 #define SCU_PRIO_QUEUE_H
 
-#include "scu/common.h"
 #include "scu/compare.h"
 #include "scu/error.h"
 #include "scu/types.h"
+#include "scu/util.h"
 
 /** @brief A collection of elements and associated priorities. */
 typedef struct ScuPrioQueue ScuPrioQueue;

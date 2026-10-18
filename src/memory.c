@@ -2,8 +2,8 @@
 
 #include <string.h>
 #include "scu/assert.h"
-#include "scu/common.h"
 #include "scu/memory.h"
+#include "scu/util.h"
 
 void* scu_memchr(const void* block, byte c, isize count) {
     SCU_ASSERT(count >= 0);

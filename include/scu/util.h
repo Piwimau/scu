@@ -1,5 +1,5 @@
-#ifndef SCU_COMMON_H
-#define SCU_COMMON_H
+#ifndef SCU_UTIL_H
+#define SCU_UTIL_H
 
 /**
  * @brief Converts an expression to a string literal.
