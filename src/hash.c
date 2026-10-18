@@ -215,8 +215,11 @@ usize scu_hash_char32(const void* value) {
 }
 
 usize scu_hash_bytes(const void* block, isize count) {
-    SCU_ASSERT(block);
     SCU_ASSERT(count >= 0);
+    if (count == 0) {
+        return SCU_FNV_OFFSET_BASIS;
+    }
+    SCU_ASSERT(block);
     const byte* p = (const byte*) block;
     usize v = SCU_FNV_OFFSET_BASIS;
     for (isize i = 0; i < count; i++) {

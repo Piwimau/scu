@@ -236,6 +236,8 @@ Scuusize scu_hash_char32(const void* value);
  *
  * @warning The behavior is undefined if `block` is not a pointer to a block of
  * memory at least `count` bytes.
+ *
+ * @note If `count` is zero, `block` is ignored and may be `nullptr`.
  */
 Scuusize scu_hash_bytes(const void* block, Scuisize count);
 
