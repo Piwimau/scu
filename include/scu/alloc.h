@@ -1,6 +1,7 @@
 #ifndef SCU_ALLOC_H
 #define SCU_ALLOC_H
 
+#include "scu/api.h"
 #include "scu/types.h"
 
 /**
@@ -132,7 +133,7 @@ typedef struct ScuAllocator {
  * by SCU relies on the C standard library functions `malloc()`, `calloc()`,
  * `realloc()` and `free()`, which are guaranteed to be thread-safe.
  */
-const ScuAllocator* scu_get_global_allocator();
+SCU_API const ScuAllocator* scu_get_global_allocator();
 
 /**
  * @brief Sets the global allocator.
@@ -167,7 +168,7 @@ const ScuAllocator* scu_get_global_allocator();
  * by SCU relies on the C standard library functions `malloc()`, `calloc()`,
  * `realloc()` and `free()`, which are guaranteed to be thread-safe.
  */
-void scu_set_global_allocator(const ScuAllocator* allocator);
+SCU_API void scu_set_global_allocator(const ScuAllocator* allocator);
 
 /**
  * @brief Allocates an uninitialized block of memory of at least `size`
@@ -191,7 +192,7 @@ void scu_set_global_allocator(const ScuAllocator* allocator);
  *
  * This function is only thread-safe if the underlying allocator is.
  */
-void* scu_malloc(Scuisize size);
+SCU_API void* scu_malloc(Scuisize size);
 
 /**
  * @brief Allocates a zero-initialized block of memory of at least `count *
@@ -216,7 +217,7 @@ void* scu_malloc(Scuisize size);
  *
  * This function is only thread-safe if the underlying allocator is.
  */
-void* scu_calloc(Scuisize count, Scuisize size);
+SCU_API void* scu_calloc(Scuisize count, Scuisize size);
 
 /**
  * @brief Reallocates a block of memory to at least `newSize` contiguous bytes.
@@ -246,7 +247,7 @@ void* scu_calloc(Scuisize count, Scuisize size);
  * from multiple threads. However, this function is thread-safe if `block` is
  * `nullptr` and the underlying allocator is.
  */
-void* scu_realloc(void* block, Scuisize newSize);
+SCU_API void* scu_realloc(void* block, Scuisize newSize);
 
 /**
  * @brief Deallocates a block of memory previously allocated by a call to
@@ -258,6 +259,6 @@ void* scu_realloc(void* block, Scuisize newSize);
  * @note It is not thread-safe to deallocate the same block of memory
  * concurrently from multiple threads.
  */
-void scu_free(void* block);
+SCU_API void scu_free(void* block);
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef SCU_EQUAL_H
 #define SCU_EQUAL_H
 
+#include "scu/api.h"
+
 /**
  * @brief Determines whether two values are equal.
  *
@@ -20,7 +22,7 @@ typedef bool ScuEqualFunc(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to a
  * `bool`.
  */
-bool scu_equal_bool(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_bool(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scubyte` values are equal.
@@ -32,7 +34,7 @@ bool scu_equal_bool(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scubyte`.
  */
-bool scu_equal_byte(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_byte(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scui8` values are equal.
@@ -44,7 +46,7 @@ bool scu_equal_byte(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui8`.
  */
-bool scu_equal_i8(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_i8(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuu8` values are equal.
@@ -56,7 +58,7 @@ bool scu_equal_i8(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu8`.
  */
-bool scu_equal_u8(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_u8(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scui16` values are equal.
@@ -68,7 +70,7 @@ bool scu_equal_u8(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui16`.
  */
-bool scu_equal_i16(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_i16(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuu16` values are equal.
@@ -80,7 +82,7 @@ bool scu_equal_i16(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu16`.
  */
-bool scu_equal_u16(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_u16(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scui32` values are equal.
@@ -92,7 +94,7 @@ bool scu_equal_u16(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui32`.
  */
-bool scu_equal_i32(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_i32(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuu32` values are equal.
@@ -104,7 +106,7 @@ bool scu_equal_i32(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu32`.
  */
-bool scu_equal_u32(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_u32(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scui64` values are equal.
@@ -116,7 +118,7 @@ bool scu_equal_u32(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui64`.
  */
-bool scu_equal_i64(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_i64(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuu64` values are equal.
@@ -128,7 +130,7 @@ bool scu_equal_i64(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu64`.
  */
-bool scu_equal_u64(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_u64(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuiptr` values are equal.
@@ -140,7 +142,7 @@ bool scu_equal_u64(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuiptr`.
  */
-bool scu_equal_iptr(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_iptr(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuuptr` values are equal.
@@ -152,7 +154,7 @@ bool scu_equal_iptr(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuuptr`.
  */
-bool scu_equal_uptr(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_uptr(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuisize` values are equal.
@@ -164,7 +166,7 @@ bool scu_equal_uptr(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuisize`.
  */
-bool scu_equal_isize(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_isize(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuusize` values are equal.
@@ -176,7 +178,7 @@ bool scu_equal_isize(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuusize`.
  */
-bool scu_equal_usize(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_usize(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuf32` values are equal.
@@ -193,7 +195,7 @@ bool scu_equal_usize(const void* lhs, const void* rhs);
  * that require an equality function, but not as a general-purpose (approximate)
  * floating-point comparison function.
  */
-bool scu_equal_f32(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_f32(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuf64` values are equal.
@@ -210,7 +212,7 @@ bool scu_equal_f32(const void* lhs, const void* rhs);
  * that require an equality function, but not as a general-purpose (approximate)
  * floating-point comparison function.
  */
-bool scu_equal_f64(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_f64(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `char` values are equal.
@@ -222,7 +224,7 @@ bool scu_equal_f64(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to a
  * `char`.
  */
-bool scu_equal_char(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_char(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuchar8` values are equal.
@@ -234,7 +236,7 @@ bool scu_equal_char(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuchar8`.
  */
-bool scu_equal_char8(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_char8(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuchar16` values are equal.
@@ -246,7 +248,7 @@ bool scu_equal_char8(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuchar16`.
  */
-bool scu_equal_char16(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_char16(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two `Scuchar32` values are equal.
@@ -258,7 +260,7 @@ bool scu_equal_char16(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuchar32`.
  */
-bool scu_equal_char32(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_char32(const void* lhs, const void* rhs);
 
 /**
  * @brief Determines whether two null-terminated byte strings are equal.
@@ -280,6 +282,6 @@ bool scu_equal_char32(const void* lhs, const void* rhs);
  * UTF-8), the return value may be misleading, for example if certain characters
  * considered equal can be represented by different byte sequences.
  */
-bool scu_equal_str(const void* lhs, const void* rhs);
+SCU_API bool scu_equal_str(const void* lhs, const void* rhs);
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef SCU_ERROR_H
 #define SCU_ERROR_H
 
+#include "scu/api.h"
+
 /** @brief An error code used to signal success or failure. */
 typedef enum ScuError {
 
@@ -78,7 +80,7 @@ typedef enum ScuError {
  * directly. Use the `SCU_FATAL()` macro instead.
  */
 [[noreturn]]
-void scu_fatal(
+SCU_API void scu_fatal(
     const char* restrict file,
     int line,
     const char* restrict func,

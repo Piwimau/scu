@@ -1,6 +1,7 @@
 #ifndef SCU_HASH_H
 #define SCU_HASH_H
 
+#include "scu/api.h"
 #include "scu/types.h"
 
 /**
@@ -19,7 +20,7 @@ typedef Scuusize ScuHashFunc(const void* value);
  *
  * @warning The behavior is undefined if `value` is not a pointer to a `bool`.
  */
-Scuusize scu_hash_bool(const void* value);
+SCU_API Scuusize scu_hash_bool(const void* value);
 
 /**
  * @brief Returns a hash for an `Scubyte` value.
@@ -30,7 +31,7 @@ Scuusize scu_hash_bool(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scubyte`.
  */
-Scuusize scu_hash_byte(const void* value);
+SCU_API Scuusize scu_hash_byte(const void* value);
 
 /**
  * @brief Returns a hash for an `Scui8` value.
@@ -40,7 +41,7 @@ Scuusize scu_hash_byte(const void* value);
  *
  * @warning The behavior is undefined if `value` is not a pointer to an `Scui8`.
  */
-Scuusize scu_hash_i8(const void* value);
+SCU_API Scuusize scu_hash_i8(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuu8` value.
@@ -50,7 +51,7 @@ Scuusize scu_hash_i8(const void* value);
  *
  * @warning The behavior is undefined if `value` is not a pointer to an `Scuu8`.
  */
-Scuusize scu_hash_u8(const void* value);
+SCU_API Scuusize scu_hash_u8(const void* value);
 
 /**
  * @brief Returns a hash for an `Scui16` value.
@@ -61,7 +62,7 @@ Scuusize scu_hash_u8(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scui16`.
  */
-Scuusize scu_hash_i16(const void* value);
+SCU_API Scuusize scu_hash_i16(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuu16` value.
@@ -72,7 +73,7 @@ Scuusize scu_hash_i16(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuu16`.
  */
-Scuusize scu_hash_u16(const void* value);
+SCU_API Scuusize scu_hash_u16(const void* value);
 
 /**
  * @brief Returns a hash for an `Scui32` value.
@@ -83,7 +84,7 @@ Scuusize scu_hash_u16(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scui32`.
  */
-Scuusize scu_hash_i32(const void* value);
+SCU_API Scuusize scu_hash_i32(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuu32` value.
@@ -94,7 +95,7 @@ Scuusize scu_hash_i32(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuu32`.
  */
-Scuusize scu_hash_u32(const void* value);
+SCU_API Scuusize scu_hash_u32(const void* value);
 
 /**
  * @brief Returns a hash for an `Scui64` value.
@@ -105,7 +106,7 @@ Scuusize scu_hash_u32(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scui64`.
  */
-Scuusize scu_hash_i64(const void* value);
+SCU_API Scuusize scu_hash_i64(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuu64` value.
@@ -116,7 +117,7 @@ Scuusize scu_hash_i64(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuu64`.
  */
-Scuusize scu_hash_u64(const void* value);
+SCU_API Scuusize scu_hash_u64(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuiptr` value.
@@ -127,7 +128,7 @@ Scuusize scu_hash_u64(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuiptr`.
  */
-Scuusize scu_hash_iptr(const void* value);
+SCU_API Scuusize scu_hash_iptr(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuuptr` value.
@@ -138,7 +139,7 @@ Scuusize scu_hash_iptr(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuuptr`.
  */
-Scuusize scu_hash_uptr(const void* value);
+SCU_API Scuusize scu_hash_uptr(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuisize` value.
@@ -149,7 +150,7 @@ Scuusize scu_hash_uptr(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuisize`.
  */
-Scuusize scu_hash_isize(const void* value);
+SCU_API Scuusize scu_hash_isize(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuusize` value.
@@ -160,7 +161,7 @@ Scuusize scu_hash_isize(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuusize`.
  */
-Scuusize scu_hash_usize(const void* value);
+SCU_API Scuusize scu_hash_usize(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuf32` value.
@@ -171,7 +172,7 @@ Scuusize scu_hash_usize(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuf32`, or if `*value` is NaN.
  */
-Scuusize scu_hash_f32(const void* value);
+SCU_API Scuusize scu_hash_f32(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuf64` value.
@@ -182,7 +183,7 @@ Scuusize scu_hash_f32(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuf64`, or if `*value` is NaN.
  */
-Scuusize scu_hash_f64(const void* value);
+SCU_API Scuusize scu_hash_f64(const void* value);
 
 /**
  * @brief Returns a hash for an `char` value.
@@ -192,7 +193,7 @@ Scuusize scu_hash_f64(const void* value);
  *
  * @warning The behavior is undefined if `value` is not a pointer to a `char`.
  */
-Scuusize scu_hash_char(const void* value);
+SCU_API Scuusize scu_hash_char(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuchar8` value.
@@ -203,7 +204,7 @@ Scuusize scu_hash_char(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuchar8`.
  */
-Scuusize scu_hash_char8(const void* value);
+SCU_API Scuusize scu_hash_char8(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuchar16` value.
@@ -214,7 +215,7 @@ Scuusize scu_hash_char8(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuchar16`.
  */
-Scuusize scu_hash_char16(const void* value);
+SCU_API Scuusize scu_hash_char16(const void* value);
 
 /**
  * @brief Returns a hash for an `Scuchar32` value.
@@ -225,7 +226,7 @@ Scuusize scu_hash_char16(const void* value);
  * @warning The behavior is undefined if `value` is not a pointer to an
  * `Scuchar32`.
  */
-Scuusize scu_hash_char32(const void* value);
+SCU_API Scuusize scu_hash_char32(const void* value);
 
 /**
  * @brief Returns a hash for a block of memory.
@@ -239,7 +240,7 @@ Scuusize scu_hash_char32(const void* value);
  *
  * @note If `count` is zero, `block` is ignored and may be `nullptr`.
  */
-Scuusize scu_hash_bytes(const void* block, Scuisize count);
+SCU_API Scuusize scu_hash_bytes(const void* block, Scuisize count);
 
 /**
  * @brief Returns a hash for a null-terminated byte string.
@@ -253,7 +254,7 @@ Scuusize scu_hash_bytes(const void* block, Scuisize count);
  * pointer to the string itself, but a pointer to a pointer (i.e., `value` is
  * interpreted as `const char* const*`).
  */
-Scuusize scu_hash_str(const void* value);
+SCU_API Scuusize scu_hash_str(const void* value);
 
 /**
  * @brief Combines a hash with an accumulator hash.
@@ -285,6 +286,6 @@ Scuusize scu_hash_str(const void* value);
  * }
  * ```
  */
-Scuusize scu_hash_combine(Scuusize seed, Scuusize hash);
+SCU_API Scuusize scu_hash_combine(Scuusize seed, Scuusize hash);
 
 #endif

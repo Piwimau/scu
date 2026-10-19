@@ -1,6 +1,8 @@
 #ifndef SCU_COMPARE_H
 #define SCU_COMPARE_H
 
+#include "scu/api.h"
+
 /**
  * @brief Compares two values.
  *
@@ -23,7 +25,7 @@ typedef int ScuCompareFunc(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to a
  * `bool`.
  */
-int scu_compare_bool(const void* lhs, const void* rhs);
+SCU_API int scu_compare_bool(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scubyte` values.
@@ -36,7 +38,7 @@ int scu_compare_bool(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scubyte`.
  */
-int scu_compare_byte(const void* lhs, const void* rhs);
+SCU_API int scu_compare_byte(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scui8` values.
@@ -49,7 +51,7 @@ int scu_compare_byte(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui8`.
  */
-int scu_compare_i8(const void* lhs, const void* rhs);
+SCU_API int scu_compare_i8(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuu8` values.
@@ -62,7 +64,7 @@ int scu_compare_i8(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu8`.
  */
-int scu_compare_u8(const void* lhs, const void* rhs);
+SCU_API int scu_compare_u8(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scui16` values.
@@ -75,7 +77,7 @@ int scu_compare_u8(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui16`.
  */
-int scu_compare_i16(const void* lhs, const void* rhs);
+SCU_API int scu_compare_i16(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuu16` values.
@@ -88,7 +90,7 @@ int scu_compare_i16(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu16`.
  */
-int scu_compare_u16(const void* lhs, const void* rhs);
+SCU_API int scu_compare_u16(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scui32` values.
@@ -101,7 +103,7 @@ int scu_compare_u16(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui32`.
  */
-int scu_compare_i32(const void* lhs, const void* rhs);
+SCU_API int scu_compare_i32(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuu32` values.
@@ -114,7 +116,7 @@ int scu_compare_i32(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu32`.
  */
-int scu_compare_u32(const void* lhs, const void* rhs);
+SCU_API int scu_compare_u32(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scui64` values.
@@ -127,7 +129,7 @@ int scu_compare_u32(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scui64`.
  */
-int scu_compare_i64(const void* lhs, const void* rhs);
+SCU_API int scu_compare_i64(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuu64` values.
@@ -140,7 +142,7 @@ int scu_compare_i64(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuu64`.
  */
-int scu_compare_u64(const void* lhs, const void* rhs);
+SCU_API int scu_compare_u64(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuiptr` values.
@@ -153,7 +155,7 @@ int scu_compare_u64(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuiptr`.
  */
-int scu_compare_iptr(const void* lhs, const void* rhs);
+SCU_API int scu_compare_iptr(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuuptr` values.
@@ -166,7 +168,7 @@ int scu_compare_iptr(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuuptr`.
  */
-int scu_compare_uptr(const void* lhs, const void* rhs);
+SCU_API int scu_compare_uptr(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuisize` values.
@@ -179,7 +181,7 @@ int scu_compare_uptr(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuisize`.
  */
-int scu_compare_isize(const void* lhs, const void* rhs);
+SCU_API int scu_compare_isize(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuusize` values.
@@ -192,7 +194,7 @@ int scu_compare_isize(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuusize`.
  */
-int scu_compare_usize(const void* lhs, const void* rhs);
+SCU_API int scu_compare_usize(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuf32` values.
@@ -205,7 +207,7 @@ int scu_compare_usize(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuf32`, or if either `*lhs` or `*rhs` is NaN.
  */
-int scu_compare_f32(const void* lhs, const void* rhs);
+SCU_API int scu_compare_f32(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuf64` values.
@@ -218,7 +220,7 @@ int scu_compare_f32(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuf64`, or if either `*lhs` or `*rhs` is NaN.
  */
-int scu_compare_f64(const void* lhs, const void* rhs);
+SCU_API int scu_compare_f64(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `char` values.
@@ -231,7 +233,7 @@ int scu_compare_f64(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to a
  * `char`.
  */
-int scu_compare_char(const void* lhs, const void* rhs);
+SCU_API int scu_compare_char(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuchar8` values.
@@ -244,7 +246,7 @@ int scu_compare_char(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuchar8`.
  */
-int scu_compare_char8(const void* lhs, const void* rhs);
+SCU_API int scu_compare_char8(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuchar16` values.
@@ -257,7 +259,7 @@ int scu_compare_char8(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuchar16`.
  */
-int scu_compare_char16(const void* lhs, const void* rhs);
+SCU_API int scu_compare_char16(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two `Scuchar32` values.
@@ -270,7 +272,7 @@ int scu_compare_char16(const void* lhs, const void* rhs);
  * @warning The behavior is undefined if `lhs` or `rhs` is not a pointer to an
  * `Scuchar32`.
  */
-int scu_compare_char32(const void* lhs, const void* rhs);
+SCU_API int scu_compare_char32(const void* lhs, const void* rhs);
 
 /**
  * @brief Compares two null-terminated byte strings lexicographically.
@@ -294,6 +296,6 @@ int scu_compare_char32(const void* lhs, const void* rhs);
  * UTF-8), the return value may be misleading, for example if certain characters
  * considered equal can be represented by different byte sequences.
  */
-int scu_compare_str(const void* lhs, const void* rhs);
+SCU_API int scu_compare_str(const void* lhs, const void* rhs);
 
 #endif

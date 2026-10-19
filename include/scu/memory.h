@@ -1,6 +1,7 @@
 #ifndef SCU_MEMORY_H
 #define SCU_MEMORY_H
 
+#include "scu/api.h"
 #include "scu/types.h"
 
 /**
@@ -36,7 +37,7 @@
  * @note If `count` is zero, `block` is ignored (it may even be `nullptr`), and
  * the function returns `nullptr`.
  */
-void* scu_memchr(const void* block, Scubyte c, Scuisize count);
+SCU_API void* scu_memchr(const void* block, Scubyte c, Scuisize count);
 
 /**
  * @brief Finds the last occurrence of a specified byte in a block of memory.
@@ -53,7 +54,7 @@ void* scu_memchr(const void* block, Scubyte c, Scuisize count);
  * @note If `count` is zero, `block` is ignored (it may even be `nullptr`), and
  * the function returns `nullptr`.
  */
-void* scu_memrchr(const void* block, Scubyte c, Scuisize count);
+SCU_API void* scu_memrchr(const void* block, Scubyte c, Scuisize count);
 
 /**
  * @brief Compares two blocks of memory lexicographically.
@@ -79,7 +80,7 @@ void* scu_memrchr(const void* block, Scubyte c, Scuisize count);
  * @note If `count` is zero, both `left` and `right` are ignored (each may even
  * be `nullptr`), and the function returns zero.
  */
-int scu_memcmp(const void* left, const void* right, Scuisize count);
+SCU_API int scu_memcmp(const void* left, const void* right, Scuisize count);
 
 /**
  * @brief Fills a block of memory with a specified byte.
@@ -100,7 +101,7 @@ int scu_memcmp(const void* left, const void* right, Scuisize count);
  * @note If `count` is zero, no bytes are filled and the function immediately
  * returns `dest` (which may be `nullptr`).
  */
-void* scu_memset(void* dest, Scubyte c, Scuisize count);
+SCU_API void* scu_memset(void* dest, Scubyte c, Scuisize count);
 
 /**
  * @brief Copies a non-overlapping block of memory from one location to another.
@@ -121,7 +122,11 @@ void* scu_memset(void* dest, Scubyte c, Scuisize count);
  * If `dest` and `src` may overlap, use `scu_memmove()` instead, which handles
  * overlapping blocks of memory correctly (but may be less efficient).
  */
-void* scu_memcpy(void* restrict dest, const void* restrict src, Scuisize count);
+SCU_API void* scu_memcpy(
+    void* restrict dest,
+    const void* restrict src,
+    Scuisize count
+);
 
 /**
  * @brief Copies a non-overlapping block of memory from one location to another,
@@ -146,7 +151,7 @@ void* scu_memcpy(void* restrict dest, const void* restrict src, Scuisize count);
  * If `dest` and `src` may overlap, use `scu_memmove()` instead, which handles
  * overlapping blocks of memory correctly (but may be less efficient).
  */
-void* scu_memccpy(
+SCU_API void* scu_memccpy(
     void* restrict dest,
     const void* restrict src,
     Scubyte c,
@@ -174,7 +179,7 @@ void* scu_memccpy(
  * If `dest` and `src` may overlap, use `scu_memmove()` instead, which handles
  * overlapping blocks of memory correctly (but may be less efficient).
  */
-void* scu_mempcpy(
+SCU_API void* scu_mempcpy(
     void* restrict dest,
     const void* restrict src,
     Scuisize count
@@ -199,7 +204,7 @@ void* scu_mempcpy(
  * If `dest` and `src` are known to be non-overlapping, use `scu_memcpy()`
  * instead, which is likely to be more efficient.
  */
-void* scu_memmove(void* dest, const void* src, Scuisize count);
+SCU_API void* scu_memmove(void* dest, const void* src, Scuisize count);
 
 /**
  * @brief Swaps the contents of two non-overlapping blocks of memory.
@@ -216,6 +221,10 @@ void* scu_memmove(void* dest, const void* src, Scuisize count);
  * returns. Both `left` and `right` are ignored in this case (and may be
  * `nullptr` each).
  */
-void scu_memswap(void* restrict left, void* restrict right, Scuisize count);
+SCU_API void scu_memswap(
+    void* restrict left,
+    void* restrict right,
+    Scuisize count
+);
 
 #endif

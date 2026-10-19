@@ -1,6 +1,7 @@
 #ifndef SCU_HASH_SET_H
 #define SCU_HASH_SET_H
 
+#include "scu/api.h"
 #include "scu/equal.h"
 #include "scu/error.h"
 #include "scu/hash.h"
@@ -42,7 +43,7 @@ typedef struct ScuHashSetIterator {
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
  */
-ScuHashSet* scu_hash_set_new(
+SCU_API ScuHashSet* scu_hash_set_new(
     Scuisize elemSize,
     ScuHashFunc* hashFunc,
     ScuEqualFunc* equalFunc
@@ -64,7 +65,7 @@ ScuHashSet* scu_hash_set_new(
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
  */
-ScuHashSet* scu_hash_set_new_with_capacity(
+SCU_API ScuHashSet* scu_hash_set_new_with_capacity(
     Scuisize elemSize,
     Scuisize capacity,
     ScuHashFunc* hashFunc,
@@ -82,7 +83,7 @@ ScuHashSet* scu_hash_set_new_with_capacity(
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet);
+SCU_API ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet);
 
 /**
  * @brief Returns the capacity of a hash set, i.e., the maximum number of
@@ -94,7 +95,7 @@ ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet);
  * @note The capacity can be influenced to a certain extent using
  * `scu_hash_set_ensure_capacity()` and `scu_hash_set_trim_excess()`.
  */
-Scuisize scu_hash_set_capacity(const ScuHashSet* hashSet);
+SCU_API Scuisize scu_hash_set_capacity(const ScuHashSet* hashSet);
 
 /**
  * @brief Returns the number of elements in a hash set.
@@ -102,7 +103,7 @@ Scuisize scu_hash_set_capacity(const ScuHashSet* hashSet);
  * @param[in] hashSet The hash set to examine.
  * @return The number of elements in the hash set.
  */
-Scuisize scu_hash_set_count(const ScuHashSet* hashSet);
+SCU_API Scuisize scu_hash_set_count(const ScuHashSet* hashSet);
 
 /**
  * @brief Ensures that a hash set has at least a specified capacity.
@@ -117,7 +118,10 @@ Scuisize scu_hash_set_count(const ScuHashSet* hashSet);
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
+SCU_API ScuError scu_hash_set_ensure_capacity(
+    ScuHashSet* hashSet,
+    Scuisize capacity
+);
 
 /**
  * @brief Adds an element to a hash set.
@@ -135,7 +139,7 @@ ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_set_add(
+SCU_API ScuError scu_hash_set_add(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
 );
@@ -154,7 +158,7 @@ ScuError scu_hash_set_add(
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_set_try_add(
+SCU_API ScuError scu_hash_set_try_add(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
 );
@@ -166,7 +170,7 @@ ScuError scu_hash_set_try_add(
  * @param[in] elem    The element to search for.
  * @return `true` if the element is present in the hash set, `false` otherwise.
  */
-bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem);
+SCU_API bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem);
 
 /**
  * @brief Removes a specified element from a hash set.
@@ -187,7 +191,7 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem);
  * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
  * memory usage of the hash set after removing elements.
  */
-bool scu_hash_set_remove(
+SCU_API bool scu_hash_set_remove(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
 );
@@ -208,7 +212,7 @@ bool scu_hash_set_remove(
  * @note Consider using `scu_hash_set_trim_excess()` if you wish to reduce the
  * memory usage of the hash set after clearing it.
  */
-void scu_hash_set_clear(ScuHashSet* hashSet);
+SCU_API void scu_hash_set_clear(ScuHashSet* hashSet);
 
 /**
  * @brief Trims the excess capacity of a hash set to match its current number of
@@ -223,7 +227,7 @@ void scu_hash_set_clear(ScuHashSet* hashSet);
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
+SCU_API ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
 
 /**
  * @brief Deallocates a hash set.
@@ -240,7 +244,7 @@ ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
  *
  * @note If `hashSet` is `nullptr`, this function does nothing.
  */
-void scu_hash_set_free(ScuHashSet* hashSet);
+SCU_API void scu_hash_set_free(ScuHashSet* hashSet);
 
 /**
  * @brief Returns an iterator to an element of a hash set.
@@ -251,7 +255,7 @@ void scu_hash_set_free(ScuHashSet* hashSet);
  * @note If `hashSet` is empty, this function behaves identically to
  * `scu_hash_set_end(hashSet)`, i.e., it returns the end iterator.
  */
-ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet);
+SCU_API ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet);
 
 /**
  * @brief Returns the end iterator for a hash set.
@@ -259,7 +263,7 @@ ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet);
  * @param[in] hashSet The hash set to iterate over.
  * @return The end iterator for the hash set.
  */
-ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet);
+SCU_API ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet);
 
 /**
  * @brief Determines whether two iterators are equal.
@@ -271,7 +275,7 @@ ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet);
  * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
  * same hash set.
  */
-bool scu_hash_set_iterator_equal(
+SCU_API bool scu_hash_set_iterator_equal(
     const ScuHashSetIterator* lhs,
     const ScuHashSetIterator* rhs
 );
@@ -284,7 +288,7 @@ bool scu_hash_set_iterator_equal(
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point after the end iterator returned by `scu_hash_set_end()`.
  */
-void scu_hash_set_iterator_next(ScuHashSetIterator* iterator);
+SCU_API void scu_hash_set_iterator_next(ScuHashSetIterator* iterator);
 
 /**
  * @brief Moves an iterator to the previous element.
@@ -294,7 +298,7 @@ void scu_hash_set_iterator_next(ScuHashSetIterator* iterator);
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point before the begin iterator returned by `scu_hash_set_begin()`.
  */
-void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator);
+SCU_API void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator);
 
 /**
  * @brief Returns a pointer to the current element an iterator points to.
@@ -306,7 +310,7 @@ void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator);
  * returned by `scu_hash_set_begin()`, if it is the end iterator returned by
  * `scu_hash_set_end()`, or if it points after the end iterator.
  */
-void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator);
+SCU_API void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator);
 
 /**
  * @brief Iterates over each element in a hash set.

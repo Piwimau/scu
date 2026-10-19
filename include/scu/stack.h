@@ -1,6 +1,7 @@
 #ifndef SCU_STACK_H
 #define SCU_STACK_H
 
+#include "scu/api.h"
 #include "scu/error.h"
 #include "scu/types.h"
 #include "scu/util.h"
@@ -37,7 +38,7 @@ typedef struct ScuStackIterator {
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuStack* scu_stack_new(Scuisize elemSize);
+SCU_API ScuStack* scu_stack_new(Scuisize elemSize);
 
 /**
  * @brief Constructs a stack with a specified element size and initial capacity.
@@ -51,7 +52,10 @@ ScuStack* scu_stack_new(Scuisize elemSize);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuStack* scu_stack_new_with_capacity(Scuisize elemSize, Scuisize capacity);
+SCU_API ScuStack* scu_stack_new_with_capacity(
+    Scuisize elemSize,
+    Scuisize capacity
+);
 
 /**
  * @brief Creates a shallow copy of a stack.
@@ -64,7 +68,7 @@ ScuStack* scu_stack_new_with_capacity(Scuisize elemSize, Scuisize capacity);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuStack* scu_stack_clone(const ScuStack* stack);
+SCU_API ScuStack* scu_stack_clone(const ScuStack* stack);
 
 /**
  * @brief Returns the capacity of a stack, i.e., the maximum number of elements
@@ -77,7 +81,7 @@ ScuStack* scu_stack_clone(const ScuStack* stack);
  * `scu_stack_ensure_capacity()` and `scu_stack_trim_excess()`. See their
  * respective documentation for details.
  */
-Scuisize scu_stack_capacity(const ScuStack* stack);
+SCU_API Scuisize scu_stack_capacity(const ScuStack* stack);
 
 /**
  * @brief Returns the number of elements in a stack.
@@ -85,7 +89,7 @@ Scuisize scu_stack_capacity(const ScuStack* stack);
  * @param[in] stack The stack to examine.
  * @return The number of elements in the stack.
  */
-Scuisize scu_stack_count(const ScuStack* stack);
+SCU_API Scuisize scu_stack_count(const ScuStack* stack);
 
 /**
  * @brief Ensures that a stack has at least a specified capacity.
@@ -100,7 +104,7 @@ Scuisize scu_stack_count(const ScuStack* stack);
  *
  * @note This function dynamically allocates memory using `scu_realloc()`.
  */
-ScuError scu_stack_ensure_capacity(ScuStack* stack, Scuisize capacity);
+SCU_API ScuError scu_stack_ensure_capacity(ScuStack* stack, Scuisize capacity);
 
 /**
  * @brief Pushes an element onto the top of a stack.
@@ -115,7 +119,10 @@ ScuError scu_stack_ensure_capacity(ScuStack* stack, Scuisize capacity);
  *
  * @note This function dynamically allocates memory using `scu_realloc()`.
  */
-ScuError scu_stack_push(ScuStack* restrict stack, const void* restrict elem);
+SCU_API ScuError scu_stack_push(
+    ScuStack* restrict stack,
+    const void* restrict elem
+);
 
 /**
  * @brief Removes the top element from a stack.
@@ -128,7 +135,7 @@ ScuError scu_stack_push(ScuStack* restrict stack, const void* restrict elem);
  *
  * The behavior is undefined if the stack is empty.
  */
-void scu_stack_pop(ScuStack* restrict stack, void* restrict elem);
+SCU_API void scu_stack_pop(ScuStack* restrict stack, void* restrict elem);
 
 /**
  * @brief Tries to remove the top element from a stack.
@@ -142,7 +149,7 @@ void scu_stack_pop(ScuStack* restrict stack, void* restrict elem);
  * @warning This function may invalidate any iterators previously created with
  * `scu_stack_begin()` and `scu_stack_end()`.
  */
-bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem);
+SCU_API bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem);
 
 /**
  * @brief Retrieves the top element of a stack without removing it.
@@ -155,7 +162,10 @@ bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem);
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_stack_peek()` macro instead.
  */
-void scu_stack_peek_impl(const ScuStack* restrict stack, void** restrict elem);
+SCU_API void scu_stack_peek_impl(
+    const ScuStack* restrict stack,
+    void** restrict elem
+);
 
 /**
  * @brief Retrieves the top element of a stack without removing it.
@@ -179,7 +189,7 @@ void scu_stack_peek_impl(const ScuStack* restrict stack, void** restrict elem);
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_stack_try_peek()` macro instead.
  */
-bool scu_stack_try_peek_impl(
+SCU_API bool scu_stack_try_peek_impl(
     const ScuStack* restrict stack,
     void** restrict elem
 );
@@ -212,7 +222,7 @@ bool scu_stack_try_peek_impl(
  * @note Consider using `scu_stack_trim_excess()` if you wish to reduce the
  * memory usage of the stack after clearing it.
  */
-void scu_stack_clear(ScuStack* stack);
+SCU_API void scu_stack_clear(ScuStack* stack);
 
 /**
  * @brief Trims the excess capacity of a stack to match its current number of
@@ -227,7 +237,7 @@ void scu_stack_clear(ScuStack* stack);
  *
  * @note This function dynamically allocates memory using `scu_realloc()`.
  */
-ScuError scu_stack_trim_excess(ScuStack* stack);
+SCU_API ScuError scu_stack_trim_excess(ScuStack* stack);
 
 /**
  * @brief Deallocates a stack.
@@ -243,7 +253,7 @@ ScuError scu_stack_trim_excess(ScuStack* stack);
  *
  * @note If `stack` is `nullptr`, this function does nothing.
  */
-void scu_stack_free(ScuStack* stack);
+SCU_API void scu_stack_free(ScuStack* stack);
 
 /**
  * @brief Returns an iterator to the top element of a stack.
@@ -254,7 +264,7 @@ void scu_stack_free(ScuStack* stack);
  * @note If `stack` is empty, this function behaves identically to
  * `scu_stack_end(stack)`, i.e., it returns the end iterator.
  */
-ScuStackIterator scu_stack_begin(const ScuStack* stack);
+SCU_API ScuStackIterator scu_stack_begin(const ScuStack* stack);
 
 /**
  * @brief Returns the end iterator for a stack.
@@ -262,7 +272,7 @@ ScuStackIterator scu_stack_begin(const ScuStack* stack);
  * @param[in] stack The stack to iterate over.
  * @return The end iterator for the stack.
  */
-ScuStackIterator scu_stack_end(const ScuStack* stack);
+SCU_API ScuStackIterator scu_stack_end(const ScuStack* stack);
 
 /**
  * @brief Determines whether two iterators are equal.
@@ -274,7 +284,7 @@ ScuStackIterator scu_stack_end(const ScuStack* stack);
  * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
  * same stack.
  */
-bool scu_stack_iterator_equal(
+SCU_API bool scu_stack_iterator_equal(
     const ScuStackIterator* lhs,
     const ScuStackIterator* rhs
 );
@@ -287,7 +297,7 @@ bool scu_stack_iterator_equal(
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point after the end iterator returned by `scu_stack_end()`.
  */
-void scu_stack_iterator_next(ScuStackIterator* iterator);
+SCU_API void scu_stack_iterator_next(ScuStackIterator* iterator);
 
 /**
  * @brief Moves an iterator to the previous element.
@@ -297,7 +307,7 @@ void scu_stack_iterator_next(ScuStackIterator* iterator);
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point before the begin iterator returned by `scu_stack_begin()`.
  */
-void scu_stack_iterator_prev(ScuStackIterator* iterator);
+SCU_API void scu_stack_iterator_prev(ScuStackIterator* iterator);
 
 /**
  * @brief Returns a pointer to the current element an iterator points to.
@@ -309,7 +319,7 @@ void scu_stack_iterator_prev(ScuStackIterator* iterator);
  * iterator returned by `scu_stack_begin()`, if it is the end iterator returned
  * by `scu_stack_end()`, or if it points after the end iterator.
  */
-void* scu_stack_iterator_deref(const ScuStackIterator* iterator);
+SCU_API void* scu_stack_iterator_deref(const ScuStackIterator* iterator);
 
 /**
  * @brief Iterates over each element in a stack.

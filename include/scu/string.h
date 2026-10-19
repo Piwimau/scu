@@ -1,6 +1,7 @@
 #ifndef SCU_STRING_H
 #define SCU_STRING_H
 
+#include "scu/api.h"
 #include "scu/types.h"
 
 /**
@@ -16,7 +17,7 @@
  * multi-byte character encoding (e.g., UTF-8), it does not necessarily
  * correspond to the actual number of characters in the string.
  */
-Scuisize scu_strlen(const char* s);
+SCU_API Scuisize scu_strlen(const char* s);
 
 /**
  * @brief Returns the length of a byte string, or `count` if no null byte is
@@ -37,7 +38,7 @@ Scuisize scu_strlen(const char* s);
  * If `count` is zero, `s` is ignored (it may even be `nullptr`), and the
  * function returns zero.
  */
-Scuisize scu_strnlen(const char* s, Scuisize count);
+SCU_API Scuisize scu_strnlen(const char* s, Scuisize count);
 
 /**
  * @brief Compares two null-terminated byte strings lexicographically.
@@ -56,7 +57,7 @@ Scuisize scu_strnlen(const char* s, Scuisize count);
  * UTF-8), the return value may be misleading, for example if certain characters
  * considered equal can be represented by different byte sequences.
  */
-int scu_strcmp(const char* lhs, const char* rhs);
+SCU_API int scu_strcmp(const char* lhs, const char* rhs);
 
 /**
  * @brief Compares a span of two null-terminated byte strings lexicographically.
@@ -79,7 +80,7 @@ int scu_strcmp(const char* lhs, const char* rhs);
  * If `count` is zero, `lhs` and `rhs` are ignored (each may even be `nullptr`),
  * and the function returns zero.
  */
-int scu_strncmp(const char* lhs, const char* rhs, Scuisize count);
+SCU_API int scu_strncmp(const char* lhs, const char* rhs, Scuisize count);
 
 /**
  * @brief Returns the index of the first occurrence of a byte in a
@@ -95,7 +96,7 @@ int scu_strncmp(const char* lhs, const char* rhs, Scuisize count);
  *
  * @note The terminating null byte is not compared.
  */
-Scuisize scu_str_index_of_byte(const char* s, char c);
+SCU_API Scuisize scu_str_index_of_byte(const char* s, char c);
 
 /**
  * @brief Returns the index of the first occurrence of a substring in a
@@ -119,7 +120,7 @@ Scuisize scu_str_index_of_byte(const char* s, char c);
  * If `other` points to an empty byte string, zero is returned (as the empty
  * byte string is considered to be the prefix of any byte string).
  */
-Scuisize scu_str_index_of_str(const char* s, const char* other);
+SCU_API Scuisize scu_str_index_of_str(const char* s, const char* other);
 
 /**
  * @brief Returns the index of the first occurrence of a byte or substring in a
@@ -161,7 +162,7 @@ Scuisize scu_str_index_of_str(const char* s, const char* other);
  *
  * @note The terminating null byte is not compared.
  */
-Scuisize scu_str_last_index_of_byte(const char* s, char c);
+SCU_API Scuisize scu_str_last_index_of_byte(const char* s, char c);
 
 /**
  * @brief Returns the index of the last occurrence of a substring in a
@@ -186,7 +187,7 @@ Scuisize scu_str_last_index_of_byte(const char* s, char c);
  * `scu_strlen(s)`) is returned (as the empty byte string is considered to be
  * the suffix of any byte string).
  */
-Scuisize scu_str_last_index_of_str(const char* s, const char* other);
+SCU_API Scuisize scu_str_last_index_of_str(const char* s, const char* other);
 
 /**
  * @brief Returns the index of the last occurrence of a byte or substring in a
@@ -232,7 +233,7 @@ Scuisize scu_str_last_index_of_str(const char* s, const char* other);
  * If `anyOf` points to an empty byte string, `-1` is returned (as there are no
  * bytes to find).
  */
-Scuisize scu_str_index_of_any(const char* s, const char* anyOf);
+SCU_API Scuisize scu_str_index_of_any(const char* s, const char* anyOf);
 
 /**
  * @brief Returns the index of the last occurrence of any byte from a
@@ -252,7 +253,7 @@ Scuisize scu_str_index_of_any(const char* s, const char* anyOf);
  * If `anyOf` points to an empty byte string, `-1` is returned (as there are no
  * bytes to find).
  */
-Scuisize scu_str_last_index_of_any(const char* s, const char* anyOf);
+SCU_API Scuisize scu_str_last_index_of_any(const char* s, const char* anyOf);
 
 /**
  * @brief Returns the index of the first occurrence of any byte within an
@@ -270,7 +271,7 @@ Scuisize scu_str_last_index_of_any(const char* s, const char* anyOf);
  *
  * @note The terminating null byte is not compared.
  */
-Scuisize scu_str_index_in_range(
+SCU_API Scuisize scu_str_index_in_range(
     const char* s,
     char lowInclusive,
     char highInclusive
@@ -292,7 +293,7 @@ Scuisize scu_str_index_in_range(
  *
  * @note The terminating null byte is not compared.
  */
-Scuisize scu_str_last_index_in_range(
+SCU_API Scuisize scu_str_last_index_in_range(
     const char* s,
     char lowInclusive,
     char highInclusive
@@ -311,7 +312,7 @@ Scuisize scu_str_last_index_in_range(
  *
  * @note The terminating null byte is not compared.
  */
-bool scu_str_starts_with_byte(const char* s, char c);
+SCU_API bool scu_str_starts_with_byte(const char* s, char c);
 
 /**
  * @brief Determines whether a null-terminated byte string starts with a
@@ -332,7 +333,7 @@ bool scu_str_starts_with_byte(const char* s, char c);
  * If `other` points to an empty byte string, `true` is returned (as the empty
  * byte string is considered to be the prefix of any byte string).
  */
-bool scu_str_starts_with_str(const char* s, const char* prefix);
+SCU_API bool scu_str_starts_with_str(const char* s, const char* prefix);
 
 /**
  * @brief Determines whether a null-terminated byte string starts with a
@@ -373,7 +374,7 @@ bool scu_str_starts_with_str(const char* s, const char* prefix);
  *
  * @note The terminating null byte is not compared.
  */
-bool scu_str_ends_with_byte(const char* s, char c);
+SCU_API bool scu_str_ends_with_byte(const char* s, char c);
 
 /**
  * @brief Determines whether a null-terminated byte string ends with a specified
@@ -394,7 +395,7 @@ bool scu_str_ends_with_byte(const char* s, char c);
  * If `other` points to an empty byte string, `true` is returned (as the empty
  * byte string is considered to be the suffix of any byte string).
  */
-bool scu_str_ends_with_str(const char* s, const char* suffix);
+SCU_API bool scu_str_ends_with_str(const char* s, const char* suffix);
 
 /**
  * @brief Determines whether a null-terminated byte string ends with a specified
@@ -438,7 +439,7 @@ bool scu_str_ends_with_str(const char* s, const char* suffix);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-char* scu_strdup(const char* src);
+SCU_API char* scu_strdup(const char* src);
 
 /**
  * @brief Returns a pointer to a dynamically allocated copy of a span of a
@@ -467,7 +468,7 @@ char* scu_strdup(const char* src);
  * If `count` is zero, `src` is ignored (it may even be `nullptr`), and the
  * function returns a pointer to a dynamically allocated empty byte string.
  */
-char* scu_strndup(const char* src, Scuisize count);
+SCU_API char* scu_strndup(const char* src, Scuisize count);
 
 /**
  * @brief Copies at most `min(size - 1, count)` bytes from a null-terminated
@@ -502,7 +503,7 @@ char* scu_strndup(const char* src, Scuisize count);
  * destination buffer pointed to by `dest`, the copy of `src` is truncated to
  * guarantee that `dest` is always null-terminated.
  */
-Scuisize scu_strncpy(
+SCU_API Scuisize scu_strncpy(
     char* restrict dest,
     Scuisize size,
     const char* restrict src,
@@ -541,7 +542,7 @@ Scuisize scu_strncpy(
  * remaining space in the destination buffer pointed to by `dest`, the copy of
  * `src` is truncated to guarantee that `dest` is always null-terminated.
  */
-Scuisize scu_strncat(
+SCU_API Scuisize scu_strncat(
     char* restrict dest,
     Scuisize size,
     const char* restrict src,

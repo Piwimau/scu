@@ -1,6 +1,7 @@
 #ifndef SCU_ARRAY_H
 #define SCU_ARRAY_H
 
+#include "scu/api.h"
 #include "scu/compare.h"
 #include "scu/memory.h"
 
@@ -66,7 +67,7 @@
  * No guarantees are made regarding the complexity and stability of the
  * underlying sorting algorithm.
  */
-void scu_array_sort(
+SCU_API void scu_array_sort(
     void* array,
     Scuisize count,
     Scuisize elemSize,

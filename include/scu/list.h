@@ -1,6 +1,7 @@
 #ifndef SCU_LIST_H
 #define SCU_LIST_H
 
+#include "scu/api.h"
 #include "scu/compare.h"
 #include "scu/error.h"
 #include "scu/types.h"
@@ -19,7 +20,7 @@
  * pointer returned is suitably aligned for any type with fundamental alignment
  * requirements.
  */
-void* scu_list_new(Scuisize elemSize);
+SCU_API void* scu_list_new(Scuisize elemSize);
 
 /**
  * @brief Constructs a list with a specified element size and initial capacity.
@@ -35,7 +36,7 @@ void* scu_list_new(Scuisize elemSize);
  * pointer returned is suitably aligned for any type with fundamental alignment
  * requirements.
  */
-void* scu_list_new_with_capacity(Scuisize elemSize, Scuisize capacity);
+SCU_API void* scu_list_new_with_capacity(Scuisize elemSize, Scuisize capacity);
 
 /**
  * @brief Creates a shallow copy of a list.
@@ -55,7 +56,7 @@ void* scu_list_new_with_capacity(Scuisize elemSize, Scuisize capacity);
  * pointer returned is suitably aligned for any type with fundamental alignment
  * requirements.
  */
-void* scu_list_clone(const void* list);
+SCU_API void* scu_list_clone(const void* list);
 
 /**
  * @brief Returns the capacity of a list, i.e., the maximum number of elements
@@ -68,7 +69,7 @@ void* scu_list_clone(const void* list);
  * `scu_list_ensure_capacity()` and `scu_list_trim_excess()`. See their
  * respective documentation for details.
  */
-Scuisize scu_list_capacity(const void* list);
+SCU_API Scuisize scu_list_capacity(const void* list);
 
 /**
  * @brief Returns the number of elements in a list.
@@ -76,7 +77,7 @@ Scuisize scu_list_capacity(const void* list);
  * @param[in] list The list to examine.
  * @return The number of elements in the list.
  */
-Scuisize scu_list_count(const void* list);
+SCU_API Scuisize scu_list_count(const void* list);
 
 /**
  * @brief Ensures that a list has at least a specified capacity.
@@ -102,7 +103,7 @@ Scuisize scu_list_count(const void* list);
  * assigned to `*list` is suitably aligned for any type with fundamental
  * alignment requirements.
  */
-ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
+SCU_API ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
 
 /**
  * @brief Ensures that a list has at least a specified capacity.
@@ -153,7 +154,10 @@ ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
  * assigned to `*list` is suitably aligned for any type with fundamental
  * alignment requirements.
  */
-ScuError scu_list_add_impl(void** restrict list, const void* restrict elem);
+SCU_API ScuError scu_list_add_impl(
+    void** restrict list,
+    const void* restrict elem
+);
 
 /**
  * @brief Adds an element to the end of a list.
@@ -210,7 +214,7 @@ ScuError scu_list_add_impl(void** restrict list, const void* restrict elem);
  * assigned to `*list` is suitably aligned for any type with fundamental
  * alignment requirements.
  */
-ScuError scu_list_insert_at_impl(
+SCU_API ScuError scu_list_insert_at_impl(
     void** restrict list,
     Scuisize index,
     const void* restrict elem
@@ -267,7 +271,7 @@ ScuError scu_list_insert_at_impl(
  * `scu_list_trim_excess()` if you wish to reduce the memory usage of the list
  * after removing elements.
  */
-void scu_list_remove_at(void* list, Scuisize index);
+SCU_API void scu_list_remove_at(void* list, Scuisize index);
 
 /**
  * @brief Clears all elements from a list.
@@ -284,7 +288,7 @@ void scu_list_remove_at(void* list, Scuisize index);
  * `scu_list_trim_excess()` if you wish to reduce the memory usage of the list
  * after clearing it.
  */
-void scu_list_clear(void* list);
+SCU_API void scu_list_clear(void* list);
 
 /**
  * @brief Trims the excess capacity of a list to match its current number of
@@ -311,7 +315,7 @@ void scu_list_clear(void* list);
  * assigned to `*list` is suitably aligned for any type with fundamental
  * alignment requirements.
  */
-ScuError scu_list_trim_excess_impl(void** list);
+SCU_API ScuError scu_list_trim_excess_impl(void** list);
 
 /**
  * @brief Trims the excess capacity of a list to match its current number of
@@ -351,7 +355,7 @@ ScuError scu_list_trim_excess_impl(void** list);
  * @note No guarantees are made regarding the complexity and stability of the
  * underlying sorting algorithm.
  */
-void scu_list_sort(void* list, ScuCompareFunc* cmpFunc);
+SCU_API void scu_list_sort(void* list, ScuCompareFunc* cmpFunc);
 
 /**
  * @brief Deallocates a list.
@@ -367,7 +371,7 @@ void scu_list_sort(void* list, ScuCompareFunc* cmpFunc);
  *
  * @note If `list` is `nullptr`, this function does nothing.
  */
-void scu_list_free(void* list);
+SCU_API void scu_list_free(void* list);
 
 /**
  * @brief Iterates over each element in a list.

@@ -1,6 +1,7 @@
 #ifndef SCU_HASH_MAP_H
 #define SCU_HASH_MAP_H
 
+#include "scu/api.h"
 #include "scu/equal.h"
 #include "scu/error.h"
 #include "scu/hash.h"
@@ -55,7 +56,7 @@ typedef struct ScuHashMapEntry {
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
  */
-ScuHashMap* scu_hash_map_new(
+SCU_API ScuHashMap* scu_hash_map_new(
     Scuisize keySize,
     Scuisize valueSize,
     ScuHashFunc* keyHashFunc,
@@ -82,7 +83,7 @@ ScuHashMap* scu_hash_map_new(
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
  */
-ScuHashMap* scu_hash_map_new_with_capacity(
+SCU_API ScuHashMap* scu_hash_map_new_with_capacity(
     Scuisize keySize,
     Scuisize valueSize,
     Scuisize capacity,
@@ -102,7 +103,7 @@ ScuHashMap* scu_hash_map_new_with_capacity(
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap);
+SCU_API ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap);
 
 /**
  * @brief Returns the capacity of a hash map, i.e., the maximum number of
@@ -114,7 +115,7 @@ ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap);
  * @note The capacity can be influenced to a certain extent using
  * `scu_hash_map_ensure_capacity()` and `scu_hash_map_trim_excess()`.
  */
-Scuisize scu_hash_map_capacity(const ScuHashMap* hashMap);
+SCU_API Scuisize scu_hash_map_capacity(const ScuHashMap* hashMap);
 
 /**
  * @brief Returns the number of key-value pairs in a hash map.
@@ -122,7 +123,7 @@ Scuisize scu_hash_map_capacity(const ScuHashMap* hashMap);
  * @param[in] hashMap The hash map to examine.
  * @return The number of key-value pairs in the hash map.
  */
-Scuisize scu_hash_map_count(const ScuHashMap* hashMap);
+SCU_API Scuisize scu_hash_map_count(const ScuHashMap* hashMap);
 
 /**
  * @brief Ensures that a hash map has at least a specified capacity.
@@ -137,7 +138,10 @@ Scuisize scu_hash_map_count(const ScuHashMap* hashMap);
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, Scuisize capacity);
+SCU_API ScuError scu_hash_map_ensure_capacity(
+    ScuHashMap* hashMap,
+    Scuisize capacity
+);
 
 /**
  * @brief Adds a key-value pair to a hash map.
@@ -156,7 +160,7 @@ ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, Scuisize capacity);
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_map_add(
+SCU_API ScuError scu_hash_map_add(
     ScuHashMap* restrict hashMap,
     const void* restrict key,
     const void* restrict value
@@ -177,7 +181,7 @@ ScuError scu_hash_map_add(
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_map_try_add(
+SCU_API ScuError scu_hash_map_try_add(
     ScuHashMap* restrict hashMap,
     const void* restrict key,
     const void* restrict value
@@ -193,7 +197,7 @@ ScuError scu_hash_map_try_add(
  * @warning The behavior is undefined if the key is not present in the hash map.
  * Use `scu_hash_map_try_get()` to handle this case gracefully.
  */
-void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key);
+SCU_API void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key);
 
 /**
  * @brief Tries to get the value associated with a key in a hash map.
@@ -207,7 +211,7 @@ void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key);
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_hash_map_try_get()` macro instead.
  */
-bool scu_hash_map_try_get_impl(
+SCU_API bool scu_hash_map_try_get_impl(
     const ScuHashMap* restrict hashMap,
     const void* restrict key,
     void* restrict* restrict value
@@ -247,7 +251,7 @@ bool scu_hash_map_try_get_impl(
  * hash map, consider using `scu_hash_map_add()` or `scu_hash_map_try_add()`
  * instead, which may be more efficient in this case.
  */
-ScuError scu_hash_map_set(
+SCU_API ScuError scu_hash_map_set(
     ScuHashMap* restrict hashMap,
     const void* restrict key,
     const void* restrict value
@@ -260,7 +264,10 @@ ScuError scu_hash_map_set(
  * @param[in] key     The key to search for.
  * @return `true` if the key is present in the hash map, `false` otherwise.
  */
-bool scu_hash_map_contains_key(const ScuHashMap* hashMap, const void* key);
+SCU_API bool scu_hash_map_contains_key(
+    const ScuHashMap* hashMap,
+    const void* key
+);
 
 /**
  * @brief Determines whether a value is present in a hash map.
@@ -269,7 +276,10 @@ bool scu_hash_map_contains_key(const ScuHashMap* hashMap, const void* key);
  * @param[in] value   The value to search for.
  * @return `true` if the value is present in the hash map, `false` otherwise.
  */
-bool scu_hash_map_contains_value(const ScuHashMap* hashMap, const void* value);
+SCU_API bool scu_hash_map_contains_value(
+    const ScuHashMap* hashMap,
+    const void* value
+);
 
 /**
  * @brief Removes a key-value pair with a specified key from a hash map.
@@ -290,7 +300,7 @@ bool scu_hash_map_contains_value(const ScuHashMap* hashMap, const void* value);
  * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
  * memory usage of the hash map after removing key-value pairs.
  */
-bool scu_hash_map_remove(
+SCU_API bool scu_hash_map_remove(
     ScuHashMap* restrict hashMap,
     const void* restrict key
 );
@@ -312,7 +322,7 @@ bool scu_hash_map_remove(
  * @note Consider using `scu_hash_map_trim_excess()` if you wish to reduce the
  * memory usage of the hash map after clearing it.
  */
-void scu_hash_map_clear(ScuHashMap* hashMap);
+SCU_API void scu_hash_map_clear(ScuHashMap* hashMap);
 
 /**
  * @brief Trims the excess capacity of a hash map to match its current number of
@@ -327,7 +337,7 @@ void scu_hash_map_clear(ScuHashMap* hashMap);
  *
  * @note This function dynamically allocates memory using `scu_calloc()`.
  */
-ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
+SCU_API ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
 
 /**
  * @brief Deallocates a hash map.
@@ -345,7 +355,7 @@ ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
  *
  * @note If `hashMap` is `nullptr`, this function does nothing.
  */
-void scu_hash_map_free(ScuHashMap* hashMap);
+SCU_API void scu_hash_map_free(ScuHashMap* hashMap);
 
 /**
  * @brief Returns an iterator to an entry in a hash map.
@@ -356,7 +366,7 @@ void scu_hash_map_free(ScuHashMap* hashMap);
  * @note If `hashMap` is empty, this function behaves identically to
  * `scu_hash_map_end(hashMap)`, i.e., it returns the end iterator.
  */
-ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap);
+SCU_API ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap);
 
 /**
  * @brief Returns the end iterator for a hash map.
@@ -364,7 +374,7 @@ ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap);
  * @param[in] hashMap The hash map to iterate over.
  * @return The end iterator for the hash map.
  */
-ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap);
+SCU_API ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap);
 
 /**
  * @brief Determines whether two iterators are equal.
@@ -376,7 +386,7 @@ ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap);
  * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
  * same hash map.
  */
-bool scu_hash_map_iterator_equal(
+SCU_API bool scu_hash_map_iterator_equal(
     const ScuHashMapIterator* lhs,
     const ScuHashMapIterator* rhs
 );
@@ -389,7 +399,7 @@ bool scu_hash_map_iterator_equal(
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point after the end iterator returned by `scu_hash_map_end()`.
  */
-void scu_hash_map_iterator_next(ScuHashMapIterator* iterator);
+SCU_API void scu_hash_map_iterator_next(ScuHashMapIterator* iterator);
 
 /**
  * @brief Moves an iterator to the previous entry.
@@ -399,7 +409,7 @@ void scu_hash_map_iterator_next(ScuHashMapIterator* iterator);
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point before the begin iterator returned by `scu_hash_map_begin()`.
  */
-void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator);
+SCU_API void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator);
 
 /**
  * @brief Returns an entry for the current element an iterator points to.
@@ -411,7 +421,9 @@ void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator);
  * iterator returned by `scu_hash_map_begin()`, if it is the end iterator
  * returned by `scu_hash_map_end()`, or if it points after the end iterator.
  */
-ScuHashMapEntry scu_hash_map_iterator_deref(const ScuHashMapIterator* iterator);
+SCU_API ScuHashMapEntry scu_hash_map_iterator_deref(
+    const ScuHashMapIterator* iterator
+);
 
 /**
  * @brief Iterates over each key-value pair in a hash map.

@@ -1,6 +1,8 @@
 #ifndef SCU_ASSERT_H
 #define SCU_ASSERT_H
 
+#include "scu/api.h"
+
 /**
  * @brief Declares a compile-time assertion.
  *
@@ -51,7 +53,7 @@
  * directly. Use the `SCU_ASSERT()` macro instead.
  */
 [[noreturn]]
-void scu_assert_fail(
+SCU_API void scu_assert_fail(
     const char* restrict expr,
     const char* restrict file,
     int line,

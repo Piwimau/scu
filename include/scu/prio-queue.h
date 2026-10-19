@@ -1,6 +1,7 @@
 #ifndef SCU_PRIO_QUEUE_H
 #define SCU_PRIO_QUEUE_H
 
+#include "scu/api.h"
 #include "scu/compare.h"
 #include "scu/error.h"
 #include "scu/types.h"
@@ -51,7 +52,7 @@ typedef struct ScuPrioQueueEntry {
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuPrioQueue* scu_prio_queue_new(
+SCU_API ScuPrioQueue* scu_prio_queue_new(
     Scuisize elemSize,
     Scuisize prioSize,
     ScuCompareFunc* prioCmpFunc
@@ -72,7 +73,7 @@ ScuPrioQueue* scu_prio_queue_new(
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuPrioQueue* scu_prio_queue_new_with_capacity(
+SCU_API ScuPrioQueue* scu_prio_queue_new_with_capacity(
     Scuisize elemSize,
     Scuisize prioSize,
     Scuisize capacity,
@@ -90,7 +91,7 @@ ScuPrioQueue* scu_prio_queue_new_with_capacity(
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue);
+SCU_API ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue);
 
 /**
  * @brief Returns the capacity of a priority queue, i.e., the maximum number of
@@ -103,7 +104,7 @@ ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue);
  * `scu_prio_queue_ensure_capacity()` and `scu_prio_queue_trim_excess()`. See
  * their respective documentation for details.
  */
-Scuisize scu_prio_queue_capacity(const ScuPrioQueue* prioQueue);
+SCU_API Scuisize scu_prio_queue_capacity(const ScuPrioQueue* prioQueue);
 
 /**
  * @brief Returns the number of elements stored in a priority queue.
@@ -111,7 +112,7 @@ Scuisize scu_prio_queue_capacity(const ScuPrioQueue* prioQueue);
  * @param[in] prioQueue The priority queue to examine.
  * @return The number of elements stored in the priority queue.
  */
-Scuisize scu_prio_queue_count(const ScuPrioQueue* prioQueue);
+SCU_API Scuisize scu_prio_queue_count(const ScuPrioQueue* prioQueue);
 
 /**
  * @brief Ensures that a priority queue has at least a specified capacity.
@@ -126,7 +127,7 @@ Scuisize scu_prio_queue_count(const ScuPrioQueue* prioQueue);
  *
  * @note This function dynamically allocates memory using `scu_realloc()`.
  */
-ScuError scu_prio_queue_ensure_capacity(
+SCU_API ScuError scu_prio_queue_ensure_capacity(
     ScuPrioQueue* prioQueue,
     Scuisize capacity
 );
@@ -145,7 +146,7 @@ ScuError scu_prio_queue_ensure_capacity(
  *
  * @note This function dynamically allocates memory using `scu_realloc()`.
  */
-ScuError scu_prio_queue_enqueue(
+SCU_API ScuError scu_prio_queue_enqueue(
     ScuPrioQueue* restrict prioQueue,
     const void* restrict elem,
     const void* restrict prio
@@ -164,7 +165,7 @@ ScuError scu_prio_queue_enqueue(
  * The behavior is undefined if the priority queue is empty. Use
  * `scu_prio_queue_try_dequeue()` to handle this case gracefully.
  */
-void scu_prio_queue_dequeue(
+SCU_API void scu_prio_queue_dequeue(
     ScuPrioQueue* restrict prioQueue,
     void* restrict elem,
     void* restrict prio
@@ -184,7 +185,7 @@ void scu_prio_queue_dequeue(
  * @warning This function may invalidate any iterators previously created with
  * `scu_prio_queue_begin()` and `scu_prio_queue_end()`.
  */
-bool scu_prio_queue_try_dequeue(
+SCU_API bool scu_prio_queue_try_dequeue(
     ScuPrioQueue* restrict prioQueue,
     void* restrict elem,
     void* restrict prio
@@ -205,7 +206,7 @@ bool scu_prio_queue_try_dequeue(
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_prio_queue_peek()` macro instead.
  */
-void scu_prio_queue_peek_impl(
+SCU_API void scu_prio_queue_peek_impl(
     const ScuPrioQueue* restrict prioQueue,
     void** restrict elem,
     void** restrict prio
@@ -240,7 +241,7 @@ void scu_prio_queue_peek_impl(
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_prio_queue_try_peek()` macro instead.
  */
-bool scu_prio_queue_try_peek_impl(
+SCU_API bool scu_prio_queue_try_peek_impl(
     const ScuPrioQueue* restrict prioQueue,
     void** restrict elem,
     void** restrict prio
@@ -276,7 +277,7 @@ bool scu_prio_queue_try_peek_impl(
  * @note Consider using `scu_prio_queue_trim_excess()` if you wish to reduce the
  * memory usage of the priority queue after clearing it.
  */
-void scu_prio_queue_clear(ScuPrioQueue* prioQueue);
+SCU_API void scu_prio_queue_clear(ScuPrioQueue* prioQueue);
 
 /**
  * @brief Trims the excess capacity of a priority queue to match its current
@@ -291,7 +292,7 @@ void scu_prio_queue_clear(ScuPrioQueue* prioQueue);
  *
  * @note This function dynamically allocates memory using `scu_realloc()`.
  */
-ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue);
+SCU_API ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue);
 
 /**
  * @brief Deallocates a priority queue.
@@ -309,7 +310,7 @@ ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue);
  *
  * @note If `prioQueue` is `nullptr`, this function does nothing.
  */
-void scu_prio_queue_free(ScuPrioQueue* prioQueue);
+SCU_API void scu_prio_queue_free(ScuPrioQueue* prioQueue);
 
 /**
  * @brief Returns an iterator to an element of a priority queue.
@@ -320,7 +321,9 @@ void scu_prio_queue_free(ScuPrioQueue* prioQueue);
  * @note If `prioQueue` is empty, this function behaves identically to
  * `scu_prio_queue_end(prioQueue)`, i.e., it returns the end iterator.
  */
-ScuPrioQueueIterator scu_prio_queue_begin(const ScuPrioQueue* prioQueue);
+SCU_API ScuPrioQueueIterator scu_prio_queue_begin(
+    const ScuPrioQueue* prioQueue
+);
 
 /**
  * @brief Returns the end iterator for a priority queue.
@@ -328,7 +331,7 @@ ScuPrioQueueIterator scu_prio_queue_begin(const ScuPrioQueue* prioQueue);
  * @param[in] prioQueue The priority queue to iterate over.
  * @return The end iterator for the priority queue.
  */
-ScuPrioQueueIterator scu_prio_queue_end(const ScuPrioQueue* prioQueue);
+SCU_API ScuPrioQueueIterator scu_prio_queue_end(const ScuPrioQueue* prioQueue);
 
 /**
  * @brief Determines whether two iterators are equal.
@@ -340,7 +343,7 @@ ScuPrioQueueIterator scu_prio_queue_end(const ScuPrioQueue* prioQueue);
  * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
  * same priority queue.
  */
-bool scu_prio_queue_iterator_equal(
+SCU_API bool scu_prio_queue_iterator_equal(
     const ScuPrioQueueIterator* lhs,
     const ScuPrioQueueIterator* rhs
 );
@@ -353,7 +356,7 @@ bool scu_prio_queue_iterator_equal(
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point after the end iterator returned by `scu_prio_queue_end()`.
  */
-void scu_prio_queue_iterator_next(ScuPrioQueueIterator* iterator);
+SCU_API void scu_prio_queue_iterator_next(ScuPrioQueueIterator* iterator);
 
 /**
  * @brief Moves an iterator to the previous element.
@@ -363,7 +366,7 @@ void scu_prio_queue_iterator_next(ScuPrioQueueIterator* iterator);
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point before the begin iterator returned by `scu_prio_queue_begin()`.
  */
-void scu_prio_queue_iterator_prev(ScuPrioQueueIterator* iterator);
+SCU_API void scu_prio_queue_iterator_prev(ScuPrioQueueIterator* iterator);
 
 /**
  * @brief Returns an entry for the current element an iterator points to.
@@ -375,7 +378,7 @@ void scu_prio_queue_iterator_prev(ScuPrioQueueIterator* iterator);
  * iterator returned by `scu_prio_queue_begin()`, if it is the end iterator
  * returned by `scu_prio_queue_end()`, or if it points after the end iterator.
  */
-ScuPrioQueueEntry scu_prio_queue_iterator_deref(
+SCU_API ScuPrioQueueEntry scu_prio_queue_iterator_deref(
     const ScuPrioQueueIterator* iterator
 );
 

@@ -2,6 +2,7 @@
 #define SCU_IO_H
 
 #include <stdarg.h>
+#include "scu/api.h"
 #include "scu/error.h"
 #include "scu/types.h"
 
@@ -34,7 +35,7 @@ typedef enum ScuSeekOrigin {
  * @note This function is an implementation detail and is not meant to be called
  * directly. Use the `SCU_STDIN` macro instead.
  */
-ScuFile* scu_stdin();
+SCU_API ScuFile* scu_stdin();
 
 /**
  * @brief Expands to an expression of type `ScuFile*` that is associated with
@@ -57,7 +58,7 @@ ScuFile* scu_stdin();
  * @note This function is an implementation detail and is not meant to be called
  * directly. Use the `SCU_STDOUT` macro instead.
  */
-ScuFile* scu_stdout();
+SCU_API ScuFile* scu_stdout();
 
 /**
  * @brief Expands to an expression of type `ScuFile*` that is associated with
@@ -79,7 +80,7 @@ ScuFile* scu_stdout();
  * @note This function is an implementation detail and is not meant to be called
  * directly. Use the `SCU_STDERR` macro instead.
  */
-ScuFile* scu_stderr();
+SCU_API ScuFile* scu_stderr();
 
 /**
  * @brief Expands to an expression of type `ScuFile*` that is associated with
@@ -139,7 +140,7 @@ ScuFile* scu_stderr();
  *
  * This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuError scu_fopen(
+SCU_API ScuError scu_fopen(
     ScuFile* restrict* restrict file,
     const char* restrict name,
     const char* restrict mode
@@ -163,7 +164,7 @@ ScuError scu_fopen(
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuError scu_fopentmp(ScuFile** file);
+SCU_API ScuError scu_fopentmp(ScuFile** file);
 
 /**
  * @brief Reopens a file stream with a specified name and mode.
@@ -227,7 +228,7 @@ ScuError scu_fopentmp(ScuFile** file);
  * This function does not allocate a new `ScuFile` object, but modifies the
  * file stream in-place.
  */
-ScuError scu_freopen(
+SCU_API ScuError scu_freopen(
     ScuFile* restrict file,
     const char* restrict name,
     const char* restrict mode
@@ -243,7 +244,7 @@ ScuError scu_freopen(
  * @warning The behavior is undefined if `file` is used after calling this
  * function.
  */
-ScuError scu_fclose(ScuFile* file);
+SCU_API ScuError scu_fclose(ScuFile* file);
 
 /**
  * @brief Writes any buffered data to the underlying file associated with a
@@ -257,7 +258,7 @@ ScuError scu_fclose(ScuFile* file);
  * @warning The behavior is undefined if `file` is an input stream or an update
  * stream on which the last operation was input.
  */
-ScuError scu_fflush(ScuFile* file);
+SCU_API ScuError scu_fflush(ScuFile* file);
 
 /**
  * @brief Removes a file with a specified name.
@@ -269,7 +270,7 @@ ScuError scu_fflush(ScuFile* file);
  * @note If the file is currently opened by any process, the behavior is
  * implementation-defined.
  */
-ScuError scu_fremove(const char* name);
+SCU_API ScuError scu_fremove(const char* name);
 
 /**
  * @brief Renames a file.
@@ -282,7 +283,7 @@ ScuError scu_fremove(const char* name);
  * @note If a file with the new name already exists, the behavior is
  * implementation-defined.
  */
-ScuError scu_frename(const char* oldName, const char* newName);
+SCU_API ScuError scu_frename(const char* oldName, const char* newName);
 
 /**
  * @brief Reads `count` objects of size `size` from a file stream into a buffer.
@@ -305,7 +306,7 @@ ScuError scu_frename(const char* oldName, const char* newName);
  * If `count` or `size` is zero, `buffer` is ignored (it may even be `nullptr`),
  * and the function returns zero.
  */
-Scuisize scu_fread(
+SCU_API Scuisize scu_fread(
     ScuFile* restrict file,
     void* restrict buffer,
     Scuisize count,
@@ -336,7 +337,7 @@ Scuisize scu_fread(
  * Calling this function is equivalent to calling `scu_fread(SCU_STDIN, buffer,
  * count, size)`.
  */
-Scuisize scu_read(void* buffer, Scuisize count, Scuisize size);
+SCU_API Scuisize scu_read(void* buffer, Scuisize count, Scuisize size);
 
 /**
  * @brief Writes `count` objects of size `size` from a buffer to a file stream.
@@ -357,7 +358,7 @@ Scuisize scu_read(void* buffer, Scuisize count, Scuisize size);
  * If `count` or `size` is zero, `buffer` is ignored (it may even be `nullptr`),
  * and the function returns zero.
  */
-Scuisize scu_fwrite(
+SCU_API Scuisize scu_fwrite(
     ScuFile* restrict file,
     const void* restrict buffer,
     Scuisize count,
@@ -386,7 +387,7 @@ Scuisize scu_fwrite(
  * Calling this function is equivalent to calling `scu_fwrite(SCU_STDOUT,
  * buffer, count, size)`.
  */
-Scuisize scu_write(const void* buffer, Scuisize count, Scuisize size);
+SCU_API Scuisize scu_write(const void* buffer, Scuisize count, Scuisize size);
 
 /**
  * @brief Reads a single byte from a file stream.
@@ -398,7 +399,7 @@ Scuisize scu_write(const void* buffer, Scuisize count, Scuisize size);
  * before a byte is read, `SCU_ERROR_READING_FILE` if an error occurred while
  * reading from the file stream, or `SCU_ERROR_NONE` on success.
  */
-ScuError scu_freadc(ScuFile* restrict file, char* restrict c);
+SCU_API ScuError scu_freadc(ScuFile* restrict file, char* restrict c);
 
 /**
  * @brief Reads a single byte from the standard input stream.
@@ -411,7 +412,7 @@ ScuError scu_freadc(ScuFile* restrict file, char* restrict c);
  * before a byte is read, `SCU_ERROR_READING_FILE` if an error occurred while
  * reading from the standard input stream, or `SCU_ERROR_NONE` on success.
  */
-ScuError scu_readc(char* c);
+SCU_API ScuError scu_readc(char* c);
 
 /**
  * @brief Writes a single byte to a file stream.
@@ -421,7 +422,7 @@ ScuError scu_readc(char* c);
  * @return `SCU_ERROR_WRITING_FILE` if an error occurred while writing to the
  * file stream, or `SCU_ERROR_NONE` on success.
  */
-ScuError scu_fwritec(ScuFile* file, char c);
+SCU_API ScuError scu_fwritec(ScuFile* file, char c);
 
 /**
  * @brief Writes a single byte to the standard output stream.
@@ -433,7 +434,7 @@ ScuError scu_fwritec(ScuFile* file, char c);
  * @note Calling this function is equivalent to calling `scu_fwritec(SCU_STDOUT,
  * c)`.
  */
-ScuError scu_writec(char c);
+SCU_API ScuError scu_writec(char c);
 
 /**
  * @brief Pushes a single byte back into a file stream, such that
@@ -463,7 +464,7 @@ ScuError scu_writec(char c);
  * that after all pushed-back bytes have been read, the file position indicator
  * will be equal to the original position before the call to `scu_funreadc()`.
  */
-ScuError scu_funreadc(ScuFile* file, char c);
+SCU_API ScuError scu_funreadc(ScuFile* file, char c);
 
 /**
  * @brief Reads a byte string from a file stream.
@@ -486,7 +487,7 @@ ScuError scu_funreadc(ScuFile* file, char c);
  * null-terminated, even if the end-of-file condition is reached before any
  * bytes are read or if an error occurs while reading from the file stream.
  */
-ScuError scu_freads(
+SCU_API ScuError scu_freads(
     ScuFile* restrict file,
     char* restrict buffer,
     Scuisize size
@@ -515,7 +516,7 @@ ScuError scu_freads(
  * Calling this function is equivalent to calling `scu_freads(SCU_STDIN, buffer,
  * size)`.
  */
-ScuError scu_reads(char* buffer, Scuisize size);
+SCU_API ScuError scu_reads(char* buffer, Scuisize size);
 
 /**
  * @brief Writes a byte string to a file stream.
@@ -528,7 +529,10 @@ ScuError scu_reads(char* buffer, Scuisize size);
  * @return `SCU_ERROR_WRITING_FILE` if an error occurred while writing to the
  * file stream, or `SCU_ERROR_NONE` on success.
  */
-ScuError scu_fwrites(ScuFile* restrict file, const char* restrict buffer);
+SCU_API ScuError scu_fwrites(
+    ScuFile* restrict file,
+    const char* restrict buffer
+);
 
 /**
  * @brief Writes a byte string to the standard output stream.
@@ -543,7 +547,7 @@ ScuError scu_fwrites(ScuFile* restrict file, const char* restrict buffer);
  * @note Calling this function is equivalent to calling `scu_fwrites(SCU_STDOUT,
  * buffer)`.
  */
-ScuError scu_writes(const char* buffer);
+SCU_API ScuError scu_writes(const char* buffer);
 
 /**
  * @brief Reads a single line from a file stream.
@@ -576,7 +580,7 @@ ScuError scu_writes(const char* buffer);
  * end-of-file condition is reached before any bytes are read or if an error
  * occurs while reading from the file stream.
  */
-ScuError scu_freadln(
+SCU_API ScuError scu_freadln(
     ScuFile* restrict file,
     char* restrict* restrict buffer,
     Scuisize* restrict size
@@ -616,7 +620,10 @@ ScuError scu_freadln(
  * Calling this function is equivalent to calling `scu_freadln(SCU_STDIN,
  * buffer, size)`.
  */
-ScuError scu_readln(char* restrict* restrict buffer, Scuisize* restrict size);
+SCU_API ScuError scu_readln(
+    char* restrict* restrict buffer,
+    Scuisize* restrict size
+);
 
 /**
  * @brief Writes a byte string followed by a newline to a file stream.
@@ -630,7 +637,10 @@ ScuError scu_readln(char* restrict* restrict buffer, Scuisize* restrict size);
  * @return `SCU_ERROR_WRITING_FILE` if an error occurred while writing to the
  * file stream, or `SCU_ERROR_NONE` on success.
  */
-ScuError scu_fwriteln(ScuFile* restrict file, const char* restrict buffer);
+SCU_API ScuError scu_fwriteln(
+    ScuFile* restrict file,
+    const char* restrict buffer
+);
 
 /**
  * @brief Writes a byte string followed by a newline to the standard output
@@ -647,7 +657,7 @@ ScuError scu_fwriteln(ScuFile* restrict file, const char* restrict buffer);
  * @note Calling this function is equivalent to calling
  * `scu_fwriteln(SCU_STDOUT, buffer)`.
  */
-ScuError scu_writeln(const char* buffer);
+SCU_API ScuError scu_writeln(const char* buffer);
 
 /**
  * @brief Reads all remaining bytes from a file stream into a dynamically
@@ -681,7 +691,7 @@ ScuError scu_writeln(const char* buffer);
  * end-of-file condition is reached before any bytes are read or if an error
  * occurs while reading from the file stream.
  */
-ScuError scu_freadall(
+SCU_API ScuError scu_freadall(
     ScuFile* restrict file,
     char* restrict* restrict buffer,
     Scuisize* restrict size
@@ -721,7 +731,10 @@ ScuError scu_freadall(
  * Calling this function is equivalent to calling `scu_freadall(SCU_STDIN,
  * buffer, size)`.
  */
-ScuError scu_readall(char* restrict* restrict buffer, Scuisize* restrict size);
+SCU_API ScuError scu_readall(
+    char* restrict* restrict buffer,
+    Scuisize* restrict size
+);
 
 /**
  * @brief Reads formatted input from a file stream.
@@ -743,7 +756,7 @@ ScuError scu_readall(char* restrict* restrict buffer, Scuisize* restrict size);
  * @warning The caller is expected to call `va_end()` on `args` after this
  * function returns.
  */
-Scuisize scu_vfscanf(
+SCU_API Scuisize scu_vfscanf(
     ScuFile* restrict file,
     const char* restrict format,
     va_list args
@@ -766,7 +779,11 @@ Scuisize scu_vfscanf(
  * while reading from the file stream. If an error occurs before any argument is
  * read, `-1` is returned.
  */
-Scuisize scu_fscanf(ScuFile* restrict file, const char* restrict format, ...);
+SCU_API Scuisize scu_fscanf(
+    ScuFile* restrict file,
+    const char* restrict format,
+    ...
+);
 
 /**
  * @brief Reads formatted input from the standard input stream.
@@ -790,7 +807,7 @@ Scuisize scu_fscanf(ScuFile* restrict file, const char* restrict format, ...);
  * @note Calling this function is equivalent to calling `scu_vfscanf(SCU_STDIN,
  * format, args)`.
  */
-Scuisize scu_vscanf(const char* restrict format, va_list args);
+SCU_API Scuisize scu_vscanf(const char* restrict format, va_list args);
 
 /**
  * @brief Reads formatted input from the standard input stream.
@@ -811,7 +828,7 @@ Scuisize scu_vscanf(const char* restrict format, va_list args);
  * @note Calling this function is equivalent to calling `scu_fscanf(SCU_STDIN,
  * format, ...)`.
  */
-Scuisize scu_scanf(const char* restrict format, ...);
+SCU_API Scuisize scu_scanf(const char* restrict format, ...);
 
 /**
  * @brief Reads formatted input from a byte string.
@@ -832,7 +849,7 @@ Scuisize scu_scanf(const char* restrict format, ...);
  * @warning The caller is expected to call `va_end()` on `args` after this
  * function returns.
  */
-Scuisize scu_vsscanf(
+SCU_API Scuisize scu_vsscanf(
     const char* restrict buffer,
     const char* restrict format,
     va_list args
@@ -854,7 +871,7 @@ Scuisize scu_vsscanf(
  * expected arguments if the end of the byte string is reached or an error
  * occurs. If an error occurs before any argument is read, `-1` is returned.
  */
-Scuisize scu_sscanf(
+SCU_API Scuisize scu_sscanf(
     const char* restrict buffer,
     const char* restrict format,
     ...
@@ -877,7 +894,7 @@ Scuisize scu_sscanf(
  * @warning The caller is expected to call `va_end()` on `args` after this
  * function returns.
  */
-Scuisize scu_vfprintf(
+SCU_API Scuisize scu_vfprintf(
     ScuFile* restrict file,
     const char* restrict format,
     va_list args
@@ -897,7 +914,11 @@ Scuisize scu_vfprintf(
  *                        written.
  * @return The number of bytes written to the file stream, or `-1` on failure.
  */
-Scuisize scu_fprintf(ScuFile* restrict file, const char* restrict format, ...);
+SCU_API Scuisize scu_fprintf(
+    ScuFile* restrict file,
+    const char* restrict format,
+    ...
+);
 
 /**
  * @brief Writes formatted output to the standard output stream.
@@ -919,7 +940,7 @@ Scuisize scu_fprintf(ScuFile* restrict file, const char* restrict format, ...);
  * @note Calling this function is equivalent to calling
  * `scu_vfprintf(SCU_STDOUT, format, args)`.
  */
-Scuisize scu_vprintf(const char* restrict format, va_list args);
+SCU_API Scuisize scu_vprintf(const char* restrict format, va_list args);
 
 /**
  * @brief Writes formatted output to the standard output stream.
@@ -938,7 +959,7 @@ Scuisize scu_vprintf(const char* restrict format, va_list args);
  * @note Calling this function is equivalent to calling `scu_fprintf(SCU_STDOUT,
  * format, ...)`.
  */
-Scuisize scu_printf(const char* restrict format, ...);
+SCU_API Scuisize scu_printf(const char* restrict format, ...);
 
 /**
  * @brief Writes formatted output to a buffer.
@@ -971,7 +992,7 @@ Scuisize scu_printf(const char* restrict format, ...);
  * If `size` is greater than or equal to one, `buffer` is guaranteed to be
  * null-terminated, even if an error occurs.
  */
-Scuisize scu_vsnprintf(
+SCU_API Scuisize scu_vsnprintf(
     char* restrict buffer,
     Scuisize size,
     const char* restrict format,
@@ -1006,7 +1027,7 @@ Scuisize scu_vsnprintf(
  * If `size` is greater than or equal to one, `buffer` is guaranteed to be
  * null-terminated, even if an error occurs.
  */
-Scuisize scu_snprintf(
+SCU_API Scuisize scu_snprintf(
     char* restrict buffer,
     Scuisize size,
     const char* restrict format,
@@ -1048,7 +1069,7 @@ Scuisize scu_snprintf(
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
  */
-ScuError scu_vrsnprintf(
+SCU_API ScuError scu_vrsnprintf(
     char* restrict* restrict buffer,
     Scuisize* restrict size,
     const char* restrict format,
@@ -1087,7 +1108,7 @@ ScuError scu_vrsnprintf(
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
  */
-ScuError scu_rsnprintf(
+SCU_API ScuError scu_rsnprintf(
     char* restrict* restrict buffer,
     Scuisize* restrict size,
     const char* restrict format,
@@ -1130,7 +1151,7 @@ ScuError scu_rsnprintf(
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
  */
-ScuError scu_vrasnprintf(
+SCU_API ScuError scu_vrasnprintf(
     char* restrict* restrict buffer,
     Scuisize* restrict size,
     const char* restrict format,
@@ -1170,7 +1191,7 @@ ScuError scu_vrasnprintf(
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
  */
-ScuError scu_rasnprintf(
+SCU_API ScuError scu_rasnprintf(
     char* restrict* restrict buffer,
     Scuisize* restrict size,
     const char* restrict format,
@@ -1187,7 +1208,7 @@ ScuError scu_rasnprintf(
  * of bytes from the beginning of the file. For text streams, the value is
  * unspecified and only meaningful as an input to `scu_fseek()`.
  */
-Scuisize scu_ftell(ScuFile* file);
+SCU_API Scuisize scu_ftell(ScuFile* file);
 
 /**
  * @brief Sets the file position indicator of a file stream.
@@ -1215,7 +1236,11 @@ Scuisize scu_ftell(ScuFile* file);
  * A call to this function undoes the effects of previous calls to `funreadc()`
  * and clears the end-of-file indicator of the file stream.
  */
-ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, Scuisize offset);
+SCU_API ScuError scu_fseek(
+    ScuFile* file,
+    ScuSeekOrigin seekOrigin,
+    Scuisize offset
+);
 
 /**
  * @brief Sets the file position indicator of a file stream to the  beginning of
@@ -1230,14 +1255,14 @@ ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, Scuisize offset);
  * A call to this function also undoes the effects of previous calls to
  * `funreadc()`.
  */
-void scu_frewind(ScuFile* file);
+SCU_API void scu_frewind(ScuFile* file);
 
 /**
  * @brief Clears the end-of-file and error indicators of a file stream.
  *
  * @param[in, out] file The file stream to modify.
  */
-void scu_fclear(ScuFile* file);
+SCU_API void scu_fclear(ScuFile* file);
 
 /**
  * @brief Determines if the end of a file stream has been reached.
@@ -1251,7 +1276,7 @@ void scu_fclear(ScuFile* file);
  * operation failed to distinguish between an end-of-file condition and an
  * actual error.
  */
-bool scu_feof(ScuFile* file);
+SCU_API bool scu_feof(ScuFile* file);
 
 /**
  * @brief Determines if an error has occurred on a file stream.
@@ -1260,6 +1285,6 @@ bool scu_feof(ScuFile* file);
  * @return `true` if an error has occurred on the file stream, `false`
  * otherwise.
  */
-bool scu_ferror(ScuFile* file);
+SCU_API bool scu_ferror(ScuFile* file);
 
 #endif

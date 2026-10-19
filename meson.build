@@ -61,17 +61,31 @@ srcs = files(
 
 m_dep = cc.find_library('m', required: false)
 
+if get_option('default_library') == 'static'
+    lib_c_args = ['-DSCU_STATIC']
+    dep_c_args = ['-DSCU_STATIC']
+else
+    lib_c_args = ['-DSCU_BUILD_SHARED']
+    dep_c_args = ['-DSCU_SHARED']
+endif
+
 scu_lib = library(
     'scu',
     srcs,
     include_directories: incs,
     dependencies: [m_dep],
+    gnu_symbol_visibility: 'hidden',
+    c_args: lib_c_args,
     install: true,
 )
 
 install_subdir('include/scu', install_dir: 'include')
 
-scu_dep = declare_dependency(include_directories: incs, link_with: scu_lib)
+scu_dep = declare_dependency(
+    include_directories: incs,
+    link_with: scu_lib,
+    compile_args: dep_c_args,
+)
 
 meson.override_dependency('scu', scu_dep)
 
@@ -80,4 +94,5 @@ pkg.generate(
     scu_lib,
     description: 'A small library of reusable utilities for C.',
     url: 'https://github.com/Piwimau/scu',
+    extra_cflags: dep_c_args,
 )

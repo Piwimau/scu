@@ -1,6 +1,7 @@
 #ifndef SCU_QUEUE_H
 #define SCU_QUEUE_H
 
+#include "scu/api.h"
 #include "scu/error.h"
 #include "scu/types.h"
 #include "scu/util.h"
@@ -37,7 +38,7 @@ typedef struct ScuQueueIterator {
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuQueue* scu_queue_new(Scuisize elemSize);
+SCU_API ScuQueue* scu_queue_new(Scuisize elemSize);
 
 /**
  * @brief Constructs a queue with a specified element size and initial capacity.
@@ -51,7 +52,10 @@ ScuQueue* scu_queue_new(Scuisize elemSize);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuQueue* scu_queue_new_with_capacity(Scuisize elemSize, Scuisize capacity);
+SCU_API ScuQueue* scu_queue_new_with_capacity(
+    Scuisize elemSize,
+    Scuisize capacity
+);
 
 /**
  * @brief Creates a shallow copy of a queue.
@@ -64,7 +68,7 @@ ScuQueue* scu_queue_new_with_capacity(Scuisize elemSize, Scuisize capacity);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuQueue* scu_queue_clone(const ScuQueue* queue);
+SCU_API ScuQueue* scu_queue_clone(const ScuQueue* queue);
 
 /**
  * @brief Returns the capacity of a queue, i.e., the maximum number of elements
@@ -77,7 +81,7 @@ ScuQueue* scu_queue_clone(const ScuQueue* queue);
  * `scu_queue_ensure_capacity()` and `scu_queue_trim_excess()`. See their
  * respective documentation for details.
  */
-Scuisize scu_queue_capacity(const ScuQueue* queue);
+SCU_API Scuisize scu_queue_capacity(const ScuQueue* queue);
 
 /**
  * @brief Returns the number of elements stored in a queue.
@@ -85,7 +89,7 @@ Scuisize scu_queue_capacity(const ScuQueue* queue);
  * @param[in] queue The queue to examine.
  * @return The number of elements stored in the queue.
  */
-Scuisize scu_queue_count(const ScuQueue* queue);
+SCU_API Scuisize scu_queue_count(const ScuQueue* queue);
 
 /**
  * @brief Ensures that a queue has at least a specified capacity.
@@ -100,7 +104,7 @@ Scuisize scu_queue_count(const ScuQueue* queue);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuError scu_queue_ensure_capacity(ScuQueue* queue, Scuisize capacity);
+SCU_API ScuError scu_queue_ensure_capacity(ScuQueue* queue, Scuisize capacity);
 
 /**
  * @brief Enqueues an element into a queue.
@@ -115,7 +119,10 @@ ScuError scu_queue_ensure_capacity(ScuQueue* queue, Scuisize capacity);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuError scu_queue_enqueue(ScuQueue* restrict queue, const void* restrict elem);
+SCU_API ScuError scu_queue_enqueue(
+    ScuQueue* restrict queue,
+    const void* restrict elem
+);
 
 /**
  * @brief Dequeues the element at the front of a queue.
@@ -129,7 +136,7 @@ ScuError scu_queue_enqueue(ScuQueue* restrict queue, const void* restrict elem);
  * The behavior is undefined if the queue is empty. Use
  * `scu_queue_try_dequeue()` to handle this case gracefully.
  */
-void scu_queue_dequeue(ScuQueue* restrict queue, void* restrict elem);
+SCU_API void scu_queue_dequeue(ScuQueue* restrict queue, void* restrict elem);
 
 /**
  * @brief Tries to dequeue the element at the front of a queue.
@@ -141,7 +148,10 @@ void scu_queue_dequeue(ScuQueue* restrict queue, void* restrict elem);
  * @warning This function may invalidate any iterators previously created with
  * `scu_queue_begin()` and `scu_queue_end()`.
  */
-bool scu_queue_try_dequeue(ScuQueue* restrict queue, void* restrict elem);
+SCU_API bool scu_queue_try_dequeue(
+    ScuQueue* restrict queue,
+    void* restrict elem
+);
 
 /**
  * @brief Returns the element at the front of a queue without removing it.
@@ -155,7 +165,10 @@ bool scu_queue_try_dequeue(ScuQueue* restrict queue, void* restrict elem);
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_queue_peek()` macro instead.
  */
-void scu_queue_peek_impl(const ScuQueue* restrict queue, void** restrict elem);
+SCU_API void scu_queue_peek_impl(
+    const ScuQueue* restrict queue,
+    void** restrict elem
+);
 
 /**
  * @brief Returns the element at the front of a queue without removing it.
@@ -180,7 +193,7 @@ void scu_queue_peek_impl(const ScuQueue* restrict queue, void** restrict elem);
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_queue_try_peek()` macro instead.
  */
-bool scu_queue_try_peek_impl(
+SCU_API bool scu_queue_try_peek_impl(
     const ScuQueue* restrict queue,
     void** restrict elem
 );
@@ -213,7 +226,7 @@ bool scu_queue_try_peek_impl(
  * @note Consider using `scu_queue_trim_excess()` if you wish to reduce the
  * memory usage of the queue after clearing it.
  */
-void scu_queue_clear(ScuQueue* queue);
+SCU_API void scu_queue_clear(ScuQueue* queue);
 
 /**
  * @brief Trims the excess capacity of a queue to match its current number of
@@ -228,7 +241,7 @@ void scu_queue_clear(ScuQueue* queue);
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
-ScuError scu_queue_trim_excess(ScuQueue* queue);
+SCU_API ScuError scu_queue_trim_excess(ScuQueue* queue);
 
 /**
  * @brief Deallocates a queue.
@@ -244,7 +257,7 @@ ScuError scu_queue_trim_excess(ScuQueue* queue);
  *
  * @note If `queue` is `nullptr`, this function does nothing.
  */
-void scu_queue_free(ScuQueue* queue);
+SCU_API void scu_queue_free(ScuQueue* queue);
 
 /**
  * @brief Returns an iterator to the front element of a queue.
@@ -255,7 +268,7 @@ void scu_queue_free(ScuQueue* queue);
  * @note If `queue` is empty, this function behaves identically to
  * `scu_queue_end(queue)`, i.e., it returns the end iterator.
  */
-ScuQueueIterator scu_queue_begin(const ScuQueue* queue);
+SCU_API ScuQueueIterator scu_queue_begin(const ScuQueue* queue);
 
 /**
  * @brief Returns the end iterator for a queue.
@@ -263,7 +276,7 @@ ScuQueueIterator scu_queue_begin(const ScuQueue* queue);
  * @param[in] queue The queue to iterate over.
  * @return The end iterator for the queue.
  */
-ScuQueueIterator scu_queue_end(const ScuQueue* queue);
+SCU_API ScuQueueIterator scu_queue_end(const ScuQueue* queue);
 
 /**
  * @brief Determines whether two iterators are equal.
@@ -275,7 +288,7 @@ ScuQueueIterator scu_queue_end(const ScuQueue* queue);
  * @warning The behavior is undefined if `lhs` and `rhs` do not belong to the
  * same queue.
  */
-bool scu_queue_iterator_equal(
+SCU_API bool scu_queue_iterator_equal(
     const ScuQueueIterator* lhs,
     const ScuQueueIterator* rhs
 );
@@ -288,7 +301,7 @@ bool scu_queue_iterator_equal(
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point after the end iterator returned by `scu_queue_end()`.
  */
-void scu_queue_iterator_next(ScuQueueIterator* iterator);
+SCU_API void scu_queue_iterator_next(ScuQueueIterator* iterator);
 
 /**
  * @brief Moves an iterator to the previous element.
@@ -298,7 +311,7 @@ void scu_queue_iterator_next(ScuQueueIterator* iterator);
  * @warning The behavior is undefined if moving `iterator` would cause it to
  * point before the begin iterator returned by `scu_queue_begin()`.
  */
-void scu_queue_iterator_prev(ScuQueueIterator* iterator);
+SCU_API void scu_queue_iterator_prev(ScuQueueIterator* iterator);
 
 /**
  * @brief Returns a pointer to the current element an iterator points to.
@@ -310,7 +323,7 @@ void scu_queue_iterator_prev(ScuQueueIterator* iterator);
  * iterator returned by `scu_queue_begin()`, if it is the end iterator returned
  * by `scu_queue_end()`, or if it points after the end iterator.
  */
-void* scu_queue_iterator_deref(const ScuQueueIterator* iterator);
+SCU_API void* scu_queue_iterator_deref(const ScuQueueIterator* iterator);
 
 /**
  * @brief Iterates over each element in a queue.

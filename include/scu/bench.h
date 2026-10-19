@@ -1,6 +1,7 @@
 #ifndef SCU_BENCH_H
 #define SCU_BENCH_H
 
+#include "scu/api.h"
 #include "scu/error.h"
 #include "scu/types.h"
 
@@ -148,7 +149,10 @@ typedef struct ScuBenchContext {
  * CPU times are discarded, and the stopwatch is stopped if it was previously
  * running.
  */
-void scu_stopwatch_init(ScuStopwatch* stopwatch, ScuTimingMode timingMode);
+SCU_API void scu_stopwatch_init(
+    ScuStopwatch* stopwatch,
+    ScuTimingMode timingMode
+);
 
 /**
  * @brief Starts a stopwatch.
@@ -163,7 +167,7 @@ void scu_stopwatch_init(ScuStopwatch* stopwatch, ScuTimingMode timingMode);
  *
  * This function does not reset the accumulated wall and CPU time.
  */
-bool scu_stopwatch_start(ScuStopwatch* stopwatch);
+SCU_API bool scu_stopwatch_start(ScuStopwatch* stopwatch);
 
 /**
  * @brief Restarts a stopwatch.
@@ -180,7 +184,7 @@ bool scu_stopwatch_start(ScuStopwatch* stopwatch);
  * This function resets the accumulated wall and CPU time. It is equivalent to
  * calling `scu_stopwatch_reset()`, followed by `scu_stopwatch_start()`.
  */
-bool scu_stopwatch_restart(ScuStopwatch* stopwatch);
+SCU_API bool scu_stopwatch_restart(ScuStopwatch* stopwatch);
 
 /**
  * @brief Stops a stopwatch.
@@ -194,7 +198,7 @@ bool scu_stopwatch_restart(ScuStopwatch* stopwatch);
  *
  * This function does not reset the accumulated wall and CPU time.
  */
-bool scu_stopwatch_stop(ScuStopwatch* stopwatch);
+SCU_API bool scu_stopwatch_stop(ScuStopwatch* stopwatch);
 
 /**
  * @brief Resets a stopwatch.
@@ -208,7 +212,7 @@ bool scu_stopwatch_stop(ScuStopwatch* stopwatch);
  * This function resets the accumulated wall and CPU time. It does not start
  * the stopwatch again.
  */
-void scu_stopwatch_reset(ScuStopwatch* stopwatch);
+SCU_API void scu_stopwatch_reset(ScuStopwatch* stopwatch);
 
 /**
  * @brief Determines whether a stopwatch is currently running.
@@ -216,7 +220,7 @@ void scu_stopwatch_reset(ScuStopwatch* stopwatch);
  * @param[in] stopwatch The stopwatch to examine.
  * @return `true` if the stopwatch is currently running, `false` otherwise.
  */
-bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch);
+SCU_API bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch);
 
 /**
  * @brief Retrieves the elapsed wall and CPU time from a stopwatch.
@@ -237,7 +241,7 @@ bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch);
  * field of the returned timing result is set to `SCU_ERROR_TIMING_FAILED`, and
  * both `wallNs` and `cpuNs` contain an unspecified value.
  */
-ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch);
+SCU_API ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch);
 
 /**
  * @brief Constructs a benchmark context.
@@ -260,7 +264,7 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch);
  * @note This function is an implementation detail and not intended to be used
  * directly. Use the `SCU_BENCH()` macro instead.
  */
-ScuBenchContext scu_bench_context_new(
+SCU_API ScuBenchContext scu_bench_context_new(
     ScuTimingMode timingMode,
     Scuisize warmups,
     Scuisize iterations,
@@ -279,7 +283,7 @@ ScuBenchContext scu_bench_context_new(
  *
  * @warning The behavior is undefined if `context` is `nullptr`.
  */
-bool scu_bench_context_is_running(ScuBenchContext* context);
+SCU_API bool scu_bench_context_is_running(ScuBenchContext* context);
 
 /**
  * @brief Advances a benchmark to the next iteration.
@@ -291,7 +295,7 @@ bool scu_bench_context_is_running(ScuBenchContext* context);
  *
  * @warning The behavior is undefined if `context` is `nullptr`.
  */
-void scu_bench_context_advance(ScuBenchContext* context);
+SCU_API void scu_bench_context_advance(ScuBenchContext* context);
 
 /**
  * @brief Measures the wall and CPU time required to execute a block of code.
