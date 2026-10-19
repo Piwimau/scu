@@ -60,13 +60,12 @@ srcs = files(
 )
 
 m_dep = cc.find_library('m', required: false)
-thread_dep = dependency('threads')
 
 scu_lib = library(
     'scu',
     srcs,
     include_directories: incs,
-    dependencies: [m_dep, thread_dep],
+    dependencies: [m_dep],
     install: true,
 )
 

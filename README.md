@@ -332,17 +332,17 @@ library simple and efficient.
 
 Before going into more detail about how to build and use SCU, a couple of notes
 on platform support and compatibility: Although SCU was written in standard C
-and does not have any significant third-party dependencies (besides `pthreads`),
-it is definitely not meant to be used on every possible platform. The library is
-primarily intended for use on modern 64-bit desktop operating systems (i.e.,
-Windows, GNU/Linux and macOS), and it may not compile or work correctly on other
-platforms (e.g., embedded systems, 32-bit operating systems, etc.) without
-modifications. It should also be noted that SCU occasionally makes use of
-compiler-specific extensions or platform-specific APIs to provide certain
-improvements or additional functionality. Finally, SCU requires a C23-compliant
-compiler, which means that you are basically limited to using the latest
-versions of popular compilers such as GCC 14+ or Clang 18+ at the moment.
-Support for older C standards may be added in the future, but is not a priority.
+and does not have any external dependencies, it is definitely not meant to be
+used on every possible platform. The library is primarily intended for use on
+modern 64-bit desktop operating systems (i.e., Windows, GNU/Linux and macOS),
+and it may not compile or work correctly on other platforms (e.g., embedded
+systems, 32-bit operating systems, etc.) without modifications. It should also
+be noted that SCU occasionally makes use of compiler-specific extensions or
+platform-specific APIs to provide certain improvements or additional
+functionality. Finally, SCU requires a C23-compliant compiler, which means that
+you are basically limited to using the latest versions of popular compilers such
+as GCC 14+ or Clang 18+ at the moment. Support for older C standards may be
+added in the future, but is not a priority.
 
 If your platform and compiler meet the requirements described above, you can
 build SCU from source. The library uses [Meson](https://mesonbuild.com/) as its

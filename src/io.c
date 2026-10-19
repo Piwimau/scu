@@ -7,7 +7,6 @@
     #define _FILE_OFFSET_BITS 64
 #endif
 
-#include <pthread.h>
 #include <stdio.h>
 #include "scu/alloc.h"
 #include "scu/assert.h"
@@ -15,10 +14,30 @@
 #include "scu/memory.h"
 #include "scu/string.h"
 
+/** @brief The kind of a file stream. */
+typedef enum ScuFileKind {
+
+    /** @brief An owned file stream. */
+    SCU_FILE_KIND_OWNED,
+
+    /** @brief The standard input stream. */
+    SCU_FILE_KIND_STDIN,
+
+    /** @brief The standard output stream. */
+    SCU_FILE_KIND_STDOUT,
+
+    /** @brief The standard error stream. */
+    SCU_FILE_KIND_STDERR
+
+} ScuFileKind;
+
 struct ScuFile {
 
-    /** @brief The underlying file stream handle. */
+    /** @brief The owned file stream handle (if any). */
     FILE* handle;
+
+    /** @brief The kind of the file stream. */
+    ScuFileKind kind;
 
 };
 
@@ -28,68 +47,47 @@ static constexpr isize SCU_GROWTH_FACTOR = 2;
 /** @brief The chunk size used when reading from a file stream. */
 static constexpr isize SCU_CHUNK_SIZE = 4096;
 
-/**
- * @brief A flag to ensure the file stream associated with the standard input
- * stream is only initialized once.
- */
-static pthread_once_t scuStdinInitialized = PTHREAD_ONCE_INIT;
-
 /** @brief The file stream associated with the standard input stream. */
-static ScuFile scuStdin;
-
-/**
- * @brief A flag to ensure the file stream associated with the standard output
- * stream is only initialized once.
- */
-static pthread_once_t scuStdoutInitialized = PTHREAD_ONCE_INIT;
+static ScuFile scuStdin = { .kind = SCU_FILE_KIND_STDIN };
 
 /** @brief The file stream associated with the standard output stream. */
-static ScuFile scuStdout;
-
-/**
- * @brief A flag to ensure the file stream associated with the standard error
- * stream is only initialized once.
- */
-static pthread_once_t scuStderrInitialized = PTHREAD_ONCE_INIT;
+static ScuFile scuStdout = { .kind = SCU_FILE_KIND_STDOUT };
 
 /** @brief The file stream associated with the standard error stream. */
-static ScuFile scuStderr;
-
-/**
- * @brief Initializes the file stream associated with the standard input stream.
- */
-static void scu_init_stdin() {
-    scuStdin.handle = stdin;
-}
-
-/**
- * @brief Initializes the file stream associated with the standard output
- * stream.
- */
-static void scu_init_stdout() {
-    scuStdout.handle = stdout;
-}
-
-/**
- * @brief Initializes the file stream associated with the standard error stream.
- */
-static void scu_init_stderr() {
-    scuStderr.handle = stderr;
-}
+static ScuFile scuStderr = { .kind = SCU_FILE_KIND_STDERR };
 
 ScuFile* scu_stdin() {
-    pthread_once(&scuStdinInitialized, scu_init_stdin);
     return &scuStdin;
 }
 
 ScuFile* scu_stdout() {
-    pthread_once(&scuStdoutInitialized, scu_init_stdout);
     return &scuStdout;
 }
 
 ScuFile* scu_stderr() {
-    pthread_once(&scuStderrInitialized, scu_init_stderr);
     return &scuStderr;
+}
+
+/**
+ * @brief Returns the underlying file stream handle of a file.
+ *
+ * @param[in] file The file to examine.
+ * @return The underlying file stream handle of the file.
+ */
+static inline FILE* scu_file_handle(const ScuFile* file) {
+    SCU_ASSERT(file);
+    switch (file->kind) {
+        case SCU_FILE_KIND_OWNED:
+            return file->handle;
+        case SCU_FILE_KIND_STDIN:
+            return stdin;
+        case SCU_FILE_KIND_STDOUT:
+            return stdout;
+        case SCU_FILE_KIND_STDERR:
+            return stderr;
+        default:
+            SCU_UNREACHABLE();
+    }
 }
 
 ScuError scu_fopen(
@@ -111,6 +109,7 @@ ScuError scu_fopen(
         return SCU_ERROR_OUT_OF_MEMORY;
     }
     (*file)->handle = handle;
+    (*file)->kind = SCU_FILE_KIND_OWNED;
     return SCU_ERROR_NONE;
 }
 
@@ -127,6 +126,7 @@ ScuError scu_fopentmp(ScuFile** file) {
         return SCU_ERROR_OUT_OF_MEMORY;
     }
     (*file)->handle = handle;
+    (*file)->kind = SCU_FILE_KIND_OWNED;
     return SCU_ERROR_NONE;
 }
 
@@ -136,21 +136,22 @@ ScuError scu_freopen(
     const char* restrict mode
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(mode);
-    FILE* handle = freopen(name, mode, file->handle);
-    if (!handle) {
-        file->handle = nullptr;
-        return SCU_ERROR_OPENING_FILE;
+    handle = freopen(name, mode, handle);
+    if (file->kind == SCU_FILE_KIND_OWNED) {
+        file->handle = handle;
     }
-    file->handle = handle;
-    return SCU_ERROR_NONE;
+    return handle ? SCU_ERROR_NONE : SCU_ERROR_OPENING_FILE;
 }
 
 ScuError scu_fclose(ScuFile* file) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    int result = fclose(file->handle);
+    SCU_ASSERT(file->kind == SCU_FILE_KIND_OWNED);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    int result = fclose(handle);
     file->handle = nullptr;
     scu_free(file);
     return (result == EOF) ? SCU_ERROR_CLOSING_FILE : SCU_ERROR_NONE;
@@ -162,10 +163,9 @@ ScuError scu_fflush(ScuFile* file) {
             ? SCU_ERROR_FLUSHING_FILE
             : SCU_ERROR_NONE;
     }
-    SCU_ASSERT(file->handle);
-    return (fflush(file->handle) == EOF)
-        ? SCU_ERROR_FLUSHING_FILE
-        : SCU_ERROR_NONE;
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    return (fflush(handle) == EOF) ? SCU_ERROR_FLUSHING_FILE : SCU_ERROR_NONE;
 }
 
 ScuError scu_fremove(const char* name) {
@@ -188,7 +188,8 @@ isize scu_fread(
     isize size
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(size >= 0);
     if ((count == 0) || (size == 0)) {
@@ -196,7 +197,7 @@ isize scu_fread(
     }
     SCU_ASSERT(buffer);
     SCU_ASSERT(size <= ISIZE_MAX / count);
-    return (isize) fread(buffer, (usize) size, (usize) count, file->handle);
+    return (isize) fread(buffer, (usize) size, (usize) count, handle);
 }
 
 isize scu_read(void* buffer, isize count, isize size) {
@@ -210,7 +211,8 @@ isize scu_fwrite(
     isize size
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(size >= 0);
     if ((count == 0) || (size == 0)) {
@@ -218,7 +220,7 @@ isize scu_fwrite(
     }
     SCU_ASSERT(buffer);
     SCU_ASSERT(size <= ISIZE_MAX / count);
-    return (isize) fwrite(buffer, (usize) size, (usize) count, file->handle);
+    return (isize) fwrite(buffer, (usize) size, (usize) count, handle);
 }
 
 isize scu_write(const void* buffer, isize count, isize size) {
@@ -227,14 +229,13 @@ isize scu_write(const void* buffer, isize count, isize size) {
 
 ScuError scu_freadc(ScuFile* restrict file, char* restrict c) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(c);
-    int result = fgetc(file->handle);
+    int result = fgetc(handle);
     if (result == EOF) {
         *c = '\0';
-        return feof(file->handle)
-            ? SCU_ERROR_END_OF_FILE
-            : SCU_ERROR_READING_FILE;
+        return feof(handle) ? SCU_ERROR_END_OF_FILE : SCU_ERROR_READING_FILE;
     }
     *c = (char) result;
     return SCU_ERROR_NONE;
@@ -246,10 +247,9 @@ ScuError scu_readc(char* c) {
 
 ScuError scu_fwritec(ScuFile* file, char c) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    return (fputc(c, file->handle) == EOF)
-        ? SCU_ERROR_WRITING_FILE
-        : SCU_ERROR_NONE;
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    return (fputc(c, handle) == EOF) ? SCU_ERROR_WRITING_FILE : SCU_ERROR_NONE;
 }
 
 ScuError scu_writec(char c) {
@@ -258,15 +258,15 @@ ScuError scu_writec(char c) {
 
 ScuError scu_funreadc(ScuFile* file, char c) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    return (ungetc(c, file->handle) == EOF)
-        ? SCU_ERROR_WRITING_FILE
-        : SCU_ERROR_NONE;
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    return (ungetc(c, handle) == EOF) ? SCU_ERROR_WRITING_FILE : SCU_ERROR_NONE;
 }
 
 ScuError scu_freads(ScuFile* restrict file, char* restrict buffer, isize size) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(size >= 0);
     if (size == 0) {
         return SCU_ERROR_NONE;
@@ -276,11 +276,11 @@ ScuError scu_freads(ScuFile* restrict file, char* restrict buffer, isize size) {
         buffer,
         sizeof(char),
         (usize) (size - 1),
-        file->handle
+        handle
     );
     buffer[read] = '\0';
     if (read < (size - 1)) {
-        if (feof(file->handle)) {
+        if (feof(handle)) {
             return (read == 0) ? SCU_ERROR_END_OF_FILE : SCU_ERROR_NONE;
         }
         return SCU_ERROR_READING_FILE;
@@ -294,15 +294,11 @@ ScuError scu_reads(char* buffer, isize size) {
 
 ScuError scu_fwrites(ScuFile* restrict file, const char* restrict buffer) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(buffer);
     isize n = scu_strlen(buffer);
-    isize written = (isize) fwrite(
-        buffer,
-        sizeof(char),
-        (usize) n,
-        file->handle
-    );
+    isize written = (isize) fwrite(buffer, sizeof(char), (usize) n, handle);
     return (written < n) ? SCU_ERROR_WRITING_FILE : SCU_ERROR_NONE;
 }
 
@@ -366,7 +362,8 @@ ScuError scu_freadln(
     isize* restrict size
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(buffer);
     SCU_ASSERT(size);
     SCU_ASSERT((!*buffer) == (*size == 0));
@@ -382,9 +379,9 @@ ScuError scu_freadln(
             return error;
         }
         isize available = *size - used;
-        if (!fgets(*buffer + used, (int) available, file->handle)) {
+        if (!fgets(*buffer + used, (int) available, handle)) {
             (*buffer)[used] = '\0';
-            if (ferror(file->handle)) {
+            if (ferror(handle)) {
                 return SCU_ERROR_READING_FILE;
             }
             return (used == 0) ? SCU_ERROR_END_OF_FILE : SCU_ERROR_NONE;
@@ -419,7 +416,8 @@ ScuError scu_freadall(
     isize* restrict size
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(buffer);
     SCU_ASSERT(size);
     SCU_ASSERT((!*buffer) == (*size == 0));
@@ -439,12 +437,12 @@ ScuError scu_freadall(
             *buffer + used,
             sizeof(char),
             (usize) available,
-            file->handle
+            handle
         );
         used += read;
         if (read < available) {
             (*buffer)[used] = '\0';
-            if (ferror(file->handle)) {
+            if (ferror(handle)) {
                 return SCU_ERROR_READING_FILE;
             }
             return (used == 0) ? SCU_ERROR_END_OF_FILE : SCU_ERROR_NONE;
@@ -462,9 +460,10 @@ isize scu_vfscanf(
     va_list args
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(format);
-    isize n = vfscanf(file->handle, format, args);
+    isize n = vfscanf(handle, format, args);
     return (n == EOF) ? -1 : n;
 }
 
@@ -517,9 +516,10 @@ isize scu_vfprintf(
     va_list args
 ) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(format);
-    isize n = vfprintf(file->handle, format, args);
+    isize n = vfprintf(handle, format, args);
     return (n < 0) ? -1 : n;
 }
 
@@ -671,17 +671,19 @@ ScuError scu_rasnprintf(
 
 isize scu_ftell(ScuFile* file) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
 #ifdef _WIN32
-    return _ftelli64(file->handle);
+    return _ftelli64(handle);
 #else
-    return ftello(file->handle);
+    return ftello(handle);
 #endif
 }
 
 ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, isize offset) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
     SCU_ASSERT(
         (seekOrigin == SCU_SEEK_ORIGIN_SET)
             || (seekOrigin == SCU_SEEK_ORIGIN_CUR)
@@ -702,11 +704,11 @@ ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, isize offset) {
             SCU_UNREACHABLE();
     }
 #ifdef _WIN32
-    return (_fseeki64(file->handle, offset, origin) != 0)
+    return (_fseeki64(handle, offset, origin) != 0)
         ? SCU_ERROR_SEEKING_FILE
         : SCU_ERROR_NONE;
 #else
-    return (fseeko(file->handle, (off_t) offset, origin) != 0)
+    return (fseeko(handle, (off_t) offset, origin) != 0)
         ? SCU_ERROR_SEEKING_FILE
         : SCU_ERROR_NONE;
 #endif
@@ -714,24 +716,28 @@ ScuError scu_fseek(ScuFile* file, ScuSeekOrigin seekOrigin, isize offset) {
 
 void scu_frewind(ScuFile* file) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    rewind(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    rewind(handle);
 }
 
 void scu_fclear(ScuFile* file) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    clearerr(file->handle);
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    clearerr(handle);
 }
 
 bool scu_feof(ScuFile* file) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    return feof(file->handle) != 0;
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    return feof(handle) != 0;
 }
 
 bool scu_ferror(ScuFile* file) {
     SCU_ASSERT(file);
-    SCU_ASSERT(file->handle);
-    return ferror(file->handle) != 0;
+    FILE* handle = scu_file_handle(file);
+    SCU_ASSERT(handle);
+    return ferror(handle) != 0;
 }
