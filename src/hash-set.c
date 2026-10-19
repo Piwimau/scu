@@ -4,26 +4,21 @@
 #include "scu/alloc.h"
 #include "scu/assert.h"
 #include "scu/hash-set.h"
+#include "scu/math.h"
 #include "scu/memory.h"
 
 /** @brief A bucket in a hash set. */
 typedef struct ScuBucket {
 
-    /** @brief The hash of the element stored in the bucket. */
-    usize hash;
-
-    /** @brief Whether the bucket is occupied. */
-    bool isOccupied;
-
     /**
-     * @brief The element stored in the bucket.
+     * @brief The hash of the element stored in the bucket.
      *
-     * @note This is a flexible array member, which is a aligned as strictly as
-     * `max_align_t` to ensure proper alignment for any type with fundamental
-     * alignment requirements. The actual size of the element is stored by the
-     * hash set owning this bucket.
+     * @note The topmost bit indicates whether a bucket is occupied or not.
+     *
+     * The element itself is stored at `elemOffset` bytes from the start of the
+     * bucket, where `elemOffset` is stored by the owning hash set.
      */
-    alignas(max_align_t) byte elem[];
+    usize hash;
 
 } ScuBucket;
 
@@ -31,6 +26,9 @@ struct ScuHashSet {
 
     /** @brief The size of each element (in bytes). */
     isize elemSize;
+
+    /** @brief The offset of the element within each bucket (in bytes). */
+    isize elemOffset;
 
     /** @brief The effective size of each bucket (in bytes). */
     isize bucketSize;
@@ -75,8 +73,13 @@ static constexpr isize SCU_MAX_LOAD_FACTOR_NUM = 9;
 /** @brief The denominator of the maximum load factor of a hash set. */
 static constexpr isize SCU_MAX_LOAD_FACTOR_DEN = 10;
 
-/** @brief The growth factor for increasing the capacity of a hash set. */
-static constexpr isize SCU_GROWTH_FACTOR = 2;
+/** @brief The bit mask used to check whether a bucket is occupied. */
+static constexpr usize SCU_OCCUPIED_BIT = ~(USIZE_MAX >> 1);
+
+SCU_STATIC_ASSERT(
+    (usize) (ISIZE_MAX / 2) < SCU_OCCUPIED_BIT,
+    "Capacity mask must not overlap the occupied bit."
+);
 
 ScuHashSet* scu_hash_set_new(
     isize elemSize,
@@ -148,9 +151,12 @@ ScuHashSet* scu_hash_set_new_with_capacity(
         return nullptr;
     }
     hashSet->elemSize = elemSize;
+    isize elemAlign = SCU_MIN(elemSize & -elemSize, SCU_ALIGNOF(max_align_t));
+    hashSet->elemOffset = scu_align_up(SCU_SIZEOF(ScuBucket), elemAlign);
+    isize bucketAlign = SCU_MAX(elemAlign, SCU_ALIGNOF(ScuBucket));
     hashSet->bucketSize = scu_align_up(
-        SCU_SIZEOF(ScuBucket) + elemSize,
-        SCU_ALIGNOF(max_align_t)
+        hashSet->elemOffset + hashSet->elemSize,
+        bucketAlign
     );
     hashSet->count = 0;
     hashSet->hashFunc = hashFunc;
@@ -183,6 +189,7 @@ ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet) {
         return nullptr;
     }
     clone->elemSize = hashSet->elemSize;
+    clone->elemOffset = hashSet->elemOffset;
     clone->bucketSize = hashSet->bucketSize;
     clone->capacity = hashSet->capacity;
     clone->count = hashSet->count;
@@ -288,6 +295,17 @@ static inline isize scu_probe_distance(
 }
 
 /**
+ * @brief Determines if a bucket is occupied.
+ *
+ * @param[in] bucket The bucket to examine.
+ * @return `true` if the bucket is occupied, `false` otherwise.
+ */
+static inline bool scu_bucket_is_occupied(const ScuBucket* bucket) {
+    SCU_ASSERT(bucket);
+    return bucket->hash != 0;
+}
+
+/**
  * @brief Rehashes old buckets by adding their elements to a hash set.
  *
  * @param[in, out] hashSet     The hash set to rehash into.
@@ -313,7 +331,7 @@ static inline void scu_hash_set_rehash_buckets(
             i,
             hashSet->bucketSize
         );
-        if (oldBucket->isOccupied) {
+        if (scu_bucket_is_occupied(oldBucket)) {
             isize index = scu_ideal_index(oldBucket->hash, hashSet->capacity);
             isize distance = 0;
             while (true) {
@@ -322,7 +340,7 @@ static inline void scu_hash_set_rehash_buckets(
                     index,
                     hashSet->bucketSize
                 );
-                if (!newBucket->isOccupied) {
+                if (!scu_bucket_is_occupied(newBucket)) {
                     scu_memcpy(newBucket, oldBucket, hashSet->bucketSize);
                     hashSet->count++;
                     break;
@@ -380,6 +398,28 @@ ScuError scu_hash_set_add(
     return error;
 }
 
+/**
+ * @brief Returns the hash of an element with the occupied bit set.
+ *
+ * @param[in] hashSet The hash set.
+ * @param[in] elem    The element to hash.
+ * @return The hash of the element with the occupied bit set.
+ */
+static inline usize scu_hash_elem(const ScuHashSet* hashSet, const void* elem) {
+    return hashSet->hashFunc(elem) | SCU_OCCUPIED_BIT;
+}
+
+/**
+ * @brief Returns a pointer to the element within a bucket.
+ *
+ * @param[in] bucket     The bucket containing the element.
+ * @param[in] elemOffset The offset of the element within the bucket (in bytes).
+ * @return A pointer to the element within the bucket.
+ */
+static inline void* scu_bucket_elem(const ScuBucket* bucket, isize elemOffset) {
+    return (byte*) SCU_CONST_CAST(ScuBucket*, bucket) + elemOffset;
+}
+
 ScuError scu_hash_set_try_add(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
@@ -387,21 +427,24 @@ ScuError scu_hash_set_try_add(
     SCU_ASSERT(hashSet);
     SCU_ASSERT(elem);
     if (
-        (hashSet->count * SCU_MAX_LOAD_FACTOR_DEN)
-            >= (hashSet->capacity * SCU_MAX_LOAD_FACTOR_NUM)
+        ((hashSet->count + 1) * SCU_MAX_LOAD_FACTOR_DEN)
+            > (hashSet->capacity * SCU_MAX_LOAD_FACTOR_NUM)
     ) {
-        isize newCapacity = (hashSet->capacity == 0)
+        isize needed = (hashSet->capacity == 0)
             ? SCU_DEFAULT_CAPACITY
-            : hashSet->capacity * SCU_GROWTH_FACTOR;
-        ScuError error = scu_hash_set_ensure_capacity(hashSet, newCapacity);
+            : hashSet->count + 1;
+        ScuError error = scu_hash_set_ensure_capacity(hashSet, needed);
         if (error != SCU_ERROR_NONE) {
             return error;
         }
     }
     ScuBucket* scratch = hashSet->scratch;
-    scratch->hash = hashSet->hashFunc(elem);
-    scratch->isOccupied = true;
-    scu_memcpy(scratch->elem, elem, hashSet->elemSize);
+    scratch->hash = scu_hash_elem(hashSet, elem);
+    scu_memcpy(
+        scu_bucket_elem(scratch, hashSet->elemOffset),
+        elem,
+        hashSet->elemSize
+    );
     isize index = scu_ideal_index(scratch->hash, hashSet->capacity);
     isize distance = 0;
     while (true) {
@@ -410,14 +453,17 @@ ScuError scu_hash_set_try_add(
             index,
             hashSet->bucketSize
         );
-        if (!bucket->isOccupied) {
+        if (!scu_bucket_is_occupied(bucket)) {
             scu_memcpy(bucket, scratch, hashSet->bucketSize);
             hashSet->count++;
             return SCU_ERROR_NONE;
         }
         if (
             (bucket->hash == scratch->hash)
-                && hashSet->equalFunc(bucket->elem, scratch->elem)
+                && hashSet->equalFunc(
+                    scu_bucket_elem(bucket, hashSet->elemOffset),
+                    scu_bucket_elem(scratch, hashSet->elemOffset)
+                )
         ) {
             return SCU_ERROR_ALREADY_PRESENT;
         }
@@ -441,7 +487,7 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem) {
     if (hashSet->count == 0) {
         return false;
     }
-    usize hash = hashSet->hashFunc(elem);
+    usize hash = scu_hash_elem(hashSet, elem);
     isize index = scu_ideal_index(hash, hashSet->capacity);
     isize distance = 0;
     while (true) {
@@ -450,7 +496,7 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem) {
             index,
             hashSet->bucketSize
         );
-        if (!bucket->isOccupied) {
+        if (!scu_bucket_is_occupied(bucket)) {
             return false;
         }
         isize otherDistance = scu_probe_distance(
@@ -461,7 +507,13 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem) {
         if (distance > otherDistance) {
             return false;
         }
-        if ((bucket->hash == hash) && hashSet->equalFunc(bucket->elem, elem)) {
+        if (
+            (bucket->hash == hash)
+                && hashSet->equalFunc(
+                    scu_bucket_elem(bucket, hashSet->elemOffset),
+                    elem
+                )
+        ) {
             return true;
         }
         index = scu_wrap_index(index + 1, hashSet->capacity);
@@ -478,7 +530,7 @@ bool scu_hash_set_remove(
     if (hashSet->count == 0) {
         return false;
     }
-    usize hash = hashSet->hashFunc(elem);
+    usize hash = scu_hash_elem(hashSet, elem);
     isize index = scu_ideal_index(hash, hashSet->capacity);
     isize distance = 0;
     while (true) {
@@ -487,7 +539,7 @@ bool scu_hash_set_remove(
             index,
             hashSet->bucketSize
         );
-        if (!bucket->isOccupied) {
+        if (!scu_bucket_is_occupied(bucket)) {
             return false;
         }
         isize otherDistance = scu_probe_distance(
@@ -498,7 +550,13 @@ bool scu_hash_set_remove(
         if (distance > otherDistance) {
             return false;
         }
-        if ((bucket->hash == hash) && hashSet->equalFunc(bucket->elem, elem)) {
+        if (
+            (bucket->hash == hash)
+                && hashSet->equalFunc(
+                    scu_bucket_elem(bucket, hashSet->elemOffset),
+                    elem
+                )
+        ) {
             break;
         }
         index = scu_wrap_index(index + 1, hashSet->capacity);
@@ -516,7 +574,7 @@ bool scu_hash_set_remove(
             nextIndex,
             hashSet->bucketSize
         );
-        if (!nextBucket->isOccupied) {
+        if (!scu_bucket_is_occupied(nextBucket)) {
             break;
         }
         isize nextDistance = scu_probe_distance(
@@ -531,7 +589,7 @@ bool scu_hash_set_remove(
         index = nextIndex;
         bucket = nextBucket;
     }
-    bucket->isOccupied = false;
+    bucket->hash = 0;
     hashSet->count--;
     return true;
 }
@@ -545,7 +603,7 @@ void scu_hash_set_clear(ScuHashSet* hashSet) {
                 i,
                 hashSet->bucketSize
             );
-            bucket->isOccupied = false;
+            bucket->hash = 0;
         }
         hashSet->count = 0;
     }
@@ -612,7 +670,7 @@ static inline isize scu_next_occupied_index(
             i,
             hashSet->bucketSize
         );
-        if (bucket->isOccupied) {
+        if (scu_bucket_is_occupied(bucket)) {
             return i;
         }
     }
@@ -664,7 +722,7 @@ void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator) {
             index,
             hashSet->bucketSize
         );
-        if (bucket->isOccupied) {
+        if (scu_bucket_is_occupied(bucket)) {
             break;
         }
         index--;
@@ -678,11 +736,11 @@ void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator) {
     ScuHashSet* hashSet = iterator->hashSet;
     isize index = iterator->index;
     SCU_ASSERT((index >= 0) && (index < hashSet->capacity));
-    ScuBucket* bucket = scu_bucket_at(
+    const ScuBucket* bucket = scu_bucket_at(
         hashSet->buckets,
         index,
         hashSet->bucketSize
     );
-    SCU_ASSERT(bucket->isOccupied);
-    return bucket->elem;
+    SCU_ASSERT(scu_bucket_is_occupied(bucket));
+    return scu_bucket_elem(bucket, hashSet->elemOffset);
 }
