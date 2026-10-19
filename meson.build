@@ -73,5 +73,11 @@ install_subdir('include/scu', install_dir: 'include')
 
 scu_dep = declare_dependency(include_directories: incs, link_with: scu_lib)
 
+meson.override_dependency('scu', scu_dep)
+
 pkg = import('pkgconfig')
-pkg.generate(scu_lib)
+pkg.generate(
+    scu_lib,
+    description: 'A small library of reusable utilities for C.',
+    url: 'https://github.com/Piwimau/scu',
+)
