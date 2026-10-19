@@ -269,7 +269,7 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
     return SCU_ERROR_NONE;
 }
 
-void scu_queue_free(ScuQueue* queue) {
+void scu_queue_delete(ScuQueue* queue) {
     if (!queue) {
         return;
     }

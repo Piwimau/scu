@@ -637,7 +637,7 @@ ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet) {
     return SCU_ERROR_NONE;
 }
 
-void scu_hash_set_free(ScuHashSet* hashSet) {
+void scu_hash_set_delete(ScuHashSet* hashSet) {
     if (!hashSet) {
         return;
     }

@@ -34,7 +34,7 @@ typedef struct ScuQueueIterator {
  * @return A pointer to the queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the queue with
- * `scu_queue_free()` when it is no longer needed.
+ * `scu_queue_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -48,7 +48,7 @@ SCU_API ScuQueue* scu_queue_new(Scuisize elemSize);
  * @return A pointer to the queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the queue with
- * `scu_queue_free()` when it is no longer needed.
+ * `scu_queue_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -64,7 +64,7 @@ SCU_API ScuQueue* scu_queue_new_with_capacity(
  * @return A pointer to the cloned queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned queue with
- * `scu_queue_free()` when it is no longer needed.
+ * `scu_queue_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -257,7 +257,7 @@ SCU_API ScuError scu_queue_trim_excess(ScuQueue* queue);
  *
  * @note If `queue` is `nullptr`, this function does nothing.
  */
-SCU_API void scu_queue_free(ScuQueue* queue);
+SCU_API void scu_queue_delete(ScuQueue* queue);
 
 /**
  * @brief Returns an iterator to the front element of a queue.

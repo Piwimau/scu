@@ -14,7 +14,7 @@
  * @return A pointer to the list, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the list with
- * `scu_list_free()` when it is no longer needed.
+ * `scu_list_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`. The
  * pointer returned is suitably aligned for any type with fundamental alignment
@@ -30,7 +30,7 @@ SCU_API void* scu_list_new(Scuisize elemSize);
  * @return A pointer to the list, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the list with
- * `scu_list_free()` when it is no longer needed.
+ * `scu_list_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`. The
  * pointer returned is suitably aligned for any type with fundamental alignment
@@ -50,7 +50,7 @@ SCU_API void* scu_list_new_with_capacity(Scuisize elemSize, Scuisize capacity);
  * @return A pointer to the cloned list, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned list with
- * `scu_list_free()` when it is no longer needed.
+ * `scu_list_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`. The
  * pointer returned is suitably aligned for any type with fundamental alignment
@@ -371,7 +371,7 @@ SCU_API void scu_list_sort(void* list, ScuCompareFunc* cmpFunc);
  *
  * @note If `list` is `nullptr`, this function does nothing.
  */
-SCU_API void scu_list_free(void* list);
+SCU_API void scu_list_delete(void* list);
 
 /**
  * @brief Iterates over each element in a list.

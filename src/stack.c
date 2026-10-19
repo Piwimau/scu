@@ -205,7 +205,7 @@ ScuError scu_stack_trim_excess(ScuStack* stack) {
     return SCU_ERROR_NONE;
 }
 
-void scu_stack_free(ScuStack* stack) {
+void scu_stack_delete(ScuStack* stack) {
     if (!stack) {
         return;
     }

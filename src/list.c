@@ -211,7 +211,7 @@ void scu_list_sort(void* list, ScuCompareFunc* cmpFunc) {
     scu_array_sort(header->data, header->count, header->elemSize, cmpFunc);
 }
 
-void scu_list_free(void* list) {
+void scu_list_delete(void* list) {
     if (!list) {
         return;
     }

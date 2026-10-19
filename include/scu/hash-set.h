@@ -38,7 +38,7 @@ typedef struct ScuHashSetIterator {
  * @return A pointer to the hash set, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash set with
- * `scu_hash_set_free()` when it is no longer needed.
+ * `scu_hash_set_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -60,7 +60,7 @@ SCU_API ScuHashSet* scu_hash_set_new(
  * @return A pointer to the hash set, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash set with
- * `scu_hash_set_free()` when it is no longer needed.
+ * `scu_hash_set_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -79,7 +79,7 @@ SCU_API ScuHashSet* scu_hash_set_new_with_capacity(
  * @return A pointer to the cloned hash set, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned hash set with
- * `scu_hash_set_free()` when it is no longer needed.
+ * `scu_hash_set_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -244,7 +244,7 @@ SCU_API ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
  *
  * @note If `hashSet` is `nullptr`, this function does nothing.
  */
-SCU_API void scu_hash_set_free(ScuHashSet* hashSet);
+SCU_API void scu_hash_set_delete(ScuHashSet* hashSet);
 
 /**
  * @brief Returns an iterator to an element of a hash set.

@@ -360,7 +360,7 @@ ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue) {
     return SCU_ERROR_NONE;
 }
 
-void scu_prio_queue_free(ScuPrioQueue* prioQueue) {
+void scu_prio_queue_delete(ScuPrioQueue* prioQueue) {
     if (!prioQueue) {
         return;
     }

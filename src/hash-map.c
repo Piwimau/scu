@@ -886,7 +886,7 @@ ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap) {
     return SCU_ERROR_NONE;
 }
 
-void scu_hash_map_free(ScuHashMap* hashMap) {
+void scu_hash_map_delete(ScuHashMap* hashMap) {
     if (!hashMap) {
         return;
     }

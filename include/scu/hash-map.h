@@ -51,7 +51,7 @@ typedef struct ScuHashMapEntry {
  * @return A pointer to the hash map, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash map with
- * `scu_hash_map_free()` when it is no longer needed.
+ * `scu_hash_map_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -78,7 +78,7 @@ SCU_API ScuHashMap* scu_hash_map_new(
  * @return A pointer to the hash map, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash map with
- * `scu_hash_map_free()` when it is no longer needed.
+ * `scu_hash_map_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()` and
  * `scu_calloc()`.
@@ -99,7 +99,7 @@ SCU_API ScuHashMap* scu_hash_map_new_with_capacity(
  * @return A pointer to the cloned hash map, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned hash map with
- * `scu_hash_map_free()` when it is no longer needed.
+ * `scu_hash_map_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -355,7 +355,7 @@ SCU_API ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
  *
  * @note If `hashMap` is `nullptr`, this function does nothing.
  */
-SCU_API void scu_hash_map_free(ScuHashMap* hashMap);
+SCU_API void scu_hash_map_delete(ScuHashMap* hashMap);
 
 /**
  * @brief Returns an iterator to an entry in a hash map.

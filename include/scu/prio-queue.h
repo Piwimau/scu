@@ -48,7 +48,7 @@ typedef struct ScuPrioQueueEntry {
  * @return A pointer to the priority queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the priority queue with
- * `scu_prio_queue_free()` when it is no longer needed.
+ * `scu_prio_queue_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -69,7 +69,7 @@ SCU_API ScuPrioQueue* scu_prio_queue_new(
  * @return A pointer to the priority queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the priority queue with
- * `scu_prio_queue_free()` when it is no longer needed.
+ * `scu_prio_queue_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -87,7 +87,7 @@ SCU_API ScuPrioQueue* scu_prio_queue_new_with_capacity(
  * @return A pointer to the cloned priority queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned priority queue
- * with `scu_prio_queue_free()` when it is no longer needed.
+ * with `scu_prio_queue_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -310,7 +310,7 @@ SCU_API ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue);
  *
  * @note If `prioQueue` is `nullptr`, this function does nothing.
  */
-SCU_API void scu_prio_queue_free(ScuPrioQueue* prioQueue);
+SCU_API void scu_prio_queue_delete(ScuPrioQueue* prioQueue);
 
 /**
  * @brief Returns an iterator to an element of a priority queue.

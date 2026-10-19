@@ -34,7 +34,7 @@ typedef struct ScuStackIterator {
  * @return A pointer to the stack, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the stack with
- * `scu_stack_free()` when it is no longer needed.
+ * `scu_stack_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -48,7 +48,7 @@ SCU_API ScuStack* scu_stack_new(Scuisize elemSize);
  * @return A pointer to the stack, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the stack with
- * `scu_stack_free()` when it is no longer needed.
+ * `scu_stack_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -64,7 +64,7 @@ SCU_API ScuStack* scu_stack_new_with_capacity(
  * @return A pointer to the cloned stack, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the cloned stack with
- * `scu_stack_free()` when it is no longer needed.
+ * `scu_stack_delete()` when it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -253,7 +253,7 @@ SCU_API ScuError scu_stack_trim_excess(ScuStack* stack);
  *
  * @note If `stack` is `nullptr`, this function does nothing.
  */
-SCU_API void scu_stack_free(ScuStack* stack);
+SCU_API void scu_stack_delete(ScuStack* stack);
 
 /**
  * @brief Returns an iterator to the top element of a stack.

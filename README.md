@@ -36,7 +36,7 @@ int main() {
         i32 freq = *(i32*) entry.value;
         scu_printf("%s: %" I32_PRID "\n", lang, freq);
     }
-    scu_hash_map_free(freqs);
+    scu_hash_map_delete(freqs);
 }
 ```
 
@@ -310,15 +310,15 @@ allocator (provided by the C standard library) is swapped out for a custom one
 If a function provided by SCU dynamically allocates memory, the ownership of
 that memory is transferred to the caller, who is responsible for deallocating it
 when it is no longer needed. The library provides corresponding deallocation
-functions, which usually end with the suffix `_free`. Generally speaking, for
+functions, which usually end with the suffix `_delete`. Generally speaking, for
 raw blocks of memory allocated with `scu_malloc()`, `scu_calloc()` or
 `scu_realloc()`, the deallocation function is `scu_free()`, while more complex
 objects such as the data structures provide dedicated deallocation functions
-(e.g., `scu_list_free()`, `scu_stack_free()`, etc.) that encapsulate the cleanup
-logic for all internal resources. In any case, the documentation will always
-specify the correct way to deallocate any memory allocated by the library, and
-it is important to follow these instructions to avoid memory leaks and other
-memory-related issues.
+(e.g., `scu_list_delete()`, `scu_stack_delete()`, etc.) that encapsulate the
+cleanup logic for all internal resources. In any case, the documentation will
+always specify the correct way to deallocate any memory allocated by the
+library, and it is important to follow these instructions to avoid memory leaks
+and other memory-related issues.
 
 ### Thread Safety
 

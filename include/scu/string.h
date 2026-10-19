@@ -434,8 +434,8 @@ SCU_API bool scu_str_ends_with_str(const char* s, const char* suffix);
  * @warning The behavior is undefined if `src` is not a pointer to a
  * null-terminated byte string.
  *
- * The caller is responsible for freeing the memory using `scu_free()` when it
- * is no longer needed.
+ * The caller is responsible for deallocating the memory using `scu_free()` when
+ * it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  */
@@ -460,8 +460,8 @@ SCU_API char* scu_strdup(const char* src);
  * @warning The behavior is undefined if `src` is not a pointer to a
  * null-terminated byte string.
  *
- * The caller is responsible for freeing the memory using `scu_free()` when it
- * is no longer needed.
+ * The caller is responsible for deallocating the memory using `scu_free()` when
+ * it is no longer needed.
  *
  * @note This function dynamically allocates memory using `scu_malloc()`.
  *
