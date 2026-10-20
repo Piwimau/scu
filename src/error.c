@@ -5,7 +5,7 @@
 #include "scu/io.h"
 
 [[noreturn]]
-void scu_fatal(
+SCU_API void scu_fatal(
     const char* restrict file,
     int line,
     const char* restrict func,

@@ -6,7 +6,7 @@
 #include "scu/compare.h"
 #include "scu/types.h"
 
-int scu_compare_bool(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_bool(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     bool l = *(const bool*) lhs;
@@ -14,7 +14,7 @@ int scu_compare_bool(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_byte(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_byte(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     byte l = *(const byte*) lhs;
@@ -22,7 +22,7 @@ int scu_compare_byte(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_i8(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_i8(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     i8 l = *(const i8*) lhs;
@@ -30,7 +30,7 @@ int scu_compare_i8(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_u8(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_u8(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     u8 l = *(const u8*) lhs;
@@ -38,7 +38,7 @@ int scu_compare_u8(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_i16(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_i16(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     i16 l = *(const i16*) lhs;
@@ -46,7 +46,7 @@ int scu_compare_i16(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_u16(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_u16(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     u16 l = *(const u16*) lhs;
@@ -54,7 +54,7 @@ int scu_compare_u16(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_i32(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_i32(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     i32 l = *(const i32*) lhs;
@@ -62,7 +62,7 @@ int scu_compare_i32(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_u32(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_u32(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     u32 l = *(const u32*) lhs;
@@ -70,7 +70,7 @@ int scu_compare_u32(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_i64(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_i64(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     i64 l = *(const i64*) lhs;
@@ -78,7 +78,7 @@ int scu_compare_i64(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_u64(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_u64(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     u64 l = *(const u64*) lhs;
@@ -86,7 +86,7 @@ int scu_compare_u64(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_iptr(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_iptr(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     iptr l = *(const iptr*) lhs;
@@ -94,7 +94,7 @@ int scu_compare_iptr(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_uptr(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_uptr(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     uptr l = *(const uptr*) lhs;
@@ -102,7 +102,7 @@ int scu_compare_uptr(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_isize(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_isize(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     isize l = *(const isize*) lhs;
@@ -110,7 +110,7 @@ int scu_compare_isize(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_usize(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_usize(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     usize l = *(const usize*) lhs;
@@ -118,7 +118,7 @@ int scu_compare_usize(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_f32(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_f32(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     f32 l = *(const f32*) lhs;
@@ -128,7 +128,7 @@ int scu_compare_f32(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_f64(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_f64(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     f64 l = *(const f64*) lhs;
@@ -138,7 +138,7 @@ int scu_compare_f64(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_char(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_char(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     char l = *(const char*) lhs;
@@ -146,7 +146,7 @@ int scu_compare_char(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_char8(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_char8(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     char8 l = *(const char8*) lhs;
@@ -154,7 +154,7 @@ int scu_compare_char8(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_char16(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_char16(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     char16 l = *(const char16*) lhs;
@@ -162,7 +162,7 @@ int scu_compare_char16(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_char32(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_char32(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     char32 l = *(const char32*) lhs;
@@ -170,7 +170,7 @@ int scu_compare_char32(const void* lhs, const void* rhs) {
     return (l < r) ? -1 : (l > r) ? 1 : 0;
 }
 
-int scu_compare_str(const void* lhs, const void* rhs) {
+SCU_API int scu_compare_str(const void* lhs, const void* rhs) {
     SCU_ASSERT(lhs);
     SCU_ASSERT(rhs);
     const char* l = *(const char* const*) lhs;

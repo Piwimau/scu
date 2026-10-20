@@ -10,7 +10,6 @@
     #include <time.h>
 #endif
 #include <tgmath.h>
-#include "scu/alloc.h"
 #include "scu/array.h"
 #include "scu/assert.h"
 #include "scu/bench.h"
@@ -146,12 +145,15 @@ static inline i64 scu_cpu_ns(ScuTimingMode timingMode) {
         : scu_thread_cpu_ns();
 }
 
-void scu_stopwatch_init(ScuStopwatch* stopwatch, ScuTimingMode timingMode) {
+SCU_API void scu_stopwatch_init(
+    ScuStopwatch* stopwatch,
+    ScuTimingMode timingMode
+) {
     SCU_ASSERT(stopwatch);
     *stopwatch = (ScuStopwatch) { .timingMode = timingMode };
 }
 
-bool scu_stopwatch_start(ScuStopwatch* stopwatch) {
+SCU_API bool scu_stopwatch_start(ScuStopwatch* stopwatch) {
     SCU_ASSERT(stopwatch);
     if (!stopwatch->isRunning) {
         i64 wallNs = scu_wall_ns();
@@ -169,7 +171,7 @@ bool scu_stopwatch_start(ScuStopwatch* stopwatch) {
     return true;
 }
 
-bool scu_stopwatch_restart(ScuStopwatch* stopwatch) {
+SCU_API bool scu_stopwatch_restart(ScuStopwatch* stopwatch) {
     SCU_ASSERT(stopwatch);
     i64 wallNs = scu_wall_ns();
     if (wallNs == -1) {
@@ -187,7 +189,7 @@ bool scu_stopwatch_restart(ScuStopwatch* stopwatch) {
     return true;
 }
 
-bool scu_stopwatch_stop(ScuStopwatch* stopwatch) {
+SCU_API bool scu_stopwatch_stop(ScuStopwatch* stopwatch) {
     SCU_ASSERT(stopwatch);
     if (stopwatch->isRunning) {
         i64 wallNs = scu_wall_ns();
@@ -205,17 +207,17 @@ bool scu_stopwatch_stop(ScuStopwatch* stopwatch) {
     return true;
 }
 
-void scu_stopwatch_reset(ScuStopwatch* stopwatch) {
+SCU_API void scu_stopwatch_reset(ScuStopwatch* stopwatch) {
     SCU_ASSERT(stopwatch);
     *stopwatch = (ScuStopwatch) { .timingMode = stopwatch->timingMode };
 }
 
-bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch) {
+SCU_API bool scu_stopwatch_is_running(const ScuStopwatch* stopwatch) {
     SCU_ASSERT(stopwatch);
     return stopwatch->isRunning;
 }
 
-ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
+SCU_API ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
     SCU_ASSERT(stopwatch);
     if (!stopwatch->isRunning) {
         return (ScuTimingResult) {
@@ -240,7 +242,7 @@ ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
     };
 }
 
-ScuBenchContext scu_bench_context_new(
+SCU_API ScuBenchContext scu_bench_context_new(
     ScuTimingMode timingMode,
     isize warmups,
     isize iterations,
@@ -256,12 +258,12 @@ ScuBenchContext scu_bench_context_new(
         .benchResult = benchResult
     };
     if (context.iterations > 0) {
-        context.wallSamples = scu_malloc(context.iterations * SCU_SIZEOF(i64));
-        context.cpuSamples = scu_malloc(context.iterations * SCU_SIZEOF(i64));
+        context.wallSamples = SCU_ARRAY_NEW(i64, context.iterations);
+        context.cpuSamples = SCU_ARRAY_NEW(i64, context.iterations);
         if (!context.wallSamples || !context.cpuSamples) {
-            scu_free(context.wallSamples);
+            SCU_ARRAY_DELETE(context.wallSamples, context.iterations);
+            SCU_ARRAY_DELETE(context.cpuSamples, context.iterations);
             context.wallSamples = nullptr;
-            scu_free(context.cpuSamples);
             context.cpuSamples = nullptr;
             context.error = SCU_ERROR_OUT_OF_MEMORY;
         }
@@ -310,7 +312,7 @@ static ScuBenchStats scu_bench_stats_from_samples(i64* samples, isize count) {
     };
 }
 
-bool scu_bench_context_is_running(ScuBenchContext* context) {
+SCU_API bool scu_bench_context_is_running(ScuBenchContext* context) {
     SCU_ASSERT(context);
     if (context->error != SCU_ERROR_NONE) {
         *context->benchResult = (ScuBenchResult) {
@@ -335,9 +337,9 @@ bool scu_bench_context_is_running(ScuBenchContext* context) {
             context->cpuSamples,
             context->iterations
         );
-        scu_free(context->wallSamples);
+        SCU_ARRAY_DELETE(context->wallSamples, context->iterations);
+        SCU_ARRAY_DELETE(context->cpuSamples, context->iterations);
         context->wallSamples = nullptr;
-        scu_free(context->cpuSamples);
         context->cpuSamples = nullptr;
     }
     else {
@@ -347,12 +349,12 @@ bool scu_bench_context_is_running(ScuBenchContext* context) {
     return false;
 }
 
-void scu_bench_context_advance(ScuBenchContext* context) {
+SCU_API void scu_bench_context_advance(ScuBenchContext* context) {
     SCU_ASSERT(context);
     if (context->timingResult.error != SCU_ERROR_NONE) {
-        scu_free(context->wallSamples);
+        SCU_ARRAY_DELETE(context->wallSamples, context->iterations);
+        SCU_ARRAY_DELETE(context->cpuSamples, context->iterations);
         context->wallSamples = nullptr;
-        scu_free(context->cpuSamples);
         context->cpuSamples = nullptr;
         context->error = SCU_ERROR_TIMING_FAILED;
         return;

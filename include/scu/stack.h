@@ -3,6 +3,7 @@
 
 #include "scu/api.h"
 #include "scu/error.h"
+#include "scu/memory.h"
 #include "scu/types.h"
 #include "scu/util.h"
 
@@ -30,32 +31,81 @@ typedef struct ScuStackIterator {
  * @brief Constructs a stack with a specified element size and an unspecified
  * default capacity.
  *
- * @param[in] elemSize The size of each element (in bytes).
+ * @param[in] elemSize  The size of each element (in bytes).
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the stack, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the stack with
  * `scu_stack_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_stack_new()` macro instead.
  */
-SCU_API ScuStack* scu_stack_new(Scuisize elemSize);
+SCU_API ScuStack* scu_stack_new_impl(
+    Scuisize elemSize,
+    ScuAllocator* allocator
+);
+
+/**
+ * @brief Constructs a stack with a specified element type and an unspecified
+ * default capacity.
+ *
+ * @param[in] elemType The type of each element.
+ * @param[in] ...      The allocator to use for memory management.
+ * @return A pointer to the stack, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the stack with
+ * `scu_stack_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_stack_new(elemType, ...)          \
+    scu_stack_new_impl(                       \
+        SCU_SIZEOF(elemType),                 \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Constructs a stack with a specified element size and initial capacity.
  *
- * @param[in] elemSize The size of each element (in bytes).
- * @param[in] capacity The initial capacity (in number of elements).
+ * @param[in] elemSize  The size of each element (in bytes).
+ * @param[in] capacity  The initial capacity (in number of elements).
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the stack, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the stack with
  * `scu_stack_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_stack_new_with_capacity()` macro instead.
  */
-SCU_API ScuStack* scu_stack_new_with_capacity(
+SCU_API ScuStack* scu_stack_new_with_capacity_impl(
     Scuisize elemSize,
-    Scuisize capacity
+    Scuisize capacity,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a stack with a specified element type and initial capacity.
+ *
+ * @param[in] elemType The type of each element.
+ * @param[in] capacity The initial capacity (in number of elements).
+ * @param[in] ...      The allocator to use for memory management.
+ * @return A pointer to the stack, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the stack with
+ * `scu_stack_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_stack_new_with_capacity(elemType, capacity, ...) \
+    scu_stack_new_with_capacity_impl(                        \
+        SCU_SIZEOF(elemType),                                \
+        (capacity),                                          \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__)                \
+    )
 
 /**
  * @brief Creates a shallow copy of a stack.
@@ -65,8 +115,6 @@ SCU_API ScuStack* scu_stack_new_with_capacity(
  *
  * @warning The caller is responsible for deallocating the cloned stack with
  * `scu_stack_delete()` when it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuStack* scu_stack_clone(const ScuStack* stack);
 
@@ -101,8 +149,6 @@ SCU_API Scuisize scu_stack_count(const ScuStack* stack);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_stack_begin()` and `scu_stack_end()`.
- *
- * @note This function dynamically allocates memory using `scu_realloc()`.
  */
 SCU_API ScuError scu_stack_ensure_capacity(ScuStack* stack, Scuisize capacity);
 
@@ -116,8 +162,6 @@ SCU_API ScuError scu_stack_ensure_capacity(ScuStack* stack, Scuisize capacity);
  *
  * @warning This function invalidates any iterators previously created with
  * `scu_stack_begin()` and `scu_stack_end()`.
- *
- * @note This function dynamically allocates memory using `scu_realloc()`.
  */
 SCU_API ScuError scu_stack_push(
     ScuStack* restrict stack,
@@ -234,8 +278,6 @@ SCU_API void scu_stack_clear(ScuStack* stack);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_stack_begin()` and `scu_stack_end()`.
- *
- * @note This function dynamically allocates memory using `scu_realloc()`.
  */
 SCU_API ScuError scu_stack_trim_excess(ScuStack* stack);
 

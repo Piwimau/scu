@@ -434,10 +434,10 @@ SCU_API bool scu_str_ends_with_str(const char* s, const char* suffix);
  * @warning The behavior is undefined if `src` is not a pointer to a
  * null-terminated byte string.
  *
- * The caller is responsible for deallocating the memory using `scu_free()` when
- * it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * The caller is responsible for deallocating the memory with the default
+ * allocator when it is no longer needed. The simplest way to accomplish this
+ * is by calling `SCU_ARRAY_DELETE(s, scu_strlen(s) + 1)`, where `s` is the
+ * pointer returned by this function.
  */
 SCU_API char* scu_strdup(const char* src);
 
@@ -460,13 +460,13 @@ SCU_API char* scu_strdup(const char* src);
  * @warning The behavior is undefined if `src` is not a pointer to a
  * null-terminated byte string.
  *
- * The caller is responsible for deallocating the memory using `scu_free()` when
- * it is no longer needed.
+ * The caller is responsible for deallocating the memory with the default
+ * allocator when it is no longer needed. The simplest way to accomplish this
+ * is by calling `SCU_ARRAY_DELETE(s, scu_strlen(s) + 1)`, where `s` is the
+ * pointer returned by this function.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
- *
- * If `count` is zero, `src` is ignored (it may even be `nullptr`), and the
- * function returns a pointer to a dynamically allocated empty byte string.
+ * @note If `count` is zero, `src` is ignored (it may even be `nullptr`), and
+ * the function returns a pointer to a dynamically allocated empty byte string.
  */
 SCU_API char* scu_strndup(const char* src, Scuisize count);
 

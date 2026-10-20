@@ -4,7 +4,7 @@
 #include "scu/array.h"
 #include "scu/assert.h"
 
-void scu_array_sort(
+SCU_API void scu_array_sort(
     void* array,
     isize count,
     isize elemSize,

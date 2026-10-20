@@ -1,14 +1,20 @@
 #define SCU_SHORT_ALIASES
 
-#include "scu/alloc.h"
+#include <stddef.h>
 #include "scu/assert.h"
-#include "scu/memory.h"
+#include "scu/math.h"
 #include "scu/stack.h"
 
 struct ScuStack {
 
+    /** @brief The allocator used for memory management. */
+    ScuAllocator* allocator;
+
     /** @brief The size of each element (in bytes). */
     isize elemSize;
+
+    /** @brief The alignment of each element (in bytes). */
+    isize elemAlign;
 
     /**
      * @brief The maximum number of elements that can be stored before a
@@ -22,8 +28,8 @@ struct ScuStack {
     /**
      * @brief The actual data (i.e., the elements) stored in the stack.
      *
-     * @note This is a dynamically allocated array of `count` elements of size
-     * `elemSize`, or `nullptr` if `capacity` is zero.
+     * @note This is a dynamically allocated array of `capacity` elements of
+     * size `elemSize`, or `nullptr` if `capacity` is zero.
      */
     byte* data;
 
@@ -35,24 +41,39 @@ static constexpr isize SCU_DEFAULT_CAPACITY = 8;
 /** @brief The growth factor for increasing the capacity of a stack. */
 static constexpr isize SCU_GROWTH_FACTOR = 2;
 
-ScuStack* scu_stack_new(isize elemSize) {
-    return scu_stack_new_with_capacity(elemSize, SCU_DEFAULT_CAPACITY);
+SCU_API ScuStack* scu_stack_new_impl(isize elemSize, ScuAllocator* allocator) {
+    return scu_stack_new_with_capacity_impl(
+        elemSize,
+        SCU_DEFAULT_CAPACITY,
+        allocator
+    );
 }
 
-ScuStack* scu_stack_new_with_capacity(isize elemSize, isize capacity) {
+SCU_API ScuStack* scu_stack_new_with_capacity_impl(
+    isize elemSize,
+    isize capacity,
+    ScuAllocator* allocator
+) {
     SCU_ASSERT(elemSize > 0);
     SCU_ASSERT(capacity >= 0);
-    ScuStack* stack = scu_malloc(SCU_SIZEOF(ScuStack));
+    SCU_ASSERT(allocator);
+    ScuStack* stack = SCU_NEW(ScuStack, allocator);
     if (!stack) {
         return nullptr;
     }
-    stack->elemSize = elemSize;
+    stack->allocator = allocator;
+    stack->elemAlign = SCU_MIN(elemSize & -elemSize, SCU_ALIGNOF(max_align_t));
+    stack->elemSize = SCU_ALIGN_UP(elemSize, stack->elemAlign);
     stack->capacity = capacity;
     stack->count = 0;
     if (capacity > 0) {
-        stack->data = scu_malloc(elemSize * capacity);
+        stack->data = scu_allocate(
+            stack->elemSize * stack->capacity,
+            stack->elemAlign,
+            stack->allocator
+        );
         if (!stack->data) {
-            scu_free(stack);
+            SCU_DELETE(stack, stack->allocator);
             return nullptr;
         }
     }
@@ -62,19 +83,25 @@ ScuStack* scu_stack_new_with_capacity(isize elemSize, isize capacity) {
     return stack;
 }
 
-ScuStack* scu_stack_clone(const ScuStack* stack) {
+SCU_API ScuStack* scu_stack_clone(const ScuStack* stack) {
     SCU_ASSERT(stack);
-    ScuStack* clone = scu_malloc(SCU_SIZEOF(ScuStack));
+    ScuStack* clone = SCU_NEW(ScuStack, stack->allocator);
     if (!clone) {
         return nullptr;
     }
+    clone->allocator = stack->allocator;
     clone->elemSize = stack->elemSize;
+    clone->elemAlign = stack->elemAlign;
     clone->capacity = stack->capacity;
     clone->count = stack->count;
     if (clone->capacity > 0) {
-        clone->data = scu_malloc(clone->elemSize * clone->capacity);
+        clone->data = scu_allocate(
+            clone->elemSize * clone->capacity,
+            clone->elemAlign,
+            clone->allocator
+        );
         if (!clone->data) {
-            scu_free(clone);
+            SCU_DELETE(clone, clone->allocator);
             return nullptr;
         }
         scu_memcpy(clone->data, stack->data, clone->elemSize * clone->count);
@@ -85,17 +112,17 @@ ScuStack* scu_stack_clone(const ScuStack* stack) {
     return clone;
 }
 
-isize scu_stack_capacity(const ScuStack* stack) {
+SCU_API isize scu_stack_capacity(const ScuStack* stack) {
     SCU_ASSERT(stack);
     return stack->capacity;
 }
 
-isize scu_stack_count(const ScuStack* stack) {
+SCU_API isize scu_stack_count(const ScuStack* stack) {
     SCU_ASSERT(stack);
     return stack->count;
 }
 
-ScuError scu_stack_ensure_capacity(ScuStack* stack, isize capacity) {
+SCU_API ScuError scu_stack_ensure_capacity(ScuStack* stack, isize capacity) {
     SCU_ASSERT(stack);
     SCU_ASSERT(capacity >= 0);
     if (stack->capacity < capacity) {
@@ -103,7 +130,13 @@ ScuError scu_stack_ensure_capacity(ScuStack* stack, isize capacity) {
         while (newCapacity < capacity) {
             newCapacity *= SCU_GROWTH_FACTOR;
         }
-        byte* newData = scu_realloc(stack->data, stack->elemSize * newCapacity);
+        byte* newData = scu_resize_or_move(
+            stack->data,
+            stack->elemSize * stack->capacity,
+            stack->elemSize * newCapacity,
+            stack->elemAlign,
+            stack->allocator
+        );
         if (!newData) {
             return SCU_ERROR_OUT_OF_MEMORY;
         }
@@ -113,7 +146,10 @@ ScuError scu_stack_ensure_capacity(ScuStack* stack, isize capacity) {
     return SCU_ERROR_NONE;
 }
 
-ScuError scu_stack_push(ScuStack* restrict stack, const void* restrict elem) {
+SCU_API ScuError scu_stack_push(
+    ScuStack* restrict stack,
+    const void* restrict elem
+) {
     SCU_ASSERT(stack);
     SCU_ASSERT(elem);
     ScuError error = scu_stack_ensure_capacity(stack, stack->count + 1);
@@ -129,7 +165,7 @@ ScuError scu_stack_push(ScuStack* restrict stack, const void* restrict elem) {
     return SCU_ERROR_NONE;
 }
 
-void scu_stack_pop(ScuStack* restrict stack, void* restrict elem) {
+SCU_API void scu_stack_pop(ScuStack* restrict stack, void* restrict elem) {
     SCU_ASSERT(stack);
     SCU_ASSERT(stack->count > 0);
     SCU_ASSERT(elem);
@@ -141,7 +177,7 @@ void scu_stack_pop(ScuStack* restrict stack, void* restrict elem) {
     );
 }
 
-bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem) {
+SCU_API bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem) {
     SCU_ASSERT(stack);
     SCU_ASSERT(elem);
     if (stack->count == 0) {
@@ -156,14 +192,17 @@ bool scu_stack_try_pop(ScuStack* restrict stack, void* restrict elem) {
     return true;
 }
 
-void scu_stack_peek_impl(const ScuStack* restrict stack, void** restrict elem) {
+SCU_API void scu_stack_peek_impl(
+    const ScuStack* restrict stack,
+    void** restrict elem
+) {
     SCU_ASSERT(stack);
     SCU_ASSERT(stack->count > 0);
     SCU_ASSERT(elem);
     *elem = stack->data + stack->elemSize * (stack->count - 1);
 }
 
-bool scu_stack_try_peek_impl(
+SCU_API bool scu_stack_try_peek_impl(
     const ScuStack* restrict stack,
     void** restrict elem
 ) {
@@ -177,23 +216,31 @@ bool scu_stack_try_peek_impl(
     return true;
 }
 
-void scu_stack_clear(ScuStack* stack) {
+SCU_API void scu_stack_clear(ScuStack* stack) {
     SCU_ASSERT(stack);
     stack->count = 0;
 }
 
-ScuError scu_stack_trim_excess(ScuStack* stack) {
+SCU_API ScuError scu_stack_trim_excess(ScuStack* stack) {
     SCU_ASSERT(stack);
     if (stack->capacity > stack->count) {
         if (stack->count == 0) {
-            scu_free(stack->data);
+            scu_deallocate(
+                stack->data,
+                stack->elemSize * stack->capacity,
+                stack->elemAlign,
+                stack->allocator
+            );
             stack->data = nullptr;
             stack->capacity = 0;
         }
         else {
-            byte* newData = scu_realloc(
+            byte* newData = scu_resize_or_move(
                 stack->data,
-                stack->elemSize * stack->count
+                stack->elemSize * stack->capacity,
+                stack->elemSize * stack->count,
+                stack->elemAlign,
+                stack->allocator
             );
             if (!newData) {
                 return SCU_ERROR_OUT_OF_MEMORY;
@@ -205,18 +252,23 @@ ScuError scu_stack_trim_excess(ScuStack* stack) {
     return SCU_ERROR_NONE;
 }
 
-void scu_stack_delete(ScuStack* stack) {
+SCU_API void scu_stack_delete(ScuStack* stack) {
     if (!stack) {
         return;
     }
-    scu_free(stack->data);
+    scu_deallocate(
+        stack->data,
+        stack->elemSize * stack->capacity,
+        stack->elemAlign,
+        stack->allocator
+    );
     stack->data = nullptr;
     stack->capacity = 0;
     stack->count = 0;
-    scu_free(stack);
+    SCU_DELETE(stack, stack->allocator);
 }
 
-ScuStackIterator scu_stack_begin(const ScuStack* stack) {
+SCU_API ScuStackIterator scu_stack_begin(const ScuStack* stack) {
     SCU_ASSERT(stack);
     return (ScuStackIterator) {
         .stack = SCU_CONST_CAST(ScuStack*, stack),
@@ -224,7 +276,7 @@ ScuStackIterator scu_stack_begin(const ScuStack* stack) {
     };
 }
 
-ScuStackIterator scu_stack_end(const ScuStack* stack) {
+SCU_API ScuStackIterator scu_stack_end(const ScuStack* stack) {
     SCU_ASSERT(stack);
     return (ScuStackIterator) {
         .stack = SCU_CONST_CAST(ScuStack*, stack),
@@ -232,7 +284,7 @@ ScuStackIterator scu_stack_end(const ScuStack* stack) {
     };
 }
 
-bool scu_stack_iterator_equal(
+SCU_API bool scu_stack_iterator_equal(
     const ScuStackIterator* lhs,
     const ScuStackIterator* rhs
 ) {
@@ -242,19 +294,19 @@ bool scu_stack_iterator_equal(
     return lhs->index == rhs->index;
 }
 
-void scu_stack_iterator_next(ScuStackIterator* iterator) {
+SCU_API void scu_stack_iterator_next(ScuStackIterator* iterator) {
     SCU_ASSERT(iterator);
     SCU_ASSERT(iterator->index >= 0);
     iterator->index--;
 }
 
-void scu_stack_iterator_prev(ScuStackIterator* iterator) {
+SCU_API void scu_stack_iterator_prev(ScuStackIterator* iterator) {
     SCU_ASSERT(iterator);
     SCU_ASSERT(iterator->index < iterator->stack->count - 1);
     iterator->index++;
 }
 
-void* scu_stack_iterator_deref(const ScuStackIterator* iterator) {
+SCU_API void* scu_stack_iterator_deref(const ScuStackIterator* iterator) {
     SCU_ASSERT(iterator);
     const ScuStack* stack = iterator->stack;
     isize index = iterator->index;

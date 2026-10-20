@@ -1,15 +1,16 @@
 #define SCU_SHORT_ALIASES
 
 #include <stddef.h>
-#include "scu/alloc.h"
 #include "scu/array.h"
 #include "scu/assert.h"
 #include "scu/list.h"
-#include "scu/memory.h"
 #include "scu/util.h"
 
 /** @brief A header stored before the actual data of the list. */
 typedef struct ScuListHeader {
+
+    /** @brief The allocator used for memory management. */
+    ScuAllocator* allocator;
 
     /** @brief The size of each element (in bytes). */
     isize elemSize;
@@ -40,19 +41,31 @@ static constexpr isize SCU_DEFAULT_CAPACITY = 8;
 /** @brief The growth factor for increasing the capacity of a list. */
 static constexpr isize SCU_GROWTH_FACTOR = 2;
 
-void* scu_list_new(isize elemSize) {
-    return scu_list_new_with_capacity(elemSize, SCU_DEFAULT_CAPACITY);
+SCU_API void* scu_list_new_impl(isize elemSize, ScuAllocator* allocator) {
+    return scu_list_new_with_capacity_impl(
+        elemSize,
+        SCU_DEFAULT_CAPACITY,
+        allocator
+    );
 }
 
-void* scu_list_new_with_capacity(isize elemSize, isize capacity) {
+SCU_API void* scu_list_new_with_capacity_impl(
+    isize elemSize,
+    isize capacity,
+    ScuAllocator* allocator
+) {
     SCU_ASSERT(elemSize > 0);
     SCU_ASSERT(capacity >= 0);
-    ScuListHeader* header = scu_malloc(
-        SCU_SIZEOF(ScuListHeader) + elemSize * capacity
+    SCU_ASSERT(allocator);
+    ScuListHeader* header = scu_allocate(
+        SCU_SIZEOF(ScuListHeader) + elemSize * capacity,
+        SCU_ALIGNOF(ScuListHeader),
+        allocator
     );
     if (!header) {
         return nullptr;
     }
+    header->allocator = allocator;
     header->elemSize = elemSize;
     header->capacity = capacity;
     header->count = 0;
@@ -70,16 +83,19 @@ static inline ScuListHeader* scu_get_header(void* data) {
     return (ScuListHeader*) ((byte*) data - SCU_SIZEOF(ScuListHeader));
 }
 
-void* scu_list_clone(const void* list) {
+SCU_API void* scu_list_clone(const void* list) {
     const ScuListHeader* header = scu_get_header(
         SCU_CONST_CAST(void*, list)
     );
-    ScuListHeader* clone = scu_malloc(
-        SCU_SIZEOF(ScuListHeader) + header->elemSize * header->capacity
+    ScuListHeader* clone = scu_allocate(
+        SCU_SIZEOF(ScuListHeader) + header->elemSize * header->capacity,
+        SCU_ALIGNOF(ScuListHeader),
+        header->allocator
     );
     if (!clone) {
         return nullptr;
     }
+    clone->allocator = header->allocator;
     clone->elemSize = header->elemSize;
     clone->capacity = header->capacity;
     clone->count = header->count;
@@ -87,21 +103,21 @@ void* scu_list_clone(const void* list) {
     return clone->data;
 }
 
-isize scu_list_capacity(const void* list) {
+SCU_API isize scu_list_capacity(const void* list) {
     const ScuListHeader* header = scu_get_header(
         SCU_CONST_CAST(void*, list)
     );
     return header->capacity;
 }
 
-isize scu_list_count(const void* list) {
+SCU_API isize scu_list_count(const void* list) {
     const ScuListHeader* header = scu_get_header(
         SCU_CONST_CAST(void*, list)
     );
     return header->count;
 }
 
-ScuError scu_list_ensure_capacity_impl(void** list, isize capacity) {
+SCU_API ScuError scu_list_ensure_capacity_impl(void** list, isize capacity) {
     SCU_ASSERT(list);
     SCU_ASSERT(capacity >= 0);
     ScuListHeader* header = scu_get_header(*list);
@@ -110,9 +126,12 @@ ScuError scu_list_ensure_capacity_impl(void** list, isize capacity) {
         while (newCapacity < capacity) {
             newCapacity *= SCU_GROWTH_FACTOR;
         }
-        ScuListHeader* newHeader = scu_realloc(
+        ScuListHeader* newHeader = scu_resize_or_move(
             header,
-            SCU_SIZEOF(ScuListHeader) + header->elemSize * newCapacity
+            SCU_SIZEOF(ScuListHeader) + header->elemSize * header->capacity,
+            SCU_SIZEOF(ScuListHeader) + header->elemSize * newCapacity,
+            SCU_ALIGNOF(ScuListHeader),
+            header->allocator
         );
         if (!newHeader) {
             return SCU_ERROR_OUT_OF_MEMORY;
@@ -123,7 +142,10 @@ ScuError scu_list_ensure_capacity_impl(void** list, isize capacity) {
     return SCU_ERROR_NONE;
 }
 
-ScuError scu_list_add_impl(void** restrict list, const void* restrict elem) {
+SCU_API ScuError scu_list_add_impl(
+    void** restrict list,
+    const void* restrict elem
+) {
     SCU_ASSERT(list);
     SCU_ASSERT(elem);
     ScuListHeader* header = scu_get_header(*list);
@@ -142,7 +164,7 @@ ScuError scu_list_add_impl(void** restrict list, const void* restrict elem) {
     return SCU_ERROR_NONE;
 }
 
-ScuError scu_list_insert_at_impl(
+SCU_API ScuError scu_list_insert_at_impl(
     void** restrict list,
     isize index,
     const void* restrict elem
@@ -171,7 +193,7 @@ ScuError scu_list_insert_at_impl(
     return SCU_ERROR_NONE;
 }
 
-void scu_list_remove_at(void* list, isize index) {
+SCU_API void scu_list_remove_at(void* list, isize index) {
     ScuListHeader* header = scu_get_header(list);
     SCU_ASSERT((index >= 0) && (index < header->count));
     scu_memmove(
@@ -182,19 +204,22 @@ void scu_list_remove_at(void* list, isize index) {
     header->count--;
 }
 
-void scu_list_clear(void* list) {
+SCU_API void scu_list_clear(void* list) {
     ScuListHeader* header = scu_get_header(list);
     header->count = 0;
 }
 
-ScuError scu_list_trim_excess_impl(void** list) {
+SCU_API ScuError scu_list_trim_excess_impl(void** list) {
     SCU_ASSERT(list);
     ScuListHeader* header = scu_get_header(*list);
     if (header->capacity > header->count) {
         isize newCapacity = header->count;
-        ScuListHeader* newHeader = scu_realloc(
+        ScuListHeader* newHeader = scu_resize_or_move(
             header,
-            SCU_SIZEOF(ScuListHeader) + header->elemSize * newCapacity
+            SCU_SIZEOF(ScuListHeader) + header->elemSize * header->capacity,
+            SCU_SIZEOF(ScuListHeader) + header->elemSize * newCapacity,
+            SCU_ALIGNOF(ScuListHeader),
+            header->allocator
         );
         if (!newHeader) {
             return SCU_ERROR_OUT_OF_MEMORY;
@@ -205,18 +230,21 @@ ScuError scu_list_trim_excess_impl(void** list) {
     return SCU_ERROR_NONE;
 }
 
-void scu_list_sort(void* list, ScuCompareFunc* cmpFunc) {
+SCU_API void scu_list_sort(void* list, ScuCompareFunc* cmpFunc) {
     SCU_ASSERT(cmpFunc);
     ScuListHeader* header = scu_get_header(list);
     scu_array_sort(header->data, header->count, header->elemSize, cmpFunc);
 }
 
-void scu_list_delete(void* list) {
+SCU_API void scu_list_delete(void* list) {
     if (!list) {
         return;
     }
     ScuListHeader* header = scu_get_header(list);
-    header->capacity = 0;
-    header->count = 0;
-    scu_free(header);
+    scu_deallocate(
+        header,
+        SCU_SIZEOF(ScuListHeader) + header->elemSize * header->capacity,
+        SCU_ALIGNOF(ScuListHeader),
+        header->allocator
+    );
 }

@@ -5,6 +5,7 @@
 #include "scu/equal.h"
 #include "scu/error.h"
 #include "scu/hash.h"
+#include "scu/memory.h"
 #include "scu/types.h"
 #include "scu/util.h"
 
@@ -48,21 +49,58 @@ typedef struct ScuHashMapEntry {
  * @param[in] keyHashFunc    A function used for hashing keys.
  * @param[in] keyEqualFunc   A function used for comparing keys for equality.
  * @param[in] valueEqualFunc A function used for comparing values for equality.
+ * @param[in] allocator      The allocator to use for memory management.
  * @return A pointer to the hash map, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash map with
  * `scu_hash_map_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_hash_map_new()` macro instead.
  */
-SCU_API ScuHashMap* scu_hash_map_new(
+SCU_API ScuHashMap* scu_hash_map_new_impl(
     Scuisize keySize,
     Scuisize valueSize,
     ScuHashFunc* keyHashFunc,
     ScuEqualFunc* keyEqualFunc,
-    ScuEqualFunc* valueEqualFunc
+    ScuEqualFunc* valueEqualFunc,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a hash map with the specified key and value types, hash and
+ * equality functions, and an unspecified default capacity.
+ *
+ * @param[in] keyType        The type of each key.
+ * @param[in] valueType      The type of each value.
+ * @param[in] keyHashFunc    A function used for hashing keys.
+ * @param[in] keyEqualFunc   A function used for comparing keys for equality.
+ * @param[in] valueEqualFunc A function used for comparing values for equality.
+ * @param[in] ...            The allocator to use for memory management.
+ * @return A pointer to the hash map, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash map with
+ * `scu_hash_map_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_hash_map_new(                     \
+    keyType,                                  \
+    valueType,                                \
+    keyHashFunc,                              \
+    keyEqualFunc,                             \
+    valueEqualFunc,                           \
+    ...                                       \
+)                                             \
+    scu_hash_map_new_impl(                    \
+        SCU_SIZEOF(keyType),                  \
+        SCU_SIZEOF(valueType),                \
+        (keyHashFunc),                        \
+        (keyEqualFunc),                       \
+        (valueEqualFunc),                     \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Constructs a hash map with the specified key and value sizes, hash and
@@ -75,22 +113,63 @@ SCU_API ScuHashMap* scu_hash_map_new(
  * @param[in] keyHashFunc    A function used for hashing keys.
  * @param[in] keyEqualFunc   A function used for comparing keys for equality.
  * @param[in] valueEqualFunc A function used for comparing values for equality.
+ * @param[in] allocator      The allocator to use for memory management.
  * @return A pointer to the hash map, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash map with
  * `scu_hash_map_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_hash_map_new_with_capacity()` macro instead.
  */
-SCU_API ScuHashMap* scu_hash_map_new_with_capacity(
+SCU_API ScuHashMap* scu_hash_map_new_with_capacity_impl(
     Scuisize keySize,
     Scuisize valueSize,
     Scuisize capacity,
     ScuHashFunc* keyHashFunc,
     ScuEqualFunc* keyEqualFunc,
-    ScuEqualFunc* valueEqualFunc
+    ScuEqualFunc* valueEqualFunc,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a hash map with the specified key and value types, hash and
+ * equality functions, and initial capacity.
+ *
+ * @param[in] keyType        The type of each key.
+ * @param[in] valueType      The type of each value.
+ * @param[in] capacity       The initial capacity (in number of key-value
+ *                           pairs).
+ * @param[in] keyHashFunc    A function used for hashing keys.
+ * @param[in] keyEqualFunc   A function used for comparing keys for equality.
+ * @param[in] valueEqualFunc A function used for comparing values for equality.
+ * @param[in] ...            The allocator to use for memory management.
+ * @return A pointer to the hash map, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash map with
+ * `scu_hash_map_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_hash_map_new_with_capacity(       \
+    keyType,                                  \
+    valueType,                                \
+    capacity,                                 \
+    keyHashFunc,                              \
+    keyEqualFunc,                             \
+    valueEqualFunc,                           \
+    ...                                       \
+)                                             \
+    scu_hash_map_new_with_capacity_impl(      \
+        SCU_SIZEOF(keyType),                  \
+        SCU_SIZEOF(valueType),                \
+        (capacity),                           \
+        (keyHashFunc),                        \
+        (keyEqualFunc),                       \
+        (valueEqualFunc),                     \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Creates a shallow copy of a hash map.
@@ -100,8 +179,6 @@ SCU_API ScuHashMap* scu_hash_map_new_with_capacity(
  *
  * @warning The caller is responsible for deallocating the cloned hash map with
  * `scu_hash_map_delete()` when it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap);
 
@@ -135,8 +212,6 @@ SCU_API Scuisize scu_hash_map_count(const ScuHashMap* hashMap);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_map_begin()` and `scu_hash_map_end()`.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_map_ensure_capacity(
     ScuHashMap* hashMap,
@@ -157,8 +232,6 @@ SCU_API ScuError scu_hash_map_ensure_capacity(
  *
  * The behavior is undefined if the key is already present in the hash map. Use
  * `scu_hash_map_try_add()` to handle this case gracefully.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_map_add(
     ScuHashMap* restrict hashMap,
@@ -178,8 +251,6 @@ SCU_API ScuError scu_hash_map_add(
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_map_begin()` and `scu_hash_map_end()`.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_map_try_add(
     ScuHashMap* restrict hashMap,
@@ -241,9 +312,7 @@ SCU_API bool scu_hash_map_try_get_impl(
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_map_begin()` and `scu_hash_map_end()`.
  *
- * @note This function dynamically allocates memory using `scu_calloc()`.
- *
- * If the key is already present in the hash map, its associated value is
+ * @note If the key is already present in the hash map, its associated value is
  * replaced with the new value. Otherwise, a new key-value pair is added to the
  * hash map with the specified key and value. Note that this function is
  * primarily intended for updating the values of existing keys, and is optimized
@@ -334,8 +403,6 @@ SCU_API void scu_hash_map_clear(ScuHashMap* hashMap);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_map_begin()` and `scu_hash_map_end()`.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap);
 

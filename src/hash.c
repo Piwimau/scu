@@ -80,91 +80,91 @@
     }
 #endif
 
-usize scu_hash_bool(const void* value) {
+SCU_API usize scu_hash_bool(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const bool*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_byte(const void* value) {
+SCU_API usize scu_hash_byte(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const byte*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_i8(const void* value) {
+SCU_API usize scu_hash_i8(const void* value) {
     SCU_ASSERT(value);
     usize v = (u8) *(const i8*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_u8(const void* value) {
+SCU_API usize scu_hash_u8(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const u8*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_i16(const void* value) {
+SCU_API usize scu_hash_i16(const void* value) {
     SCU_ASSERT(value);
     usize v = (u16) *(const i16*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_u16(const void* value) {
+SCU_API usize scu_hash_u16(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const u16*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_i32(const void* value) {
+SCU_API usize scu_hash_i32(const void* value) {
     SCU_ASSERT(value);
     usize v = (u32) *(const i32*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_u32(const void* value) {
+SCU_API usize scu_hash_u32(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const u32*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_i64(const void* value) {
+SCU_API usize scu_hash_i64(const void* value) {
     SCU_ASSERT(value);
     u64 v = (u64) *(const i64*) value;
     return scu_hash_mix_u64(v);
 }
 
-usize scu_hash_u64(const void* value) {
+SCU_API usize scu_hash_u64(const void* value) {
     SCU_ASSERT(value);
     u64 v = *(const u64*) value;
     return scu_hash_mix_u64(v);
 }
 
-usize scu_hash_iptr(const void* value) {
+SCU_API usize scu_hash_iptr(const void* value) {
     SCU_ASSERT(value);
     usize v = (uptr) *(const iptr*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_uptr(const void* value) {
+SCU_API usize scu_hash_uptr(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const uptr*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_isize(const void* value) {
+SCU_API usize scu_hash_isize(const void* value) {
     SCU_ASSERT(value);
     usize v = (usize) *(const isize*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_usize(const void* value) {
+SCU_API usize scu_hash_usize(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const usize*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_f32(const void* value) {
+SCU_API usize scu_hash_f32(const void* value) {
     SCU_ASSERT(value);
     f32 v = *(const f32*) value;
     SCU_ASSERT(!isnan(v));
@@ -177,7 +177,7 @@ usize scu_hash_f32(const void* value) {
     return scu_hash_mix_usize(bits);
 }
 
-usize scu_hash_f64(const void* value) {
+SCU_API usize scu_hash_f64(const void* value) {
     SCU_ASSERT(value);
     f64 v = *(const f64*) value;
     SCU_ASSERT(!isnan(v));
@@ -190,31 +190,31 @@ usize scu_hash_f64(const void* value) {
     return scu_hash_mix_u64(bits);
 }
 
-usize scu_hash_char(const void* value) {
+SCU_API usize scu_hash_char(const void* value) {
     SCU_ASSERT(value);
     usize v = (byte) *(const char*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_char8(const void* value) {
+SCU_API usize scu_hash_char8(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const char8*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_char16(const void* value) {
+SCU_API usize scu_hash_char16(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const char16*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_char32(const void* value) {
+SCU_API usize scu_hash_char32(const void* value) {
     SCU_ASSERT(value);
     usize v = *(const char32*) value;
     return scu_hash_mix_usize(v);
 }
 
-usize scu_hash_bytes(const void* block, isize count) {
+SCU_API usize scu_hash_bytes(const void* block, isize count) {
     SCU_ASSERT(count >= 0);
     if (count == 0) {
         return SCU_FNV_OFFSET_BASIS;
@@ -229,7 +229,7 @@ usize scu_hash_bytes(const void* block, isize count) {
     return v;
 }
 
-usize scu_hash_str(const void* value) {
+SCU_API usize scu_hash_str(const void* value) {
     SCU_ASSERT(value);
     const byte* p = *(const byte* const*) value;
     usize v = SCU_FNV_OFFSET_BASIS;
@@ -240,6 +240,6 @@ usize scu_hash_str(const void* value) {
     return v;
 }
 
-usize scu_hash_combine(usize seed, usize hash) {
+SCU_API usize scu_hash_combine(usize seed, usize hash) {
     return seed ^ (hash + SCU_HASH_MULTIPLIER + (seed << 6) + (seed >> 2));
 }

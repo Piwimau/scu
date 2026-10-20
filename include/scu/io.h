@@ -137,8 +137,6 @@ SCU_API ScuFile* scu_stderr();
  *
  * @note The exact format of `name` is implementation-defined, and it does not
  * necessarily have to correspond to an actual file in the filesystem.
- *
- * This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuError scu_fopen(
     ScuFile* restrict* restrict file,
@@ -161,8 +159,6 @@ SCU_API ScuError scu_fopen(
  *
  * @warning If the operation succeeds, the file stream returned via `*file` must
  * be closed with `scu_fclose()` to properly release any associated resources.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuError scu_fopentmp(ScuFile** file);
 
@@ -553,9 +549,9 @@ SCU_API ScuError scu_writes(const char* buffer);
  * @brief Reads a single line from a file stream.
  *
  * This function reads a single line from the file stream into `*buffer` and
- * terminates it with a null byte. The buffer is dynamically reallocated using
- * `scu_realloc()` to fit the entire line (including the newline (if present)
- * and the terminating null byte). The new size is reflected in `*size`.
+ * terminates it with a null byte. The buffer is dynamically reallocated to fit
+ * the entire line (including the newline (if present) and the terminating null
+ * byte). The new size is reflected in `*size`.
  *
  * @param[in, out] file   The file stream to read from.
  * @param[in, out] buffer A pointer to a buffer to write the data to.
@@ -567,13 +563,11 @@ SCU_API ScuError scu_writes(const char* buffer);
  * from the file stream, or `SCU_ERROR_NONE` on success.
  *
  * @warning If `*buffer` is not `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
+ * the default allocator. The caller is responsible for deallocating `*buffer`
+ * when it is no longer needed.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()` and an
- * unspecified initial size.
+ * this case, the function allocates a buffer with an unspecified initial size.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated, even if the
@@ -591,9 +585,8 @@ SCU_API ScuError scu_freadln(
  *
  * This function reads a single line from the standard input stream into
  * `*buffer` and terminates it with a null byte. The buffer is dynamically
- * reallocated using `scu_realloc()` to fit the entire line (including the
- * newline (if present) and the terminating null byte). The new size is
- * reflected in `*size`.
+ * reallocated to fit the entire line (including the newline (if present) and
+ * the terminating null byte). The new size is reflected in `*size`.
  *
  * @param[in, out] buffer A pointer to a buffer to write the data to.
  * @param[in, out] size   A pointer to the size of the buffer (in bytes,
@@ -604,13 +597,11 @@ SCU_API ScuError scu_freadln(
  * from the standard input stream, or `SCU_ERROR_NONE` on success.
  *
  * @warning If `*buffer` is not `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
+ * the default allocator. The caller is responsible for deallocating `*buffer`
+ * when it is no longer needed.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()` and an
- * unspecified initial size.
+ * this case, the function allocates a buffer with an unspecified initial size.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated, even if the
@@ -664,9 +655,9 @@ SCU_API ScuError scu_writeln(const char* buffer);
  * allocated buffer.
  *
  * This function reads all remaining bytes from the file stream into `*buffer`
- * and terminates it with a null byte. The buffer is dynamically reallocated
- * using `scu_realloc()` to fit the entire contents (including the terminating
- * null byte). The new size is reflected in `*size`.
+ * and terminates it with a null byte. The buffer is dynamically reallocated to
+ * fit the entire contents (including the terminating null byte). The new size
+ * is reflected in `*size`.
  *
  * @param[in, out] file   The file stream to read from.
  * @param[in, out] buffer A pointer to a buffer to write the data to.
@@ -678,13 +669,11 @@ SCU_API ScuError scu_writeln(const char* buffer);
  * from the file stream, or `SCU_ERROR_NONE` on success.
  *
  * @warning If `*buffer` is not `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
+ * the default allocator. The caller is responsible for deallocating `*buffer`
+ * when it is no longer needed.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()` and an
- * unspecified initial size.
+ * this case, the function allocates a buffer with an unspecified initial size.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated, even if the
@@ -703,8 +692,8 @@ SCU_API ScuError scu_freadall(
  *
  * This function reads all remaining bytes from the standard input stream into
  * `*buffer` and terminates it with a null byte. The buffer is dynamically
- * reallocated using `scu_realloc()` to fit the entire contents (including the
- * terminating null byte). The new size is reflected in `*size`.
+ * reallocated to fit the entire contents (including the terminating null byte).
+ * The new size is reflected in `*size`.
  *
  * @param[in, out] buffer A pointer to a buffer to write the data to.
  * @param[in, out] size   A pointer to the size of the buffer (in bytes,
@@ -715,13 +704,11 @@ SCU_API ScuError scu_freadall(
  * from the standard input stream, or `SCU_ERROR_NONE` on success.
  *
  * @warning If `*buffer` is not `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
+ * the default allocator. The caller is responsible for deallocating `*buffer`
+ * when it is no longer needed.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()` and an
- * unspecified initial size.
+ * this case, the function allocates a buffer with an unspecified initial size.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated, even if the
@@ -1039,10 +1026,9 @@ SCU_API Scuisize scu_snprintf(
  *
  * This function writes a formatted string to a dynamically allocated buffer
  * according to a `vsnprintf()`-style format string. The buffer is reallocated
- * using `scu_realloc()` as needed to fit the entire output (including the
- * terminating null byte). The pointer to the buffer is stored in `*buffer`, and
- * its size (in bytes, including the terminating null byte) is stored in
- * `*size`.
+ * to fit the entire output (including the terminating null byte). The pointer
+ * to the buffer is stored in `*buffer`, and its size (in bytes, including the
+ * terminating null byte) is stored in `*size`.
  *
  * @param[in, out] buffer A pointer to a buffer to write the data to.
  * @param[in, out] size   A pointer to the size of the buffer (in bytes,
@@ -1056,15 +1042,14 @@ SCU_API Scuisize scu_snprintf(
  * or `SCU_ERROR_NONE` on success.
  *
  * @warning If `*buffer` is not `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
+ * the default allocator. The caller is responsible for deallocating `*buffer`
+ * when it is no longer needed.
  *
  * The caller is expected to call `va_end()` on `args` after this function
  * returns.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()`.
+ * this case, the function allocates a buffer.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
@@ -1081,10 +1066,9 @@ SCU_API ScuError scu_vrsnprintf(
  *
  * This function writes a formatted string to a dynamically allocated buffer
  * according to an `snprintf()`-style format string. The buffer is reallocated
- * using `scu_realloc()` as needed to fit the entire output (including the
- * terminating null byte). The pointer to the buffer is stored in `*buffer`, and
- * its size (in bytes, including the terminating null byte) is stored in
- * `*size`.
+ * to fit the entire output (including the terminating null byte). The pointer
+ * to the buffer is stored in `*buffer`, and its size (in bytes, including the
+ * terminating null byte) is stored in `*size`.
  *
  * @param[in, out] buffer A pointer to a buffer to write the data to.
  * @param[in, out] size   A pointer to the size of the buffer (in bytes,
@@ -1098,12 +1082,11 @@ SCU_API ScuError scu_vrsnprintf(
  * or `SCU_ERROR_NONE` on success.
  *
  * @warning If `*buffer` is not `nullptr`, it must have been allocated using
- * `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or the underlying
- * allocator used by these functions). The caller is expected to free `*buffer`
- * with `scu_free()` when it is no longer needed.
+ * the default allocator. The caller is responsible for deallocating `*buffer`
+ * when it is no longer needed.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()`.
+ * this case, the function allocates a buffer.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
@@ -1120,10 +1103,9 @@ SCU_API ScuError scu_rsnprintf(
  *
  * This function appends a formatted string to a dynamically allocated,
  * null-terminated buffer according to a `vsnprintf()`-style format string. The
- * buffer is reallocated using `scu_realloc()` as needed to fit the entire
- * output (including the terminating null byte). The pointer to the buffer is
- * stored in `*buffer`, and its size (in bytes, including the terminating null
- * byte) is stored in `*size`.
+ * buffer is reallocated to fit the entire output (including the terminating
+ * null byte). The pointer to the buffer is stored in `*buffer`, and its size
+ * (in bytes, including the terminating null byte) is stored in `*size`.
  *
  * @param[in, out] buffer A pointer to a null-terminated buffer to append the
  *                        data to.
@@ -1137,16 +1119,15 @@ SCU_API ScuError scu_rsnprintf(
  * `SCU_ERROR_WRITING_BUFFER` if an error occurred while appending to the
  * buffer, or `SCU_ERROR_NONE` on success.
  *
- * @warning If `*buffer` is not `nullptr`, it must be null-terminated and have
- * been allocated using `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or
- * the underlying allocator used by these functions). The caller is expected to
- * free `*buffer` with `scu_free()` when it is no longer needed.
+ * @warning If `*buffer` is not `nullptr`, it must have been allocated using
+ * the default allocator and be null-terminated. The caller is responsible for
+ * deallocating `*buffer` when it is no longer needed.
  *
  * The caller is expected to call `va_end()` on `args` after this function
  * returns.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()`.
+ * this case, the function allocates a buffer.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.
@@ -1163,10 +1144,9 @@ SCU_API ScuError scu_vrasnprintf(
  *
  * This function appends a formatted string to a dynamically allocated,
  * null-terminated buffer according to an `snprintf()`-style format string. The
- * buffer is reallocated using `scu_realloc()` as needed to fit the entire
- * output (including the terminating null byte). The pointer to the buffer is
- * stored in `*buffer`, and its size (in bytes, including the terminating null
- * byte) is stored in `*size`.
+ * buffer is reallocated to fit the entire output (including the terminating
+ * null byte). The pointer to the buffer is stored in `*buffer`, and its size
+ * (in bytes, including the terminating null byte) is stored in `*size`.
  *
  * @param[in, out] buffer A pointer to a null-terminated buffer to append the
  *                        data to.
@@ -1180,13 +1160,12 @@ SCU_API ScuError scu_vrasnprintf(
  * `SCU_ERROR_WRITING_BUFFER` if an error occurred while appending to the
  * buffer, or `SCU_ERROR_NONE` on success.
  *
- * @warning If `*buffer` is not `nullptr`, it must be null-terminated and have
- * been allocated using `scu_malloc()`, `scu_calloc()` or `scu_realloc()` (or
- * the underlying allocator used by these functions). The caller is expected to
- * free `*buffer` with `scu_free()` when it is no longer needed.
+ * @warning If `*buffer` is not `nullptr`, it must have been allocated using
+ * the default allocator and be null-terminated. The caller is responsible for
+ * deallocating `*buffer` when it is no longer needed.
  *
  * @note If `*size` is zero, `*buffer` must be `nullptr` (and vice versa). In
- * this case, the function allocates a buffer using `scu_realloc()`.
+ * this case, the function allocates a buffer.
  *
  * If `*size` is greater than or equal to one and no out-of-memory condition
  * occurs, `*buffer` is guaranteed to be null-terminated.

@@ -1,7 +1,6 @@
 #ifndef SCU_H
 #define SCU_H
 
-#include "scu/alloc.h"
 #include "scu/api.h"
 #include "scu/array.h"
 #include "scu/assert.h"

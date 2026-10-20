@@ -3,6 +3,7 @@
 
 #include "scu/api.h"
 #include "scu/error.h"
+#include "scu/memory.h"
 #include "scu/types.h"
 #include "scu/util.h"
 
@@ -30,32 +31,81 @@ typedef struct ScuQueueIterator {
  * @brief Constructs a queue with a specified element size and an unspecified
  * default capacity.
  *
- * @param[in] elemSize The size of each element (in bytes).
+ * @param[in] elemSize  The size of each element (in bytes).
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the queue with
  * `scu_queue_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_queue_new()` macro instead.
  */
-SCU_API ScuQueue* scu_queue_new(Scuisize elemSize);
+SCU_API ScuQueue* scu_queue_new_impl(
+    Scuisize elemSize,
+    ScuAllocator* allocator
+);
+
+/**
+ * @brief Constructs a queue with a specified element type and an unspecified
+ * default capacity.
+ *
+ * @param[in] elemType The type of each element.
+ * @param[in] ...      The allocator to use for memory management.
+ * @return A pointer to the queue, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the queue with
+ * `scu_queue_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_queue_new(elemType, ...)          \
+    scu_queue_new_impl(                       \
+        SCU_SIZEOF(elemType),                 \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Constructs a queue with a specified element size and initial capacity.
  *
- * @param[in] elemSize The size of each element (in bytes).
- * @param[in] capacity The initial capacity (in number of elements).
+ * @param[in] elemSize  The size of each element (in bytes).
+ * @param[in] capacity  The initial capacity (in number of elements).
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the queue with
  * `scu_queue_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_queue_new_with_capacity()` macro instead.
  */
-SCU_API ScuQueue* scu_queue_new_with_capacity(
+SCU_API ScuQueue* scu_queue_new_with_capacity_impl(
     Scuisize elemSize,
-    Scuisize capacity
+    Scuisize capacity,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a queue with a specified element type and initial capacity.
+ *
+ * @param[in] elemType The type of each element.
+ * @param[in] capacity The initial capacity (in number of elements).
+ * @param[in] ...      The allocator to use for memory management.
+ * @return A pointer to the queue, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the queue with
+ * `scu_queue_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_queue_new_with_capacity(elemType, capacity, ...) \
+    scu_queue_new_with_capacity_impl(                        \
+        SCU_SIZEOF(elemType),                                \
+        (capacity),                                          \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__)                \
+    )
 
 /**
  * @brief Creates a shallow copy of a queue.
@@ -65,8 +115,6 @@ SCU_API ScuQueue* scu_queue_new_with_capacity(
  *
  * @warning The caller is responsible for deallocating the cloned queue with
  * `scu_queue_delete()` when it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuQueue* scu_queue_clone(const ScuQueue* queue);
 
@@ -101,8 +149,6 @@ SCU_API Scuisize scu_queue_count(const ScuQueue* queue);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_queue_begin()` and `scu_queue_end()`.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuError scu_queue_ensure_capacity(ScuQueue* queue, Scuisize capacity);
 
@@ -116,8 +162,6 @@ SCU_API ScuError scu_queue_ensure_capacity(ScuQueue* queue, Scuisize capacity);
  *
  * @warning This function invalidates any iterators previously created with
  * `scu_queue_begin()` and `scu_queue_end()`.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuError scu_queue_enqueue(
     ScuQueue* restrict queue,
@@ -238,8 +282,6 @@ SCU_API void scu_queue_clear(ScuQueue* queue);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_queue_begin()` and `scu_queue_end()`.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuError scu_queue_trim_excess(ScuQueue* queue);
 

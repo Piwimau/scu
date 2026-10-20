@@ -1,10 +1,10 @@
 # SCU <!-- omit in toc -->
 
-SCU (short for "Simple C Utilities") is a small library of reusable utilities
+SCU (short for _Simple C Utilities_) is a small library of reusable utilities
 for C. It includes macros and functions for a variety of common tasks, such as
 assertions and error handling, memory management, string manipulation, I/O
-operations, benchmarking, and more. Additionally, SCU provides a set of commonly
-used generic data structures, including a dynamic array, hash map and hash set,
+operations, benchmarking, and more. Additionally, SCU provides a set of common
+generic data structures, including a dynamic array, hash map and hash set,
 stack, queue, as well as a priority queue.
 
 ```c
@@ -12,31 +12,31 @@ stack, queue, as well as a priority queue.
 #include <scu/scu.h>
 
 int main() {
-    const char* langs[] = { "C", "Rust", "C#", "C", "C++", "C", "C#" };
-    ScuHashMap* freqs = scu_hash_map_new(
-        SCU_SIZEOF(const char*),
-        SCU_SIZEOF(i32),
+    const char* languages[] = { "C", "Rust", "C#", "C", "C++", "C", "C#" };
+    ScuHashMap* frequencies = scu_hash_map_new(
+        const char*,
+        i32,
         scu_hash_str,
         scu_equal_str,
         scu_equal_i32
     );
-    const char** lang;
-    SCU_ARRAY_FOREACH(lang, langs) {
-        i32* freq;
-        if (scu_hash_map_try_get(freqs, lang, &freq)) {
-            (*freq)++;
+    const char** language;
+    SCU_ARRAY_FOREACH(language, languages) {
+        i32* frequency;
+        if (scu_hash_map_try_get(frequencies, language, &frequency)) {
+            (*frequency)++;
         }
         else {
-            scu_hash_map_add(freqs, lang, &(i32) { 1 });
+            scu_hash_map_add(frequencies, language, &(i32) { 1 });
         }
     }
     ScuHashMapEntry entry;
-    SCU_HASH_MAP_FOREACH(entry, freqs) {
-        const char* lang = *(const char**) entry.key;
-        i32 freq = *(i32*) entry.value;
-        scu_printf("%s: %" I32_PRID "\n", lang, freq);
+    SCU_HASH_MAP_FOREACH(entry, frequencies) {
+        const char* language = *(const char**) entry.key;
+        i32 frequency = *(i32*) entry.value;
+        scu_printf("%s: %" I32_PRID "\n", language, frequency);
     }
-    scu_hash_map_delete(freqs);
+    scu_hash_map_delete(frequencies);
 }
 ```
 
@@ -63,11 +63,11 @@ refine the API over time. Besides being a useful tool for my projects and the
 occasional learning experience, my main motivation for developing SCU was to
 improve upon the C standard library. Although widely used, it is often
 criticized (rightfully so, if you ask me) for its inconsistencies and lack of
-functionality in various areas. As such, my goal was to create a library that
-addresses many of these issues, while still following idiomatic C practices.
-This is reflected both in the API and the implementation of SCU, which in many
-cases provide similar, but (in my opinion) more consistent and easier-to-use
-functionality by wrapping and composing the C standard library functions.
+functionality. As such, my goal was to create a library that addresses many of
+these issues, while still following idiomatic C practices. This is reflected
+both in the API and the implementation of SCU, which in many cases provide
+similar, but (in my opinion) more consistent and easier-to-use functionality by
+wrapping and composing the C standard library functions.
 
 The overall design goals of SCU can be summarized as follows:
 
@@ -77,16 +77,16 @@ The overall design goals of SCU can be summarized as follows:
   can easily guess how other parts of the library work without needing to read
   the whole documentation. Some of these common conventions are described in
   more detail [below](#common-conventions). Finally, for reasons of simplicity,
-  SCU should have ideally no to minimal third-party or platform-specific
-  dependencies, which would obviously reduce the portability and usefulness of
-  the library.
+  SCU should have ideally no to minimal external or platform-specific
+  dependencies, which reduce the portability and usefulness of the library.
+
 * **Efficiency**: The library should be reasonably efficient, although I'm
   certainly not claiming to be a performance expert. That said, I do try to be
   mindful of efficiency during the design and implementation, and I do make an
   effort to avoid unnecessary computations and memory allocations where
   sensible. Additionally, I try to keep the code simple and straightforward to
-  enable better compiler optimizations. SCU also makes use of optimization hints
-  such as `inline` functions, `restrict` pointers or attributes.
+  enable better compiler optimizations.
+
 * **Composability**: The utilities and data structures provided by the library
   should be composable and work well together. In particular, the individual
   modules should not have wildly different APIs or conventions that make it
@@ -109,35 +109,32 @@ management. One notable exception is the [`scu.h`](include/scu/scu.h) header,
 which serves as an umbrella header and can be used to include the entirety of
 the library at once.
 
-Currently, there exists no formal, official documentation for the library (i.e.,
-documentation beyond the source code), but the names (and therefore the purpose)
-of modules, types, macros and functions should be fairly self-explanatory. To
-give you a better idea of what SCU has to offer, here is a brief overview of all
-modules and a one-sentence description of their contents:
+To give you a better idea of what SCU has to offer, here is a brief overview of
+all modules and a one-sentence description of their contents:
 
 | Module         | Contents                                                                                                                                 |
 |----------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| `alloc.h`      | Utilities for memory allocation and custom allocator support.                                                                            |
-| `array.h`      | Utilities for working with arrays, including the ubiquitous `SCU_COUNTOF()` and `SCU_ARRAY_FOREACH()` macros.                            |
+| `api.h`        | `SCU_API` macro for controlling the symbol visibility.                                                                                   |
+| `array.h`      | Utilities for arrays, including the ubiquitous `SCU_COUNTOF()` and `SCU_ARRAY_FOREACH()` macros.                                         |
 | `assert.h`     | Macros for compile-time and runtime assertions.                                                                                          |
 | `bench.h`      | A small benchmarking module for measuring the performance of code blocks.                                                                |
 | `compare.h`    | Functions for comparing values of various types, designed to be used with the data structures provided by the library.                   |
 | `equal.h`      | Functions for determining the equality of values of various types, designed to be used with the data structures provided by the library. |
-| `error.h`      | Error handling utilities, including an error code type used consistently across the library.                                             |
+| `error.h`      | Utilities for error handling, including an error code type used consistently across the library.                                         |
 | `hash-map.h`   | A generic hash map associating keys of one type with values of another type.                                                             |
 | `hash-set.h`   | A generic hash set storing values of a single type.                                                                                      |
 | `hash.h`       | Functions for hashing values of various types, designed to be used with the data structures provided by the library.                     |
 | `io.h`         | Utilities for input and output operations (e.g., reading and writing files, formatted printing and scanning).                            |
 | `list.h`       | A generic dynamic array storing values of a single type and supporting the usual indexing syntax (i.e., `list[i]`).                      |
-| `math.h`       | Common math utilities.                                                                                                                   |
-| `memory.h`     | Utilities for manipulating and managing (but not allocating) objects in memory.                                                          |
+| `math.h`       | Common math utilities, including the ubiquitous `SCU_MIN()` and `SCU_MAX()` macros.                                                      |
+| `memory.h`     | Utilities for allocating and managing objects in memory, including support for custom allocators.                                        |
 | `prio-queue.h` | A generic priority queue associating values of one type with priorities of another type.                                                 |
 | `queue.h`      | A generic first-in-first-out (FIFO) queue storing values of a single type.                                                               |
 | `scu.h`        | An umbrella header that includes the entirety of the library at once.                                                                    |
 | `stack.h`      | A generic last-in-first-out (LIFO) stack storing values of a single type.                                                                |
 | `string.h`     | Utilities for working with null-terminated byte strings.                                                                                 |
 | `types.h`      | Common typedefs and constants used across the library.                                                                                   |
-| `util.h`       | Common preprocessor macros and utilities.                                                                                                |
+| `util.h`       | Other common macros and utilities.                                                                                                       |
 
 ## Common Conventions
 
@@ -174,8 +171,8 @@ typedef enum ScuError {
 // Functions and function-like macros are prefixed with `scu_` and use either
 // the `lowercase` naming convention (if there already exists a well-known name
 // that should easily be discoverable) or the `snake_case` naming convention.
-scu_malloc(256);
 scu_printf("Hello, World!\n");
+scu_memcpy(dest, src, count);
 scu_list_count(list);
 scu_hash_map_try_add(map, &key, &value);
 
@@ -187,20 +184,16 @@ typedef struct ScuTimingResult {
     ScuError error;
 } ScuTimingResult;
 
-ScuHashSet* scu_hash_set_new(
-    Scuisize elemSize,
-    ScuHashFunc* hashFunc,
-    ScuEqualFunc* equalFunc
-);
+ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, Scuisize capacity);
 ```
 
-One notable exception to the conventions described above are the common types
-defined in [`types.h`](include/scu/types.h), which are prefixed with `Scu` but
-use the `lowercase` naming convention. This is because these types are intended
-to feel more like built-in types and can even be used without the `Scu` prefix
-in user code. To achieve this, a macro `SCU_SHORT_ALIASES` must be defined
-before the `types.h` header is (directly or indirectly) included, which will
-define additional short aliases for common types.
+One notable exception to the conventions described above are the types defined
+in [`types.h`](include/scu/types.h), which are prefixed with `Scu` but use the
+`lowercase` naming convention. This is because these types are intended to feel
+more like built-in types and can even be used without the `Scu` prefix in user
+code. To achieve this, a macro `SCU_SHORT_ALIASES` must be defined before the
+`types.h` header is (directly or transitively) included, which will define
+additional short aliases.
 
 ```c
 #define SCU_SHORT_ALIASES
@@ -260,7 +253,7 @@ different error conditions.
 
 ```c
 // Returns `nullptr` if an out-of-memory condition occurs.
-ScuStack* scu_stack_new(Scuisize elemSize);
+char* scu_strdup(const char* src);
 
 // Returns `-1` if `c` is not found in `s`.
 Scuisize scu_str_index_of_byte(const char* s, char c);
@@ -280,52 +273,55 @@ ScuError scu_freadc(ScuFile* restrict file, char* restrict c);
 Needless to say, it is advisable to always check these return values, at least
 in any non-trivial program. It should also be noted that SCU makes a great
 effort to ensure that the objects managed by the library or passed to its
-functions are left in a valid state even in the case of a runtime error, such
-that they can be continued to be used or properly cleaned up by the caller.
+functions remain in a valid state even in the case of a runtime error, such that
+they can be continued to be used or properly cleaned up by the caller.
 
 ### Memory Management and Ownership
 
 Several of the functions provided by SCU dynamically allocate memory. If you
 take a look around the modules of the library, you will notice that many of
 these functions have names that contain or end with the suffix `_new` (e.g.,
-`scu_list_new()`, `scu_stack_new()`, etc.). However, this is not a strict
-convention, as there are other functions whose primary purpose is not to create
-a new object, but that still need to dynamically allocate memory to accomplish
-their task (e.g., `scu_freadln()`, `scu_rsnprintf()`, etc.). In any case, such a
-behavior is explicitly highlighted in the documentation, and the concrete
-allocation function(s) used (e.g., `scu_malloc()`, `scu_calloc()` or
-`scu_realloc()`) is specified, as this might be relevant if the standard
-allocator (provided by the C standard library) is swapped out for a custom one
-(see [`alloc.h`](include/scu/alloc.h) for more details).
+`scu_list_new()`, `scu_stack_new()`, etc.), while the corresponding deallocation
+functions usually end with `_delete` (e.g., `scu_list_delete()`,
+`scu_stack_delete()`, etc.). However, this is not a strict convention, as there
+are other functions whose primary purpose is not to create a new object, but
+that still need to dynamically allocate memory to accomplish their task (e.g.,
+`scu_freadln()`, `scu_rsnprintf()`, etc.).
 
-> [!NOTE]
+SCU provides support for custom allocators, which are represented as instances
+of the `ScuAllocator` type. Custom implementations must support at minimum the
+operations `allocate()` (to allocate uninitialized memory) and `deallocate()`.
+Further specialized operations such as `allocateZeroed()`, `resize()` and
+`resizeOrMove()` may be supported, but these are optional. The convenience
+functions `scu_allocate_zeroed()`, `scu_resize()` and `scu_resize_or_move()`
+implement a fallback mechanism for when a custom allocator does not support one
+of these operations. SCU provides a default allocator implemented in terms of
+the C standard library, which supports all operations except for `resize()`, but
+may not be the most efficient one for a given task.
+
+> [!TIP]
 >
-> Even if the standard allocator is swapped out for a custom one at some point,
-> previously allocated objects continue to use the original allocator, which is
-> accessed through a pointer stored alongside the object. This means that you
-> can safely mix and match objects allocated with different allocators, and that
-> you can even have multiple custom allocators in the same program, as long as
-> these allocators remain alive for the duration of the objects that use them.
+> All generic data structures provided by SCU accept an allocator at
+> construction, such that you can have fine-grained control over memory
+> management.
 
 If a function provided by SCU dynamically allocates memory, the ownership of
-that memory is transferred to the caller, who is responsible for deallocating it
-when it is no longer needed. The library provides corresponding deallocation
-functions, which usually end with the suffix `_delete`. Generally speaking, for
-raw blocks of memory allocated with `scu_malloc()`, `scu_calloc()` or
-`scu_realloc()`, the deallocation function is `scu_free()`, while more complex
-objects such as the data structures provide dedicated deallocation functions
-(e.g., `scu_list_delete()`, `scu_stack_delete()`, etc.) that encapsulate the
-cleanup logic for all internal resources. In any case, the documentation will
-always specify the correct way to deallocate any memory allocated by the
-library, and it is important to follow these instructions to avoid memory leaks
-and other memory-related issues.
+that memory is transferred to the caller, who is responsible for deallocating
+with the appropriate deallocation function when it is no longer required. For
+raw blocks of memory, it is usually sufficient to call `scu_deallocate()` with
+the corresponding allocator, or use the convenience macros `SCU_DELETE()` or
+`SCU_ARRAY_DELETE()`. More complex objects such as the generic data structures
+usually provide a dedicated deallocation function, as mentioned previously.
+
+For more information about custom allocators and memory management, see the
+[`memory.h`](include/scu/memory.h) header.
 
 ### Thread Safety
 
 Unless explicitly stated otherwise in the documentation, SCU is **not**
-thread-safe. External synchronization is required when accessing a shared object
-from multiple threads, and it is the caller's responsibility to ensure that this
-is done correctly. This was a conscious design choice, as I wanted to keep the
+thread-safe. External synchronization is required when accessing shared state
+from multiple threads, and it is the caller's responsibility to ensure this is
+done correctly. This was a conscious design choice, as I wanted to keep the
 library simple and efficient.
 
 ## Usage
@@ -333,11 +329,11 @@ library simple and efficient.
 Before going into more detail about how to build and use SCU, a couple of notes
 on platform support and compatibility: Although SCU was written in standard C
 and does not have any external dependencies, it is definitely not meant to be
-used on every possible platform. The library is primarily intended for use on
-modern 64-bit desktop operating systems (i.e., Windows, GNU/Linux and macOS),
-and it may not compile or work correctly on other platforms (e.g., embedded
-systems, 32-bit operating systems, etc.) without modifications. It should also
-be noted that SCU occasionally makes use of compiler-specific extensions or
+used on every platform. The library is primarily intended for use on modern
+64-bit desktop operating systems (i.e., Windows, GNU/Linux and macOS), and it
+may not compile or work correctly on other platforms (e.g., embedded systems,
+32-bit operating systems, etc.) without modifications. It should also be noted
+that SCU occasionally makes use of compiler-specific extensions or
 platform-specific APIs to provide certain improvements or additional
 functionality. Finally, SCU requires a C23-compliant compiler, which means that
 you are basically limited to using the latest versions of popular compilers such
@@ -363,8 +359,9 @@ meson setup build --buildtype=release
 > [!TIP]
 >
 > The `--default-library` option can be used to specify whether to build a
-> static or shared library (or both). For more information, see the [official
-> documentation](https://mesonbuild.com/Builtin-options.html).
+> static or shared library (or both). It is strongly recommended that you build
+> these separately (if both are required), as some flags may interfere with each
+> other and produce an incorrect build.
 
 The next step is to compile the library:
 

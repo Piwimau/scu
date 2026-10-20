@@ -4,39 +4,85 @@
 #include "scu/api.h"
 #include "scu/compare.h"
 #include "scu/error.h"
+#include "scu/memory.h"
 #include "scu/types.h"
 
 /**
  * @brief Constructs a list with a specified element size and an unspecified
  * default capacity.
  *
- * @param[in] elemSize The size of each element (in bytes).
+ * @param[in] elemSize  The size of each element (in bytes).
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the list, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the list with
  * `scu_list_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`. The
- * pointer returned is suitably aligned for any type with fundamental alignment
- * requirements.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_list_new()` macro instead.
  */
-SCU_API void* scu_list_new(Scuisize elemSize);
+SCU_API void* scu_list_new_impl(Scuisize elemSize, ScuAllocator* allocator);
+
+/**
+ * @brief Constructs a list with a specified element type and an unspecified
+ * default capacity.
+ *
+ * @param[in] elemType The type of each element.
+ * @param[in] ...      The allocator to use for memory management.
+ * @return A pointer to the list, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the list with
+ * `scu_list_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_list_new(elemType, ...)           \
+    scu_list_new_impl(                        \
+        SCU_SIZEOF(elemType),                 \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Constructs a list with a specified element size and initial capacity.
  *
- * @param[in] elemSize The size of each element (in bytes).
- * @param[in] capacity The initial capacity (in number of elements).
+ * @param[in] elemSize  The size of each element (in bytes).
+ * @param[in] capacity  The initial capacity (in number of elements).
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the list, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the list with
  * `scu_list_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`. The
- * pointer returned is suitably aligned for any type with fundamental alignment
- * requirements.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_list_new_with_capacity()` macro instead.
  */
-SCU_API void* scu_list_new_with_capacity(Scuisize elemSize, Scuisize capacity);
+SCU_API void* scu_list_new_with_capacity_impl(
+    Scuisize elemSize,
+    Scuisize capacity,
+    ScuAllocator* allocator
+);
+
+/**
+ * @brief Constructs a list with a specified element type and initial capacity.
+ *
+ * @param[in] elemType The type of each element.
+ * @param[in] capacity The initial capacity (in number of elements).
+ * @param[in] ...      The allocator to use for memory management.
+ * @return A pointer to the list, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the list with
+ * `scu_list_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_list_new_with_capacity(elemType, capacity, ...) \
+    scu_list_new_with_capacity_impl(                        \
+        SCU_SIZEOF(elemType),                               \
+        (capacity),                                         \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__)               \
+    )
 
 /**
  * @brief Creates a shallow copy of a list.
@@ -51,10 +97,6 @@ SCU_API void* scu_list_new_with_capacity(Scuisize elemSize, Scuisize capacity);
  *
  * @warning The caller is responsible for deallocating the cloned list with
  * `scu_list_delete()` when it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`. The
- * pointer returned is suitably aligned for any type with fundamental alignment
- * requirements.
  */
 SCU_API void* scu_list_clone(const void* list);
 
@@ -84,8 +126,8 @@ SCU_API Scuisize scu_list_count(const void* list);
  *
  * This function ensures that the list has at least the specified capacity. If
  * the current capacity is less than the desired capacity, the list is
- * reallocated using `scu_realloc()` and the pointer to the new block of memory
- * is assigned to `*list`.
+ * reallocated and the pointer to the new block of memory is assigned to
+ * `*list`.
  *
  * @param[in, out] list     The list to ensure the capacity of.
  * @param[in]      capacity The desired capacity (in number of elements).
@@ -98,10 +140,6 @@ SCU_API Scuisize scu_list_count(const void* list);
  *
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_list_ensure_capacity()` macro instead.
- *
- * This function dynamically allocates memory using `scu_realloc()`. The pointer
- * assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 SCU_API ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
 
@@ -110,8 +148,7 @@ SCU_API ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
  *
  * This macro ensures that the list has at least the specified capacity. If the
  * current capacity is less than the desired capacity, the list is reallocated
- * using `scu_realloc()` and the pointer to the new block of memory is assigned
- * to `*list`.
+ * and the pointer to the new block of memory is assigned to `*list`.
  *
  * @param[in, out] list     The list to ensure the capacity of.
  * @param[in]      capacity The desired capacity (in number of elements).
@@ -121,10 +158,6 @@ SCU_API ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
  * @warning The caller is responsible for updating any existing pointers to the
  * list using the pointer assigned to `*list`, as previous pointers may have
  * been invalidated due to reallocation.
- *
- * @note This macro dynamically allocates memory using `scu_realloc()`. The
- * pointer assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 #define scu_list_ensure_capacity(list, capacity)             \
     scu_list_ensure_capacity_impl((void**) (list), capacity)
@@ -134,9 +167,9 @@ SCU_API ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
  *
  * This function adds an element to the end of the list. If the capacity of the
  * list is insufficient to accommodate the element, the list is reallocated
- * using `scu_realloc()` and the pointer to the new block of memory is assigned
- * to `*list`. The element is initialized by copying the data from `*elem` into
- * the next available slot in the list.
+ * and the pointer to the new block of memory is assigned to `*list`. The
+ * element is initialized by copying the data from `*elem` into the next
+ * available slot in the list.
  *
  * @param[in, out] list The list to add the element to.
  * @param[in]      elem The element to add.
@@ -149,10 +182,6 @@ SCU_API ScuError scu_list_ensure_capacity_impl(void** list, Scuisize capacity);
  *
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_list_add()` macro instead.
- *
- * This function dynamically allocates memory using `scu_realloc()`. The pointer
- * assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 SCU_API ScuError scu_list_add_impl(
     void** restrict list,
@@ -164,9 +193,9 @@ SCU_API ScuError scu_list_add_impl(
  *
  * This macro adds an element to the end of the list. If the capacity of the
  * list is insufficient to accommodate the element, the list is reallocated
- * using `scu_realloc()` and the pointer to the new block of memory is assigned
- * to `*list`. The element is initialized by copying the data from `elem`
- * into the next available slot in the list.
+ * and the pointer to the new block of memory is assigned to `*list`. The
+ * element is initialized by copying the data from `elem` into the next
+ * available slot in the list.
  *
  * @param[in, out] list The list to add the element to.
  * @param[in]      elem The element to add.
@@ -176,10 +205,6 @@ SCU_API ScuError scu_list_add_impl(
  * @warning The caller is responsible for updating any existing pointers to the
  * list using the pointer assigned to `*list`, as previous pointers may have
  * been invalidated due to reallocation.
- *
- * @note This macro dynamically allocates memory using `scu_realloc()`. The
- * pointer assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 #define scu_list_add(list, elem) scu_list_add_impl((void**) (list), elem)
 
@@ -188,10 +213,10 @@ SCU_API ScuError scu_list_add_impl(
  *
  * This function inserts an element at the index into the list. If the capacity
  * of the list is insufficient to accommodate the element, the list is
- * reallocated using `scu_realloc()` and the pointer to the new block of memory
- * is assigned to `*list`. Any elements at and after the index are shifted one
- * position to the right to make room for the element, which is initialized by
- * copying the data from `*elem` into the now unoccupied slot.
+ * reallocated and the pointer to the new block of memory is assigned to
+ * `*list`. Any elements at and after the index are shifted one position to the
+ * right to make room for the element, which is initialized by copying the data
+ * from `*elem` into the now unoccupied slot.
  *
  * Note that `index` may be equal to `scu_list_count(*list)`, in which case the
  * element is added to the end of the list. In this case, the behavior is
@@ -209,10 +234,6 @@ SCU_API ScuError scu_list_add_impl(
  *
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_list_insert_at()` macro instead.
- *
- * This function dynamically allocates memory using `scu_realloc()`. The pointer
- * assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 SCU_API ScuError scu_list_insert_at_impl(
     void** restrict list,
@@ -225,10 +246,10 @@ SCU_API ScuError scu_list_insert_at_impl(
  *
  * This macro inserts an element at the index into the list. If the capacity of
  * the list is insufficient to accommodate the element, the list is reallocated
- * using `scu_realloc()` and the pointer to the new block of memory is assigned
- * to `*list`. Any elements at and after the index are shifted one position to
- * the right to make room for the element, which is initialized by copying the
- * data from `elem` into the now unoccupied slot.
+ * and the pointer to the new block of memory is assigned to `*list`. Any
+ * elements at and after the index are shifted one position to the right to make
+ * room for the element, which is initialized by copying the data from `elem`
+ * into the now unoccupied slot.
  *
  * Note that `index` may be equal to `scu_list_count(*list)`, in which case the
  * element is added to the end of the list. In this case, the behavior is
@@ -243,10 +264,6 @@ SCU_API ScuError scu_list_insert_at_impl(
  * @warning The caller is responsible for updating any existing pointers to the
  * list using the pointer assigned to `*list`, as previous pointers may have
  * been invalidated due to reallocation.
- *
- * @note This macro dynamically allocates memory using `scu_realloc()`. The
- * pointer assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 #define scu_list_insert_at(list, index, elem)             \
     scu_list_insert_at_impl((void**) (list), index, elem)
@@ -297,8 +314,8 @@ SCU_API void scu_list_clear(void* list);
  * This function reduces the capacity of the list to match its current number of
  * elements. If the capacity is already equal to the number of elements, no
  * reallocation occurs and the pointer to the list remains valid. Otherwise, the
- * list is reallocated using `scu_realloc()` and the pointer to the new block of
- * memory is assigned to `*list`.
+ * list is reallocated and the pointer to the new block of memory is assigned to
+ * `*list`.
  *
  * @param[in, out] list The list to trim.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
@@ -310,10 +327,6 @@ SCU_API void scu_list_clear(void* list);
  *
  * @note This function is an implementation detail and not intended to be called
  * directly. Use the `scu_list_trim_excess()` macro instead.
- *
- * This function dynamically allocates memory using `scu_realloc()`. The pointer
- * assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 SCU_API ScuError scu_list_trim_excess_impl(void** list);
 
@@ -324,8 +337,8 @@ SCU_API ScuError scu_list_trim_excess_impl(void** list);
  * This macro reduces the capacity of the list to match its current number of
  * elements. If the capacity is already equal to the number of elements, no
  * reallocation occurs and the pointer to the list remains valid. Otherwise, the
- * list is reallocated using `scu_realloc()` and the pointer to the new block of
- * memory is assigned to `*list`.
+ * list is reallocated and the pointer to the new block of memory is assigned to
+ * `*list`.
  *
  * @param[in, out] list The list to trim.
  * @return `SCU_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred, or
@@ -334,10 +347,6 @@ SCU_API ScuError scu_list_trim_excess_impl(void** list);
  * @warning The caller is responsible for updating any existing pointers to the
  * list using the pointer assigned to `*list`, as previous pointers may have
  * been invalidated due to reallocation.
- *
- * @note This macro dynamically allocates memory using `scu_realloc()`. The
- * pointer assigned to `*list` is suitably aligned for any type with fundamental
- * alignment requirements.
  */
 #define scu_list_trim_excess(list) scu_list_trim_excess_impl((void**) (list))
 

@@ -1,11 +1,10 @@
 #define SCU_SHORT_ALIASES
 
+#include <stdbit.h>
 #include <stddef.h>
-#include "scu/alloc.h"
 #include "scu/assert.h"
 #include "scu/hash-set.h"
 #include "scu/math.h"
-#include "scu/memory.h"
 
 /** @brief A bucket in a hash set. */
 typedef struct ScuBucket {
@@ -24,14 +23,20 @@ typedef struct ScuBucket {
 
 struct ScuHashSet {
 
+    /** @brief The allocator used for memory management. */
+    ScuAllocator* allocator;
+
     /** @brief The size of each element (in bytes). */
     isize elemSize;
 
-    /** @brief The offset of the element within each bucket (in bytes). */
+    /** @brief The offset of the element within a bucket (in bytes). */
     isize elemOffset;
 
-    /** @brief The effective size of each bucket (in bytes). */
+    /** @brief The effective size of a bucket (in bytes). */
     isize bucketSize;
+
+    /** @brief The alignment of a bucket (in bytes). */
+    isize bucketAlign;
 
     /**
      * @brief The maximum number of elements that could theoretically be stored.
@@ -81,91 +86,58 @@ SCU_STATIC_ASSERT(
     "Capacity mask must not overlap the occupied bit."
 );
 
-ScuHashSet* scu_hash_set_new(
+SCU_API ScuHashSet* scu_hash_set_new_impl(
     isize elemSize,
     ScuHashFunc* hashFunc,
-    ScuEqualFunc* equalFunc
+    ScuEqualFunc* equalFunc,
+    ScuAllocator* allocator
 ) {
-    return scu_hash_set_new_with_capacity(
+    return scu_hash_set_new_with_capacity_impl(
         elemSize,
         SCU_DEFAULT_CAPACITY,
         hashFunc,
-        equalFunc
+        equalFunc,
+        allocator
     );
 }
 
-/**
- * @brief Rounds up a value to the next multiple of an alignment.
- *
- * @param[in] value     The value to round up.
- * @param[in] alignment The required alignment.
- * @return The smallest multiple of `alignment` greater than or equal to
- * `value`.
- *
- * @warning The behavior is undefined if `alignment` is not a power of two.
- */
-static inline isize scu_align_up(isize value, isize alignment) {
-    SCU_ASSERT(value >= 0);
-    SCU_ASSERT(alignment > 0);
-    SCU_ASSERT((alignment & (alignment - 1)) == 0);
-    return (value + alignment - 1) & ~(alignment - 1);
-}
-
-/**
- * @brief Returns the smallest power of two greater than or equal to a value.
- *
- * @param[in] n The value to examine.
- * @return The smallest power of two greater than or equal to the value.
- */
-static inline isize scu_next_power_of_two(isize n) {
-    SCU_ASSERT((n >= 0) && (n <= ISIZE_MAX / 2));
-    if (n <= 1) {
-        return 1;
-    }
-    usize v = (usize) n;
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-#if ISIZE_WIDTH == 64
-    v |= v >> 32;
-#endif
-    v++;
-    return (isize) v;
-}
-
-ScuHashSet* scu_hash_set_new_with_capacity(
+SCU_API ScuHashSet* scu_hash_set_new_with_capacity_impl(
     isize elemSize,
     isize capacity,
     ScuHashFunc* hashFunc,
-    ScuEqualFunc* equalFunc
+    ScuEqualFunc* equalFunc,
+    ScuAllocator* allocator
 ) {
     SCU_ASSERT(elemSize > 0);
-    SCU_ASSERT(capacity >= 0);
+    SCU_ASSERT((capacity >= 0) && (capacity <= ISIZE_MAX / 2));
     SCU_ASSERT(hashFunc);
     SCU_ASSERT(equalFunc);
-    ScuHashSet* hashSet = scu_malloc(SCU_SIZEOF(ScuHashSet));
+    SCU_ASSERT(allocator);
+    ScuHashSet* hashSet = SCU_NEW(ScuHashSet, allocator);
     if (!hashSet) {
         return nullptr;
     }
+    hashSet->allocator = allocator;
     hashSet->elemSize = elemSize;
     isize elemAlign = SCU_MIN(elemSize & -elemSize, SCU_ALIGNOF(max_align_t));
-    hashSet->elemOffset = scu_align_up(SCU_SIZEOF(ScuBucket), elemAlign);
-    isize bucketAlign = SCU_MAX(elemAlign, SCU_ALIGNOF(ScuBucket));
-    hashSet->bucketSize = scu_align_up(
+    hashSet->elemOffset = SCU_ALIGN_UP(SCU_SIZEOF(ScuBucket), elemAlign);
+    hashSet->bucketAlign = SCU_MAX(elemAlign, SCU_ALIGNOF(ScuBucket));
+    hashSet->bucketSize = SCU_ALIGN_UP(
         hashSet->elemOffset + hashSet->elemSize,
-        bucketAlign
+        hashSet->bucketAlign
     );
     hashSet->count = 0;
     hashSet->hashFunc = hashFunc;
     hashSet->equalFunc = equalFunc;
     if (capacity > 0) {
-        hashSet->capacity = scu_next_power_of_two(capacity);
-        hashSet->buckets = scu_calloc(hashSet->capacity, hashSet->bucketSize);
+        hashSet->capacity = (isize) stdc_bit_ceil((usize) capacity);
+        hashSet->buckets = scu_allocate_zeroed(
+            hashSet->capacity * hashSet->bucketSize,
+            hashSet->bucketAlign,
+            hashSet->allocator
+        );
         if (!hashSet->buckets) {
-            scu_free(hashSet);
+            SCU_DELETE(hashSet, hashSet->allocator);
             return nullptr;
         }
     }
@@ -173,58 +145,82 @@ ScuHashSet* scu_hash_set_new_with_capacity(
         hashSet->capacity = 0;
         hashSet->buckets = nullptr;
     }
-    hashSet->scratch = scu_malloc(hashSet->bucketSize);
+    hashSet->scratch = scu_allocate(
+        hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     if (!hashSet->scratch) {
-        scu_free(hashSet->buckets);
-        scu_free(hashSet);
+        scu_deallocate(
+            hashSet->buckets,
+            hashSet->capacity * hashSet->bucketSize,
+            hashSet->bucketAlign,
+            hashSet->allocator
+        );
+        SCU_DELETE(hashSet, hashSet->allocator);
         return nullptr;
     }
     return hashSet;
 }
 
-ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet) {
+SCU_API ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
-    ScuHashSet* clone = scu_malloc(SCU_SIZEOF(ScuHashSet));
+    ScuHashSet* clone = SCU_NEW(ScuHashSet, hashSet->allocator);
     if (!clone) {
         return nullptr;
     }
+    clone->allocator = hashSet->allocator;
     clone->elemSize = hashSet->elemSize;
     clone->elemOffset = hashSet->elemOffset;
     clone->bucketSize = hashSet->bucketSize;
+    clone->bucketAlign = hashSet->bucketAlign;
     clone->capacity = hashSet->capacity;
     clone->count = hashSet->count;
     clone->hashFunc = hashSet->hashFunc;
     clone->equalFunc = hashSet->equalFunc;
     if (clone->capacity > 0) {
-        clone->buckets = scu_malloc(clone->bucketSize * clone->capacity);
+        clone->buckets = scu_allocate(
+            clone->capacity * clone->bucketSize,
+            clone->bucketAlign,
+            clone->allocator
+        );
         if (!clone->buckets) {
-            scu_free(clone);
+            SCU_DELETE(clone, clone->allocator);
             return nullptr;
         }
         scu_memcpy(
             clone->buckets,
             hashSet->buckets,
-            clone->bucketSize * clone->capacity
+            clone->capacity * clone->bucketSize
         );
     }
     else {
         clone->buckets = nullptr;
     }
-    clone->scratch = scu_malloc(clone->bucketSize);
+    clone->scratch = scu_allocate(
+        clone->bucketSize,
+        clone->bucketAlign,
+        clone->allocator
+    );
     if (!clone->scratch) {
-        scu_free(clone->buckets);
-        scu_free(clone);
+        scu_deallocate(
+            clone->buckets,
+            clone->capacity * clone->bucketSize,
+            clone->bucketAlign,
+            clone->allocator
+        );
+        SCU_DELETE(clone, clone->allocator);
         return nullptr;
     }
     return clone;
 }
 
-isize scu_hash_set_capacity(const ScuHashSet* hashSet) {
+SCU_API isize scu_hash_set_capacity(const ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
     return hashSet->capacity;
 }
 
-isize scu_hash_set_count(const ScuHashSet* hashSet) {
+SCU_API isize scu_hash_set_count(const ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
     return hashSet->count;
 }
@@ -361,7 +357,10 @@ static inline void scu_hash_set_rehash_buckets(
     }
 }
 
-ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, isize capacity) {
+SCU_API ScuError scu_hash_set_ensure_capacity(
+    ScuHashSet* hashSet,
+    isize capacity
+) {
     SCU_ASSERT(hashSet);
     SCU_ASSERT(capacity >= 0);
     isize minCapacity = (capacity * SCU_MAX_LOAD_FACTOR_DEN
@@ -369,8 +368,12 @@ ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, isize capacity) {
     if (hashSet->capacity >= minCapacity) {
         return SCU_ERROR_NONE;
     }
-    isize newCapacity = scu_next_power_of_two(minCapacity);
-    ScuBucket* newBuckets = scu_calloc(newCapacity, hashSet->bucketSize);
+    isize newCapacity = (isize) stdc_bit_ceil((usize) minCapacity);
+    ScuBucket* newBuckets = scu_allocate_zeroed(
+        newCapacity * hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     if (!newBuckets) {
         return SCU_ERROR_OUT_OF_MEMORY;
     }
@@ -383,11 +386,16 @@ ScuError scu_hash_set_ensure_capacity(ScuHashSet* hashSet, isize capacity) {
     if (oldCount > 0) {
         scu_hash_set_rehash_buckets(hashSet, oldBuckets, oldCapacity);
     }
-    scu_free(oldBuckets);
+    scu_deallocate(
+        oldBuckets,
+        oldCapacity * hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     return SCU_ERROR_NONE;
 }
 
-ScuError scu_hash_set_add(
+SCU_API ScuError scu_hash_set_add(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
 ) {
@@ -420,7 +428,7 @@ static inline void* scu_bucket_elem(const ScuBucket* bucket, isize elemOffset) {
     return (byte*) SCU_CONST_CAST(ScuBucket*, bucket) + elemOffset;
 }
 
-ScuError scu_hash_set_try_add(
+SCU_API ScuError scu_hash_set_try_add(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
 ) {
@@ -481,7 +489,10 @@ ScuError scu_hash_set_try_add(
     }
 }
 
-bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem) {
+SCU_API bool scu_hash_set_contains(
+    const ScuHashSet* hashSet,
+    const void* elem
+) {
     SCU_ASSERT(hashSet);
     SCU_ASSERT(elem);
     if (hashSet->count == 0) {
@@ -521,7 +532,7 @@ bool scu_hash_set_contains(const ScuHashSet* hashSet, const void* elem) {
     }
 }
 
-bool scu_hash_set_remove(
+SCU_API bool scu_hash_set_remove(
     ScuHashSet* restrict hashSet,
     const void* restrict elem
 ) {
@@ -594,7 +605,7 @@ bool scu_hash_set_remove(
     return true;
 }
 
-void scu_hash_set_clear(ScuHashSet* hashSet) {
+SCU_API void scu_hash_set_clear(ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
     if (hashSet->count > 0) {
         for (isize i = 0; i < hashSet->capacity; i++) {
@@ -609,21 +620,30 @@ void scu_hash_set_clear(ScuHashSet* hashSet) {
     }
 }
 
-ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet) {
+SCU_API ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
     if (hashSet->count == 0) {
-        scu_free(hashSet->buckets);
+        scu_deallocate(
+            hashSet->buckets,
+            hashSet->capacity * hashSet->bucketSize,
+            hashSet->bucketAlign,
+            hashSet->allocator
+        );
         hashSet->buckets = nullptr;
         hashSet->capacity = 0;
         return SCU_ERROR_NONE;
     }
     isize minCapacity = (hashSet->count * SCU_MAX_LOAD_FACTOR_DEN
         + SCU_MAX_LOAD_FACTOR_NUM - 1) / SCU_MAX_LOAD_FACTOR_NUM;
-    isize newCapacity = scu_next_power_of_two(minCapacity);
+    isize newCapacity = (isize) stdc_bit_ceil((usize) minCapacity);
     if (hashSet->capacity <= newCapacity) {
         return SCU_ERROR_NONE;
     }
-    ScuBucket* newBuckets = scu_calloc(newCapacity, hashSet->bucketSize);
+    ScuBucket* newBuckets = scu_allocate_zeroed(
+        newCapacity * hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     if (!newBuckets) {
         return SCU_ERROR_OUT_OF_MEMORY;
     }
@@ -633,21 +653,36 @@ ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet) {
     hashSet->count = 0;
     hashSet->buckets = newBuckets;
     scu_hash_set_rehash_buckets(hashSet, oldBuckets, oldCapacity);
-    scu_free(oldBuckets);
+    scu_deallocate(
+        oldBuckets,
+        oldCapacity * hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     return SCU_ERROR_NONE;
 }
 
-void scu_hash_set_delete(ScuHashSet* hashSet) {
+SCU_API void scu_hash_set_delete(ScuHashSet* hashSet) {
     if (!hashSet) {
         return;
     }
-    scu_free(hashSet->buckets);
+    scu_deallocate(
+        hashSet->buckets,
+        hashSet->capacity * hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     hashSet->buckets = nullptr;
-    scu_free(hashSet->scratch);
+    scu_deallocate(
+        hashSet->scratch,
+        hashSet->bucketSize,
+        hashSet->bucketAlign,
+        hashSet->allocator
+    );
     hashSet->scratch = nullptr;
     hashSet->capacity = 0;
     hashSet->count = 0;
-    scu_free(hashSet);
+    SCU_DELETE(hashSet, hashSet->allocator);
 }
 
 /**
@@ -677,7 +712,7 @@ static inline isize scu_next_occupied_index(
     return hashSet->capacity;
 }
 
-ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet) {
+SCU_API ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
     return (ScuHashSetIterator) {
         .hashSet = SCU_CONST_CAST(ScuHashSet*, hashSet),
@@ -685,7 +720,7 @@ ScuHashSetIterator scu_hash_set_begin(const ScuHashSet* hashSet) {
     };
 }
 
-ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet) {
+SCU_API ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet) {
     SCU_ASSERT(hashSet);
     return (ScuHashSetIterator) {
         .hashSet = SCU_CONST_CAST(ScuHashSet*, hashSet),
@@ -693,7 +728,7 @@ ScuHashSetIterator scu_hash_set_end(const ScuHashSet* hashSet) {
     };
 }
 
-bool scu_hash_set_iterator_equal(
+SCU_API bool scu_hash_set_iterator_equal(
     const ScuHashSetIterator* lhs,
     const ScuHashSetIterator* rhs
 ) {
@@ -703,7 +738,7 @@ bool scu_hash_set_iterator_equal(
     return lhs->index == rhs->index;
 }
 
-void scu_hash_set_iterator_next(ScuHashSetIterator* iterator) {
+SCU_API void scu_hash_set_iterator_next(ScuHashSetIterator* iterator) {
     SCU_ASSERT(iterator);
     SCU_ASSERT(iterator->index < iterator->hashSet->capacity);
     iterator->index = scu_next_occupied_index(
@@ -712,7 +747,7 @@ void scu_hash_set_iterator_next(ScuHashSetIterator* iterator) {
     );
 }
 
-void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator) {
+SCU_API void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator) {
     SCU_ASSERT(iterator);
     ScuHashSet* hashSet = iterator->hashSet;
     isize index = iterator->index - 1;
@@ -731,7 +766,7 @@ void scu_hash_set_iterator_prev(ScuHashSetIterator* iterator) {
     iterator->index = index;
 }
 
-void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator) {
+SCU_API void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator) {
     SCU_ASSERT(iterator);
     ScuHashSet* hashSet = iterator->hashSet;
     isize index = iterator->index;

@@ -1,30 +1,29 @@
 #define SCU_SHORT_ALIASES
 
 #include <string.h>
-#include "scu/alloc.h"
 #include "scu/assert.h"
 #include "scu/math.h"
 #include "scu/memory.h"
 #include "scu/string.h"
 
-isize scu_strlen(const char* s) {
+SCU_API isize scu_strlen(const char* s) {
     SCU_ASSERT(s);
     return (isize) strlen(s);
 }
 
-isize scu_strnlen(const char* s, isize count) {
+SCU_API isize scu_strnlen(const char* s, isize count) {
     const char* p = scu_memchr(s, '\0', count);
     return p ? p - s : count;
 }
 
-int scu_strcmp(const char* left, const char* right) {
+SCU_API int scu_strcmp(const char* left, const char* right) {
     SCU_ASSERT(left);
     SCU_ASSERT(right);
     int cmp = strcmp(left, right);
     return (cmp < 0) ? -1 : (cmp > 0) ? 1 : 0;
 }
 
-int scu_strncmp(const char* left, const char* right, isize count) {
+SCU_API int scu_strncmp(const char* left, const char* right, isize count) {
     SCU_ASSERT(count >= 0);
     if (count == 0) {
         return 0;
@@ -35,7 +34,7 @@ int scu_strncmp(const char* left, const char* right, isize count) {
     return (cmp < 0) ? -1 : (cmp > 0) ? 1 : 0;
 }
 
-isize scu_str_index_of_byte(const char* s, char c) {
+SCU_API isize scu_str_index_of_byte(const char* s, char c) {
     SCU_ASSERT(s);
     if (c == '\0') {
         return -1;
@@ -44,14 +43,14 @@ isize scu_str_index_of_byte(const char* s, char c) {
     return p ? p - s : -1;
 }
 
-isize scu_str_index_of_str(const char* s, const char* other) {
+SCU_API isize scu_str_index_of_str(const char* s, const char* other) {
     SCU_ASSERT(s);
     SCU_ASSERT(other);
     const char* p = strstr(s, other);
     return p ? p - s : -1;
 }
 
-isize scu_str_last_index_of_byte(const char* s, char c) {
+SCU_API isize scu_str_last_index_of_byte(const char* s, char c) {
     SCU_ASSERT(s);
     if (c == '\0') {
         return -1;
@@ -60,7 +59,7 @@ isize scu_str_last_index_of_byte(const char* s, char c) {
     return p ? p - s : -1;
 }
 
-isize scu_str_last_index_of_str(const char* s, const char* other) {
+SCU_API isize scu_str_last_index_of_str(const char* s, const char* other) {
     SCU_ASSERT(s);
     SCU_ASSERT(other);
     isize length = scu_strlen(s);
@@ -79,7 +78,7 @@ isize scu_str_last_index_of_str(const char* s, const char* other) {
     return -1;
 }
 
-isize scu_str_index_of_any(const char* s, const char* anyOf) {
+SCU_API isize scu_str_index_of_any(const char* s, const char* anyOf) {
     SCU_ASSERT(s);
     SCU_ASSERT(anyOf);
     if (anyOf[0] == '\0') {
@@ -89,7 +88,7 @@ isize scu_str_index_of_any(const char* s, const char* anyOf) {
     return p ? p - s : -1;
 }
 
-isize scu_str_last_index_of_any(const char* s, const char* anyOf) {
+SCU_API isize scu_str_last_index_of_any(const char* s, const char* anyOf) {
     SCU_ASSERT(s);
     SCU_ASSERT(anyOf);
     if (anyOf[0] == '\0') {
@@ -103,7 +102,7 @@ isize scu_str_last_index_of_any(const char* s, const char* anyOf) {
     return -1;
 }
 
-isize scu_str_index_in_range(
+SCU_API isize scu_str_index_in_range(
     const char* s,
     char lowInclusive,
     char highInclusive
@@ -121,7 +120,7 @@ isize scu_str_index_in_range(
     return -1;
 }
 
-isize scu_str_last_index_in_range(
+SCU_API isize scu_str_last_index_in_range(
     const char* s,
     char lowInclusive,
     char highInclusive
@@ -139,12 +138,12 @@ isize scu_str_last_index_in_range(
     return -1;
 }
 
-bool scu_str_starts_with_byte(const char* s, char c) {
+SCU_API bool scu_str_starts_with_byte(const char* s, char c) {
     SCU_ASSERT(s);
     return (s[0] != '\0') && (s[0] == c);
 }
 
-bool scu_str_starts_with_str(const char* s, const char* prefix) {
+SCU_API bool scu_str_starts_with_str(const char* s, const char* prefix) {
     SCU_ASSERT(s);
     SCU_ASSERT(prefix);
     isize i = 0;
@@ -154,13 +153,13 @@ bool scu_str_starts_with_str(const char* s, const char* prefix) {
     return prefix[i] == '\0';
 }
 
-bool scu_str_ends_with_byte(const char* s, char c) {
+SCU_API bool scu_str_ends_with_byte(const char* s, char c) {
     SCU_ASSERT(s);
     isize length = scu_strlen(s);
     return (length > 0) && (s[length - 1] == c);
 }
 
-bool scu_str_ends_with_str(const char* s, const char* suffix) {
+SCU_API bool scu_str_ends_with_str(const char* s, const char* suffix) {
     SCU_ASSERT(s);
     SCU_ASSERT(suffix);
     isize suffixLength = scu_strlen(suffix);
@@ -174,30 +173,28 @@ bool scu_str_ends_with_str(const char* s, const char* suffix) {
     return scu_strncmp(s + length - suffixLength, suffix, suffixLength) == 0;
 }
 
-char* scu_strdup(const char* src) {
+SCU_API char* scu_strdup(const char* src) {
     isize length = scu_strlen(src);
-    isize size = (length + 1) * SCU_SIZEOF(char);
-    char* dest = scu_malloc(size);
+    char* dest = SCU_ARRAY_NEW(char, length + 1);
     if (dest) {
-        scu_memcpy(dest, src, length * SCU_SIZEOF(char));
+        scu_memcpy(dest, src, length);
         dest[length] = '\0';
     }
     return dest;
 }
 
-char* scu_strndup(const char* src, isize count) {
+SCU_API char* scu_strndup(const char* src, isize count) {
     const char* p = scu_memchr(src, '\0', count);
     isize length = p ? p - src : count;
-    isize size = (length + 1) * SCU_SIZEOF(char);
-    char* dest = scu_malloc(size);
+    char* dest = SCU_ARRAY_NEW(char, length + 1);
     if (dest) {
-        scu_memcpy(dest, src, length * SCU_SIZEOF(char));
+        scu_memcpy(dest, src, length);
         dest[length] = '\0';
     }
     return dest;
 }
 
-isize scu_strncpy(
+SCU_API isize scu_strncpy(
     char* restrict dest,
     isize size,
     const char* restrict src,
@@ -223,7 +220,7 @@ isize scu_strncpy(
     return p - dest - 1;
 }
 
-isize scu_strncat(
+SCU_API isize scu_strncat(
     char* restrict dest,
     isize size,
     const char* restrict src,

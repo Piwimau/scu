@@ -4,6 +4,7 @@
 #include "scu/api.h"
 #include "scu/compare.h"
 #include "scu/error.h"
+#include "scu/memory.h"
 #include "scu/types.h"
 #include "scu/util.h"
 
@@ -39,46 +40,108 @@ typedef struct ScuPrioQueueEntry {
 } ScuPrioQueueEntry;
 
 /**
- * @brief Constructs a priority queue with specified element size, priority
+ * @brief Constructs a priority queue with a specified element size, priority
  * size, priority comparison function, and an unspecified default capacity.
  *
  * @param[in] elemSize    The size of each element (in bytes).
  * @param[in] prioSize    The size of each priority (in bytes).
  * @param[in] prioCmpFunc A function used for comparing priorities.
+ * @param[in] allocator   The allocator to use for memory management.
  * @return A pointer to the priority queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the priority queue with
  * `scu_prio_queue_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_prio_queue_new()` macro instead.
  */
-SCU_API ScuPrioQueue* scu_prio_queue_new(
+SCU_API ScuPrioQueue* scu_prio_queue_new_impl(
     Scuisize elemSize,
     Scuisize prioSize,
-    ScuCompareFunc* prioCmpFunc
+    ScuCompareFunc* prioCmpFunc,
+    ScuAllocator* allocator
 );
 
 /**
- * @brief Constructs a priority queue with specified element size, priority
+ * @brief Constructs a priority queue with a specified element type, priority
+ * type, priority comparison function, and an unspecified default capacity.
+ *
+ * @param[in] elemType    The type of each element.
+ * @param[in] prioType    The type of each priority.
+ * @param[in] prioCmpFunc A function used for comparing priorities.
+ * @param[in] ...         The allocator to use for memory management.
+ * @return A pointer to the priority queue, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the priority queue with
+ * `scu_prio_queue_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_prio_queue_new(elemType, prioType, prioCmpFunc, ...) \
+    scu_prio_queue_new_impl(                                     \
+        SCU_SIZEOF(elemType),                                    \
+        SCU_SIZEOF(prioType),                                    \
+        (prioCmpFunc),                                           \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__)                    \
+    )
+
+/**
+ * @brief Constructs a priority queue with a specified element size, priority
  * size, priority comparison function, and initial capacity.
  *
  * @param[in] elemSize    The size of each element (in bytes).
  * @param[in] prioSize    The size of each priority (in bytes).
  * @param[in] capacity    The initial capacity (in number of elements).
  * @param[in] prioCmpFunc A function used for comparing priorities.
+ * @param[in] allocator   The allocator to use for memory management.
  * @return A pointer to the priority queue, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the priority queue with
  * `scu_prio_queue_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_prio_queue_new_with_capacity()` macro instead.
  */
-SCU_API ScuPrioQueue* scu_prio_queue_new_with_capacity(
+SCU_API ScuPrioQueue* scu_prio_queue_new_with_capacity_impl(
     Scuisize elemSize,
     Scuisize prioSize,
     Scuisize capacity,
-    ScuCompareFunc* prioCmpFunc
+    ScuCompareFunc* prioCmpFunc,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a priority queue with a specified element type, priority
+ * type, priority comparison function, and initial capacity.
+ *
+ * @param[in] elemType    The type of each element.
+ * @param[in] prioType    The type of each priority.
+ * @param[in] capacity    The initial capacity (in number of elements).
+ * @param[in] prioCmpFunc A function used for comparing priorities.
+ * @param[in] ...         The allocator to use for memory management.
+ * @return A pointer to the priority queue, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the priority queue with
+ * `scu_prio_queue_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_prio_queue_new_with_capacity(     \
+    elemType,                                 \
+    prioType,                                 \
+    capacity,                                 \
+    prioCmpFunc,                              \
+    ...                                       \
+)                                             \
+    scu_prio_queue_new_with_capacity_impl(    \
+        SCU_SIZEOF(elemType),                 \
+        SCU_SIZEOF(prioType),                 \
+        (capacity),                           \
+        (prioCmpFunc),                        \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Creates a shallow copy of a priority queue.
@@ -88,8 +151,6 @@ SCU_API ScuPrioQueue* scu_prio_queue_new_with_capacity(
  *
  * @warning The caller is responsible for deallocating the cloned priority queue
  * with `scu_prio_queue_delete()` when it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuPrioQueue* scu_prio_queue_clone(const ScuPrioQueue* prioQueue);
 
@@ -124,8 +185,6 @@ SCU_API Scuisize scu_prio_queue_count(const ScuPrioQueue* prioQueue);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_prio_queue_begin()` and `scu_prio_queue_end()`.
- *
- * @note This function dynamically allocates memory using `scu_realloc()`.
  */
 SCU_API ScuError scu_prio_queue_ensure_capacity(
     ScuPrioQueue* prioQueue,
@@ -143,8 +202,6 @@ SCU_API ScuError scu_prio_queue_ensure_capacity(
  *
  * @warning This function invalidates any iterators previously created with
  * `scu_prio_queue_begin()` and `scu_prio_queue_end()`.
- *
- * @note This function dynamically allocates memory using `scu_realloc()`.
  */
 SCU_API ScuError scu_prio_queue_enqueue(
     ScuPrioQueue* restrict prioQueue,
@@ -289,8 +346,6 @@ SCU_API void scu_prio_queue_clear(ScuPrioQueue* prioQueue);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_prio_queue_begin()` and `scu_prio_queue_end()`.
- *
- * @note This function dynamically allocates memory using `scu_realloc()`.
  */
 SCU_API ScuError scu_prio_queue_trim_excess(ScuPrioQueue* prioQueue);
 

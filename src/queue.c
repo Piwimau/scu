@@ -1,15 +1,20 @@
 #define SCU_SHORT_ALIASES
 
-#include "scu/alloc.h"
+#include <stddef.h>
 #include "scu/assert.h"
 #include "scu/math.h"
-#include "scu/memory.h"
 #include "scu/queue.h"
 
 struct ScuQueue {
 
+    /** @brief The allocator used for memory management. */
+    ScuAllocator* allocator;
+
     /** @brief The size of each element (in bytes). */
     isize elemSize;
+
+    /** @brief The alignment of each element (in bytes). */
+    isize elemAlign;
 
     /** @brief The maximum number of elements that can be stored. */
     isize capacity;
@@ -39,26 +44,41 @@ static constexpr isize SCU_DEFAULT_CAPACITY = 8;
 /** @brief The growth factor for increasing the capacity of a queue. */
 static constexpr isize SCU_GROWTH_FACTOR = 2;
 
-ScuQueue* scu_queue_new(isize elemSize) {
-    return scu_queue_new_with_capacity(elemSize, SCU_DEFAULT_CAPACITY);
+SCU_API ScuQueue* scu_queue_new_impl(isize elemSize, ScuAllocator* allocator) {
+    return scu_queue_new_with_capacity_impl(
+        elemSize,
+        SCU_DEFAULT_CAPACITY,
+        allocator
+    );
 }
 
-ScuQueue* scu_queue_new_with_capacity(isize elemSize, isize capacity) {
+SCU_API ScuQueue* scu_queue_new_with_capacity_impl(
+    isize elemSize,
+    isize capacity,
+    ScuAllocator* allocator
+) {
     SCU_ASSERT(elemSize > 0);
     SCU_ASSERT(capacity >= 0);
-    ScuQueue* queue = scu_malloc(SCU_SIZEOF(ScuQueue));
+    SCU_ASSERT(allocator);
+    ScuQueue* queue = SCU_NEW(ScuQueue, allocator);
     if (!queue) {
         return nullptr;
     }
-    queue->elemSize = elemSize;
+    queue->allocator = allocator;
+    queue->elemAlign = SCU_MIN(elemSize & -elemSize, SCU_ALIGNOF(max_align_t));
+    queue->elemSize = SCU_ALIGN_UP(elemSize, queue->elemAlign);
     queue->capacity = capacity;
     queue->count = 0;
     queue->head = 0;
     queue->tail = 0;
     if (capacity > 0) {
-        queue->elems = scu_malloc(elemSize * capacity);
+        queue->elems = scu_allocate(
+            queue->elemSize * queue->capacity,
+            queue->elemAlign,
+            queue->allocator
+        );
         if (!queue->elems) {
-            scu_free(queue);
+            SCU_DELETE(queue, queue->allocator);
             return nullptr;
         }
     }
@@ -68,19 +88,25 @@ ScuQueue* scu_queue_new_with_capacity(isize elemSize, isize capacity) {
     return queue;
 }
 
-ScuQueue* scu_queue_clone(const ScuQueue* queue) {
+SCU_API ScuQueue* scu_queue_clone(const ScuQueue* queue) {
     SCU_ASSERT(queue);
-    ScuQueue* clone = scu_malloc(SCU_SIZEOF(ScuQueue));
+    ScuQueue* clone = SCU_NEW(ScuQueue, queue->allocator);
     if (!clone) {
         return nullptr;
     }
+    clone->allocator = queue->allocator;
     clone->elemSize = queue->elemSize;
+    clone->elemAlign = queue->elemAlign;
     clone->capacity = queue->capacity;
     clone->count = queue->count;
     if (clone->capacity > 0) {
-        clone->elems = scu_malloc(clone->elemSize * clone->capacity);
+        clone->elems = scu_allocate(
+            clone->elemSize * clone->capacity,
+            clone->elemAlign,
+            clone->allocator
+        );
         if (!clone->elems) {
-            scu_free(clone);
+            SCU_DELETE(clone, clone->allocator);
             return nullptr;
         }
         if (queue->count > 0) {
@@ -111,17 +137,17 @@ ScuQueue* scu_queue_clone(const ScuQueue* queue) {
     return clone;
 }
 
-isize scu_queue_capacity(const ScuQueue* queue) {
+SCU_API isize scu_queue_capacity(const ScuQueue* queue) {
     SCU_ASSERT(queue);
     return queue->capacity;
 }
 
-isize scu_queue_count(const ScuQueue* queue) {
+SCU_API isize scu_queue_count(const ScuQueue* queue) {
     SCU_ASSERT(queue);
     return queue->count;
 }
 
-ScuError scu_queue_ensure_capacity(ScuQueue* queue, isize capacity) {
+SCU_API ScuError scu_queue_ensure_capacity(ScuQueue* queue, isize capacity) {
     SCU_ASSERT(queue);
     SCU_ASSERT(capacity >= 0);
     if (queue->capacity < capacity) {
@@ -129,7 +155,11 @@ ScuError scu_queue_ensure_capacity(ScuQueue* queue, isize capacity) {
         while (newCapacity < capacity) {
             newCapacity *= SCU_GROWTH_FACTOR;
         }
-        byte* newElems = scu_malloc(queue->elemSize * newCapacity);
+        byte* newElems = scu_allocate(
+            queue->elemSize * newCapacity,
+            queue->elemAlign,
+            queue->allocator
+        );
         if (!newElems) {
             return SCU_ERROR_OUT_OF_MEMORY;
         }
@@ -150,7 +180,12 @@ ScuError scu_queue_ensure_capacity(ScuQueue* queue, isize capacity) {
                 secondChunk * queue->elemSize
             );
         }
-        scu_free(queue->elems);
+        scu_deallocate(
+            queue->elems,
+            queue->elemSize * queue->capacity,
+            queue->elemAlign,
+            queue->allocator
+        );
         queue->elems = newElems;
         queue->capacity = newCapacity;
         queue->head = 0;
@@ -159,7 +194,7 @@ ScuError scu_queue_ensure_capacity(ScuQueue* queue, isize capacity) {
     return SCU_ERROR_NONE;
 }
 
-ScuError scu_queue_enqueue(
+SCU_API ScuError scu_queue_enqueue(
     ScuQueue* restrict queue,
     const void* restrict elem
 ) {
@@ -179,13 +214,16 @@ ScuError scu_queue_enqueue(
     return SCU_ERROR_NONE;
 }
 
-void scu_queue_dequeue(ScuQueue* restrict queue, void* restrict elem) {
+SCU_API void scu_queue_dequeue(ScuQueue* restrict queue, void* restrict elem) {
     if (!scu_queue_try_dequeue(queue, elem)) {
         SCU_FATAL("The specified queue is empty.\n");
     }
 }
 
-bool scu_queue_try_dequeue(ScuQueue* restrict queue, void* restrict elem) {
+SCU_API bool scu_queue_try_dequeue(
+    ScuQueue* restrict queue,
+    void* restrict elem
+) {
     SCU_ASSERT(queue);
     SCU_ASSERT(elem);
     if (queue->count == 0) {
@@ -201,13 +239,16 @@ bool scu_queue_try_dequeue(ScuQueue* restrict queue, void* restrict elem) {
     return true;
 }
 
-void scu_queue_peek_impl(const ScuQueue* restrict queue, void** restrict elem) {
+SCU_API void scu_queue_peek_impl(
+    const ScuQueue* restrict queue,
+    void** restrict elem
+) {
     if (!scu_queue_try_peek_impl(queue, elem)) {
         SCU_FATAL("The specified queue is empty.\n");
     }
 }
 
-bool scu_queue_try_peek_impl(
+SCU_API bool scu_queue_try_peek_impl(
     const ScuQueue* restrict queue,
     void** restrict elem
 ) {
@@ -221,18 +262,23 @@ bool scu_queue_try_peek_impl(
     return true;
 }
 
-void scu_queue_clear(ScuQueue* queue) {
+SCU_API void scu_queue_clear(ScuQueue* queue) {
     SCU_ASSERT(queue);
     queue->count = 0;
     queue->head = 0;
     queue->tail = 0;
 }
 
-ScuError scu_queue_trim_excess(ScuQueue* queue) {
+SCU_API ScuError scu_queue_trim_excess(ScuQueue* queue) {
     SCU_ASSERT(queue);
     if (queue->capacity > queue->count) {
         if (queue->count == 0) {
-            scu_free(queue->elems);
+            scu_deallocate(
+                queue->elems,
+                queue->elemSize * queue->capacity,
+                queue->elemAlign,
+                queue->allocator
+            );
             queue->elems = nullptr;
             queue->capacity = 0;
             queue->head = 0;
@@ -240,7 +286,11 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
         }
         else {
             isize newCapacity = queue->count;
-            byte* newElems = scu_malloc(queue->elemSize * newCapacity);
+            byte* newElems = scu_allocate(
+                queue->elemSize * newCapacity,
+                queue->elemAlign,
+                queue->allocator
+            );
             if (!newElems) {
                 return SCU_ERROR_OUT_OF_MEMORY;
             }
@@ -259,7 +309,12 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
                 queue->elems,
                 secondChunk * queue->elemSize
             );
-            scu_free(queue->elems);
+            scu_deallocate(
+                queue->elems,
+                queue->elemSize * queue->capacity,
+                queue->elemAlign,
+                queue->allocator
+            );
             queue->elems = newElems;
             queue->capacity = newCapacity;
             queue->head = 0;
@@ -269,20 +324,25 @@ ScuError scu_queue_trim_excess(ScuQueue* queue) {
     return SCU_ERROR_NONE;
 }
 
-void scu_queue_delete(ScuQueue* queue) {
+SCU_API void scu_queue_delete(ScuQueue* queue) {
     if (!queue) {
         return;
     }
-    scu_free(queue->elems);
+    scu_deallocate(
+        queue->elems,
+        queue->elemSize * queue->capacity,
+        queue->elemAlign,
+        queue->allocator
+    );
     queue->elems = nullptr;
     queue->capacity = 0;
     queue->count = 0;
     queue->head = 0;
     queue->tail = 0;
-    scu_free(queue);
+    SCU_DELETE(queue, queue->allocator);
 }
 
-ScuQueueIterator scu_queue_begin(const ScuQueue* queue) {
+SCU_API ScuQueueIterator scu_queue_begin(const ScuQueue* queue) {
     SCU_ASSERT(queue);
     return (ScuQueueIterator) {
         .queue = SCU_CONST_CAST(ScuQueue*, queue),
@@ -290,7 +350,7 @@ ScuQueueIterator scu_queue_begin(const ScuQueue* queue) {
     };
 }
 
-ScuQueueIterator scu_queue_end(const ScuQueue* queue) {
+SCU_API ScuQueueIterator scu_queue_end(const ScuQueue* queue) {
     SCU_ASSERT(queue);
     return (ScuQueueIterator) {
         .queue = SCU_CONST_CAST(ScuQueue*, queue),
@@ -298,7 +358,7 @@ ScuQueueIterator scu_queue_end(const ScuQueue* queue) {
     };
 }
 
-bool scu_queue_iterator_equal(
+SCU_API bool scu_queue_iterator_equal(
     const ScuQueueIterator* lhs,
     const ScuQueueIterator* rhs
 ) {
@@ -308,19 +368,19 @@ bool scu_queue_iterator_equal(
     return lhs->index == rhs->index;
 }
 
-void scu_queue_iterator_next(ScuQueueIterator* iterator) {
+SCU_API void scu_queue_iterator_next(ScuQueueIterator* iterator) {
     SCU_ASSERT(iterator);
     SCU_ASSERT(iterator->index < iterator->queue->count);
     iterator->index++;
 }
 
-void scu_queue_iterator_prev(ScuQueueIterator* iterator) {
+SCU_API void scu_queue_iterator_prev(ScuQueueIterator* iterator) {
     SCU_ASSERT(iterator);
     SCU_ASSERT(iterator->index > 0);
     iterator->index--;
 }
 
-void* scu_queue_iterator_deref(const ScuQueueIterator* iterator) {
+SCU_API void* scu_queue_iterator_deref(const ScuQueueIterator* iterator) {
     SCU_ASSERT(iterator);
     const ScuQueue* queue = iterator->queue;
     isize index = iterator->index;

@@ -40,7 +40,6 @@ endif
 incs = include_directories('include')
 
 srcs = files(
-    'src/alloc.c',
     'src/array.c',
     'src/assert.c',
     'src/bench.c',

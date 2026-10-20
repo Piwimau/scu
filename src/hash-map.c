@@ -1,11 +1,10 @@
 #define SCU_SHORT_ALIASES
 
+#include <stdbit.h>
 #include <stddef.h>
-#include "scu/alloc.h"
 #include "scu/assert.h"
 #include "scu/hash-map.h"
 #include "scu/math.h"
-#include "scu/memory.h"
 
 /** @brief A bucket in a hash map. */
 typedef struct ScuBucket {
@@ -25,6 +24,9 @@ typedef struct ScuBucket {
 
 struct ScuHashMap {
 
+    /** @brief The allocator used for memory management. */
+    ScuAllocator* allocator;
+
     /** @brief The size of each key (in bytes). */
     isize keySize;
 
@@ -39,6 +41,9 @@ struct ScuHashMap {
 
     /** @brief The effective size of a bucket (in bytes). */
     isize bucketSize;
+
+    /** @brief The alignment of a bucket (in bytes). */
+    isize bucketAlign;
 
     /**
      * @brief The maximum number of key-value pairs that could theoretically be
@@ -92,112 +97,79 @@ SCU_STATIC_ASSERT(
     "Capacity mask must not overlap the occupied bit."
 );
 
-ScuHashMap* scu_hash_map_new(
+SCU_API ScuHashMap* scu_hash_map_new_impl(
     isize keySize,
     isize valueSize,
     ScuHashFunc* keyHashFunc,
     ScuEqualFunc* keyEqualFunc,
-    ScuEqualFunc* valueEqualFunc
+    ScuEqualFunc* valueEqualFunc,
+    ScuAllocator* allocator
 ) {
-    return scu_hash_map_new_with_capacity(
+    return scu_hash_map_new_with_capacity_impl(
         keySize,
         valueSize,
         SCU_DEFAULT_CAPACITY,
         keyHashFunc,
         keyEqualFunc,
-        valueEqualFunc
+        valueEqualFunc,
+        allocator
     );
 }
 
-/**
- * @brief Rounds up a value to the next multiple of an alignment.
- *
- * @param[in] value     The value to round up.
- * @param[in] alignment The required alignment.
- * @return The smallest multiple of `alignment` greater than or equal to
- * `value`.
- *
- * @warning The behavior is undefined if `alignment` is not a power of two.
- */
-static inline isize scu_align_up(isize value, isize alignment) {
-    SCU_ASSERT(value >= 0);
-    SCU_ASSERT(alignment > 0);
-    SCU_ASSERT((alignment & (alignment - 1)) == 0);
-    return (value + alignment - 1) & ~(alignment - 1);
-}
-
-/**
- * @brief Returns the smallest power of two greater than or equal to a value.
- *
- * @param[in] n The value to examine.
- * @return The smallest power of two greater than or equal to the value.
- */
-static inline isize scu_next_power_of_two(isize n) {
-    SCU_ASSERT((n >= 0) && (n <= ISIZE_MAX / 2));
-    if (n <= 1) {
-        return 1;
-    }
-    usize v = (usize) n;
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-#if ISIZE_WIDTH == 64
-    v |= v >> 32;
-#endif
-    v++;
-    return (isize) v;
-}
-
-ScuHashMap* scu_hash_map_new_with_capacity(
+SCU_API ScuHashMap* scu_hash_map_new_with_capacity_impl(
     isize keySize,
     isize valueSize,
     isize capacity,
     ScuHashFunc* keyHashFunc,
     ScuEqualFunc* keyEqualFunc,
-    ScuEqualFunc* valueEqualFunc
+    ScuEqualFunc* valueEqualFunc,
+    ScuAllocator* allocator
 ) {
     SCU_ASSERT(keySize > 0);
     SCU_ASSERT(valueSize > 0);
-    SCU_ASSERT(capacity >= 0);
+    SCU_ASSERT((capacity >= 0) && (capacity <= ISIZE_MAX / 2));
     SCU_ASSERT(keyHashFunc);
     SCU_ASSERT(keyEqualFunc);
     SCU_ASSERT(valueEqualFunc);
-    ScuHashMap* hashMap = scu_malloc(SCU_SIZEOF(ScuHashMap));
+    SCU_ASSERT(allocator);
+    ScuHashMap* hashMap = SCU_NEW(ScuHashMap, allocator);
     if (!hashMap) {
         return nullptr;
     }
+    hashMap->allocator = allocator;
     hashMap->keySize = keySize;
     hashMap->valueSize = valueSize;
     isize keyAlign = SCU_MIN(keySize & -keySize, SCU_ALIGNOF(max_align_t));
-    hashMap->keyOffset = scu_align_up(SCU_SIZEOF(ScuBucket), keyAlign);
+    hashMap->keyOffset = SCU_ALIGN_UP(SCU_SIZEOF(ScuBucket), keyAlign);
     isize valueAlign = SCU_MIN(
         valueSize & -valueSize,
         SCU_ALIGNOF(max_align_t)
     );
-    hashMap->valueOffset = scu_align_up(
+    hashMap->valueOffset = SCU_ALIGN_UP(
         hashMap->keyOffset + hashMap->keySize,
         valueAlign
     );
-    isize bucketAlign = SCU_MAX(
+    hashMap->bucketAlign = SCU_MAX(
         SCU_MAX(keyAlign, valueAlign),
         SCU_ALIGNOF(ScuBucket)
     );
-    hashMap->bucketSize = scu_align_up(
+    hashMap->bucketSize = SCU_ALIGN_UP(
         hashMap->valueOffset + hashMap->valueSize,
-        bucketAlign
+        hashMap->bucketAlign
     );
     hashMap->count = 0;
     hashMap->keyHashFunc = keyHashFunc;
     hashMap->keyEqualFunc = keyEqualFunc;
     hashMap->valueEqualFunc = valueEqualFunc;
     if (capacity > 0) {
-        hashMap->capacity = scu_next_power_of_two(capacity);
-        hashMap->buckets = scu_calloc(hashMap->capacity, hashMap->bucketSize);
+        hashMap->capacity = (isize) stdc_bit_ceil((usize) capacity);
+        hashMap->buckets = scu_allocate_zeroed(
+            hashMap->capacity * hashMap->bucketSize,
+            hashMap->bucketAlign,
+            hashMap->allocator
+        );
         if (!hashMap->buckets) {
-            scu_free(hashMap);
+            SCU_DELETE(hashMap, hashMap->allocator);
             return nullptr;
         }
     }
@@ -205,61 +177,85 @@ ScuHashMap* scu_hash_map_new_with_capacity(
         hashMap->capacity = 0;
         hashMap->buckets = nullptr;
     }
-    hashMap->scratch = scu_malloc(hashMap->bucketSize);
+    hashMap->scratch = scu_allocate(
+        hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     if (!hashMap->scratch) {
-        scu_free(hashMap->buckets);
-        scu_free(hashMap);
+        scu_deallocate(
+            hashMap->buckets,
+            hashMap->capacity * hashMap->bucketSize,
+            hashMap->bucketAlign,
+            hashMap->allocator
+        );
+        SCU_DELETE(hashMap, hashMap->allocator);
         return nullptr;
     }
     return hashMap;
 }
 
-ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap) {
+SCU_API ScuHashMap* scu_hash_map_clone(const ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
-    ScuHashMap* clone = scu_malloc(SCU_SIZEOF(ScuHashMap));
+    ScuHashMap* clone = SCU_NEW(ScuHashMap, hashMap->allocator);
     if (!clone) {
         return nullptr;
     }
+    clone->allocator = hashMap->allocator;
     clone->keySize = hashMap->keySize;
     clone->keyOffset = hashMap->keyOffset;
     clone->valueSize = hashMap->valueSize;
     clone->valueOffset = hashMap->valueOffset;
     clone->bucketSize = hashMap->bucketSize;
+    clone->bucketAlign = hashMap->bucketAlign;
     clone->capacity = hashMap->capacity;
     clone->count = hashMap->count;
     clone->keyHashFunc = hashMap->keyHashFunc;
     clone->keyEqualFunc = hashMap->keyEqualFunc;
     clone->valueEqualFunc = hashMap->valueEqualFunc;
     if (clone->capacity > 0) {
-        clone->buckets = scu_malloc(clone->bucketSize * clone->capacity);
+        clone->buckets = scu_allocate(
+            clone->capacity * clone->bucketSize,
+            clone->bucketAlign,
+            clone->allocator
+        );
         if (!clone->buckets) {
-            scu_free(clone);
+            SCU_DELETE(clone, clone->allocator);
             return nullptr;
         }
         scu_memcpy(
             clone->buckets,
             hashMap->buckets,
-            clone->bucketSize * clone->capacity
+            clone->capacity * clone->bucketSize
         );
     }
     else {
         clone->buckets = nullptr;
     }
-    clone->scratch = scu_malloc(clone->bucketSize);
+    clone->scratch = scu_allocate(
+        clone->bucketSize,
+        clone->bucketAlign,
+        clone->allocator
+    );
     if (!clone->scratch) {
-        scu_free(clone->buckets);
-        scu_free(clone);
+        scu_deallocate(
+            clone->buckets,
+            clone->capacity * clone->bucketSize,
+            clone->bucketAlign,
+            clone->allocator
+        );
+        SCU_DELETE(clone, clone->allocator);
         return nullptr;
     }
     return clone;
 }
 
-isize scu_hash_map_capacity(const ScuHashMap* hashMap) {
+SCU_API isize scu_hash_map_capacity(const ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
     return hashMap->capacity;
 }
 
-isize scu_hash_map_count(const ScuHashMap* hashMap) {
+SCU_API isize scu_hash_map_count(const ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
     return hashMap->count;
 }
@@ -397,7 +393,10 @@ static inline void scu_hash_map_rehash_buckets(
     }
 }
 
-ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, isize capacity) {
+SCU_API ScuError scu_hash_map_ensure_capacity(
+    ScuHashMap* hashMap,
+    isize capacity
+) {
     SCU_ASSERT(hashMap);
     SCU_ASSERT(capacity >= 0);
     isize minCapacity = (capacity * SCU_MAX_LOAD_FACTOR_DEN
@@ -405,8 +404,12 @@ ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, isize capacity) {
     if (hashMap->capacity >= minCapacity) {
         return SCU_ERROR_NONE;
     }
-    isize newCapacity = scu_next_power_of_two(minCapacity);
-    ScuBucket* newBuckets = scu_calloc(newCapacity, hashMap->bucketSize);
+    isize newCapacity = (isize) stdc_bit_ceil((usize) minCapacity);
+    ScuBucket* newBuckets = scu_allocate_zeroed(
+        newCapacity * hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     if (!newBuckets) {
         return SCU_ERROR_OUT_OF_MEMORY;
     }
@@ -419,11 +422,16 @@ ScuError scu_hash_map_ensure_capacity(ScuHashMap* hashMap, isize capacity) {
     if (oldCount > 0) {
         scu_hash_map_rehash_buckets(hashMap, oldBuckets, oldCapacity);
     }
-    scu_free(oldBuckets);
+    scu_deallocate(
+        oldBuckets,
+        oldCapacity * hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     return SCU_ERROR_NONE;
 }
 
-ScuError scu_hash_map_add(
+SCU_API ScuError scu_hash_map_add(
     ScuHashMap* restrict hashMap,
     const void* restrict key,
     const void* restrict value
@@ -473,7 +481,7 @@ static inline void* scu_bucket_value(
     return (byte*) SCU_CONST_CAST(ScuBucket*, bucket) + valueOffset;
 }
 
-ScuError scu_hash_map_try_add(
+SCU_API ScuError scu_hash_map_try_add(
     ScuHashMap* restrict hashMap,
     const void* restrict key,
     const void* restrict value
@@ -541,7 +549,7 @@ ScuError scu_hash_map_try_add(
     }
 }
 
-void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key) {
+SCU_API void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key) {
     void* value;
     if (!scu_hash_map_try_get_impl(hashMap, key, &value)) {
         SCU_FATAL("The specified key is not present.\n");
@@ -549,7 +557,7 @@ void* scu_hash_map_get(const ScuHashMap* hashMap, const void* key) {
     return value;
 }
 
-bool scu_hash_map_try_get_impl(
+SCU_API bool scu_hash_map_try_get_impl(
     const ScuHashMap* restrict hashMap,
     const void* restrict key,
     void* restrict* restrict value
@@ -598,7 +606,7 @@ bool scu_hash_map_try_get_impl(
     }
 }
 
-ScuError scu_hash_map_set(
+SCU_API ScuError scu_hash_map_set(
     ScuHashMap* restrict hashMap,
     const void* restrict key,
     const void* restrict value
@@ -705,7 +713,10 @@ ScuError scu_hash_map_set(
     }
 }
 
-bool scu_hash_map_contains_key(const ScuHashMap* hashMap, const void* key) {
+SCU_API bool scu_hash_map_contains_key(
+    const ScuHashMap* hashMap,
+    const void* key
+) {
     SCU_ASSERT(hashMap);
     SCU_ASSERT(key);
     if (hashMap->count == 0) {
@@ -745,7 +756,10 @@ bool scu_hash_map_contains_key(const ScuHashMap* hashMap, const void* key) {
     }
 }
 
-bool scu_hash_map_contains_value(const ScuHashMap* hashMap, const void* value) {
+SCU_API bool scu_hash_map_contains_value(
+    const ScuHashMap* hashMap,
+    const void* value
+) {
     SCU_ASSERT(hashMap);
     SCU_ASSERT(value);
     if (hashMap->count == 0) {
@@ -770,7 +784,7 @@ bool scu_hash_map_contains_value(const ScuHashMap* hashMap, const void* value) {
     return false;
 }
 
-bool scu_hash_map_remove(
+SCU_API bool scu_hash_map_remove(
     ScuHashMap* restrict hashMap,
     const void* restrict key
 ) {
@@ -843,7 +857,7 @@ bool scu_hash_map_remove(
     return true;
 }
 
-void scu_hash_map_clear(ScuHashMap* hashMap) {
+SCU_API void scu_hash_map_clear(ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
     if (hashMap->count > 0) {
         for (isize i = 0; i < hashMap->capacity; i++) {
@@ -858,21 +872,30 @@ void scu_hash_map_clear(ScuHashMap* hashMap) {
     }
 }
 
-ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap) {
+SCU_API ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
     if (hashMap->count == 0) {
-        scu_free(hashMap->buckets);
+        scu_deallocate(
+            hashMap->buckets,
+            hashMap->capacity * hashMap->bucketSize,
+            hashMap->bucketAlign,
+            hashMap->allocator
+        );
         hashMap->buckets = nullptr;
         hashMap->capacity = 0;
         return SCU_ERROR_NONE;
     }
     isize minCapacity = (hashMap->count * SCU_MAX_LOAD_FACTOR_DEN
         + SCU_MAX_LOAD_FACTOR_NUM - 1) / SCU_MAX_LOAD_FACTOR_NUM;
-    isize newCapacity = scu_next_power_of_two(minCapacity);
+    isize newCapacity = (isize) stdc_bit_ceil((usize) minCapacity);
     if (hashMap->capacity <= newCapacity) {
         return SCU_ERROR_NONE;
     }
-    ScuBucket* newBuckets = scu_calloc(newCapacity, hashMap->bucketSize);
+    ScuBucket* newBuckets = scu_allocate_zeroed(
+        newCapacity * hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     if (!newBuckets) {
         return SCU_ERROR_OUT_OF_MEMORY;
     }
@@ -882,21 +905,36 @@ ScuError scu_hash_map_trim_excess(ScuHashMap* hashMap) {
     hashMap->count = 0;
     hashMap->buckets = newBuckets;
     scu_hash_map_rehash_buckets(hashMap, oldBuckets, oldCapacity);
-    scu_free(oldBuckets);
+    scu_deallocate(
+        oldBuckets,
+        oldCapacity * hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     return SCU_ERROR_NONE;
 }
 
-void scu_hash_map_delete(ScuHashMap* hashMap) {
+SCU_API void scu_hash_map_delete(ScuHashMap* hashMap) {
     if (!hashMap) {
         return;
     }
-    scu_free(hashMap->buckets);
+    scu_deallocate(
+        hashMap->buckets,
+        hashMap->capacity * hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     hashMap->buckets = nullptr;
-    scu_free(hashMap->scratch);
+    scu_deallocate(
+        hashMap->scratch,
+        hashMap->bucketSize,
+        hashMap->bucketAlign,
+        hashMap->allocator
+    );
     hashMap->scratch = nullptr;
     hashMap->capacity = 0;
     hashMap->count = 0;
-    scu_free(hashMap);
+    SCU_DELETE(hashMap, hashMap->allocator);
 }
 
 /**
@@ -926,7 +964,7 @@ static inline isize scu_next_occupied_index(
     return hashMap->capacity;
 }
 
-ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap) {
+SCU_API ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
     return (ScuHashMapIterator) {
         .hashMap = SCU_CONST_CAST(ScuHashMap*, hashMap),
@@ -934,7 +972,7 @@ ScuHashMapIterator scu_hash_map_begin(const ScuHashMap* hashMap) {
     };
 }
 
-ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap) {
+SCU_API ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap) {
     SCU_ASSERT(hashMap);
     return (ScuHashMapIterator) {
         .hashMap = SCU_CONST_CAST(ScuHashMap*, hashMap),
@@ -942,7 +980,7 @@ ScuHashMapIterator scu_hash_map_end(const ScuHashMap* hashMap) {
     };
 }
 
-bool scu_hash_map_iterator_equal(
+SCU_API bool scu_hash_map_iterator_equal(
     const ScuHashMapIterator* lhs,
     const ScuHashMapIterator* rhs
 ) {
@@ -952,7 +990,7 @@ bool scu_hash_map_iterator_equal(
     return lhs->index == rhs->index;
 }
 
-void scu_hash_map_iterator_next(ScuHashMapIterator* iterator) {
+SCU_API void scu_hash_map_iterator_next(ScuHashMapIterator* iterator) {
     SCU_ASSERT(iterator);
     SCU_ASSERT(iterator->index < iterator->hashMap->capacity);
     iterator->index = scu_next_occupied_index(
@@ -961,7 +999,7 @@ void scu_hash_map_iterator_next(ScuHashMapIterator* iterator) {
     );
 }
 
-void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator) {
+SCU_API void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator) {
     SCU_ASSERT(iterator);
     ScuHashMap* hashMap = iterator->hashMap;
     isize index = iterator->index - 1;
@@ -980,7 +1018,7 @@ void scu_hash_map_iterator_prev(ScuHashMapIterator* iterator) {
     iterator->index = index;
 }
 
-ScuHashMapEntry scu_hash_map_iterator_deref(
+SCU_API ScuHashMapEntry scu_hash_map_iterator_deref(
     const ScuHashMapIterator* iterator
 ) {
     SCU_ASSERT(iterator);

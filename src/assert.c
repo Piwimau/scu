@@ -4,7 +4,7 @@
 #include "scu/assert.h"
 
 [[noreturn]]
-void scu_assert_fail(
+SCU_API void scu_assert_fail(
     const char* restrict expr,
     const char* restrict file,
     int line,

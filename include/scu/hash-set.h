@@ -5,6 +5,7 @@
 #include "scu/equal.h"
 #include "scu/error.h"
 #include "scu/hash.h"
+#include "scu/memory.h"
 #include "scu/types.h"
 #include "scu/util.h"
 
@@ -35,19 +36,45 @@ typedef struct ScuHashSetIterator {
  * @param[in] elemSize  The size of each element (in bytes).
  * @param[in] hashFunc  A function used for hashing elements.
  * @param[in] equalFunc A function used for comparing elements for equality.
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the hash set, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash set with
  * `scu_hash_set_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_hash_set_new()` macro instead.
  */
-SCU_API ScuHashSet* scu_hash_set_new(
+SCU_API ScuHashSet* scu_hash_set_new_impl(
     Scuisize elemSize,
     ScuHashFunc* hashFunc,
-    ScuEqualFunc* equalFunc
+    ScuEqualFunc* equalFunc,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a hash set with a specified element type, hash function,
+ * equality function, and an unspecified default capacity.
+ *
+ * @param[in] elemType  The type of each element.
+ * @param[in] hashFunc  A function used for hashing elements.
+ * @param[in] equalFunc A function used for comparing elements for equality.
+ * @param[in] ...       The allocator to use for memory management.
+ * @return A pointer to the hash set, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash set with
+ * `scu_hash_set_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_hash_set_new(elemType, hashFunc, equalFunc, ...) \
+    scu_hash_set_new_impl(                                   \
+        SCU_SIZEOF(elemType),                                \
+        (hashFunc),                                          \
+        (equalFunc),                                         \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__)                \
+    )
 
 /**
  * @brief Constructs a hash set with a specified element size, hash function,
@@ -57,20 +84,54 @@ SCU_API ScuHashSet* scu_hash_set_new(
  * @param[in] capacity  The initial capacity (in number of elements).
  * @param[in] hashFunc  A function used for hashing elements.
  * @param[in] equalFunc A function used for comparing elements for equality.
+ * @param[in] allocator The allocator to use for memory management.
  * @return A pointer to the hash set, or `nullptr` on failure.
  *
  * @warning The caller is responsible for deallocating the hash set with
  * `scu_hash_set_delete()` when it is no longer needed.
  *
- * @note This function dynamically allocates memory using `scu_malloc()` and
- * `scu_calloc()`.
+ * @note This function is an implementation detail and not intended to be used
+ * directly. Use the `scu_hash_set_new_with_capacity()` macro instead.
  */
-SCU_API ScuHashSet* scu_hash_set_new_with_capacity(
+SCU_API ScuHashSet* scu_hash_set_new_with_capacity_impl(
     Scuisize elemSize,
     Scuisize capacity,
     ScuHashFunc* hashFunc,
-    ScuEqualFunc* equalFunc
+    ScuEqualFunc* equalFunc,
+    ScuAllocator* allocator
 );
+
+/**
+ * @brief Constructs a hash set with a specified element type, hash function,
+ * equality function, and initial capacity.
+ *
+ * @param[in] elemType  The type of each element.
+ * @param[in] capacity  The initial capacity (in number of elements).
+ * @param[in] hashFunc  A function used for hashing elements.
+ * @param[in] equalFunc A function used for comparing elements for equality.
+ * @param[in] ...       The allocator to use for memory management.
+ * @return A pointer to the hash set, or `nullptr` on failure.
+ *
+ * @warning The caller is responsible for deallocating the hash set with
+ * `scu_hash_set_delete()` when it is no longer needed.
+ *
+ * @note The last argument is optional and specifies the allocator to use. If
+ * omitted, the default allocator will be used.
+ */
+#define scu_hash_set_new_with_capacity(       \
+    elemType,                                 \
+    capacity,                                 \
+    hashFunc,                                 \
+    equalFunc,                                \
+    ...                                       \
+)                                             \
+    scu_hash_set_new_with_capacity_impl(      \
+        SCU_SIZEOF(elemType),                 \
+        (capacity),                           \
+        (hashFunc),                           \
+        (equalFunc),                          \
+        SCU_ALLOCATOR_OR_DEFAULT(__VA_ARGS__) \
+    )
 
 /**
  * @brief Creates a shallow copy of a hash set.
@@ -80,8 +141,6 @@ SCU_API ScuHashSet* scu_hash_set_new_with_capacity(
  *
  * @warning The caller is responsible for deallocating the cloned hash set with
  * `scu_hash_set_delete()` when it is no longer needed.
- *
- * @note This function dynamically allocates memory using `scu_malloc()`.
  */
 SCU_API ScuHashSet* scu_hash_set_clone(const ScuHashSet* hashSet);
 
@@ -115,8 +174,6 @@ SCU_API Scuisize scu_hash_set_count(const ScuHashSet* hashSet);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_set_begin()` and `scu_hash_set_end()`.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_set_ensure_capacity(
     ScuHashSet* hashSet,
@@ -136,8 +193,6 @@ SCU_API ScuError scu_hash_set_ensure_capacity(
  *
  * The behavior is undefined if the element is already present in the hash set.
  * Use `scu_hash_set_try_add()` to handle this case gracefully.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_set_add(
     ScuHashSet* restrict hashSet,
@@ -155,8 +210,6 @@ SCU_API ScuError scu_hash_set_add(
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_set_begin()` and `scu_hash_set_end()`.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_set_try_add(
     ScuHashSet* restrict hashSet,
@@ -224,8 +277,6 @@ SCU_API void scu_hash_set_clear(ScuHashSet* hashSet);
  *
  * @warning This function may invalidate any iterators previously created with
  * `scu_hash_set_begin()` and `scu_hash_set_end()`.
- *
- * @note This function dynamically allocates memory using `scu_calloc()`.
  */
 SCU_API ScuError scu_hash_set_trim_excess(ScuHashSet* hashSet);
 
