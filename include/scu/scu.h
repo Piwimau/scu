@@ -26,12 +26,12 @@
 #define SCU_VERSION_MAJOR 0
 
 /** @brief The minor version number of SCU. */
-#define SCU_VERSION_MINOR 5
+#define SCU_VERSION_MINOR 6
 
 /** @brief The patch version number of SCU. */
 #define SCU_VERSION_PATCH 0
 
 /** @brief The version string of SCU. */
-#define SCU_VERSION_STRING "0.5.0"
+#define SCU_VERSION_STRING "0.6.0"
 
 #endif
