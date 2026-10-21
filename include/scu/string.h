@@ -330,7 +330,7 @@ SCU_API bool scu_str_starts_with_byte(const char* s, char c);
  * UTF-8), the return value may be misleading, for example if certain characters
  * considered equal can be represented by different byte sequences.
  *
- * If `other` points to an empty byte string, `true` is returned (as the empty
+ * If `prefix` points to an empty byte string, `true` is returned (as the empty
  * byte string is considered to be the prefix of any byte string).
  */
 SCU_API bool scu_str_starts_with_str(const char* s, const char* prefix);
@@ -392,7 +392,7 @@ SCU_API bool scu_str_ends_with_byte(const char* s, char c);
  * UTF-8), the return value may be misleading, for example if certain characters
  * considered equal can be represented by different byte sequences.
  *
- * If `other` points to an empty byte string, `true` is returned (as the empty
+ * If `suffix` points to an empty byte string, `true` is returned (as the empty
  * byte string is considered to be the suffix of any byte string).
  */
 SCU_API bool scu_str_ends_with_str(const char* s, const char* suffix);
