@@ -198,7 +198,7 @@ SCU_API ScuError scu_prio_queue_ensure_capacity(
  */
 static inline byte* scu_node_prio(const ScuPrioQueue* prioQueue, isize index) {
     SCU_ASSERT(prioQueue);
-    SCU_ASSERT((index >= 0) && (index < prioQueue->capacity));
+    SCU_ASSERT(index >= 0 && index < prioQueue->capacity);
     return prioQueue->nodes + index * prioQueue->nodeSize;
 }
 
@@ -211,7 +211,7 @@ static inline byte* scu_node_prio(const ScuPrioQueue* prioQueue, isize index) {
  */
 static inline byte* scu_node_elem(const ScuPrioQueue* prioQueue, isize index) {
     SCU_ASSERT(prioQueue);
-    SCU_ASSERT((index >= 0) && (index < prioQueue->capacity));
+    SCU_ASSERT(index >= 0 && index < prioQueue->capacity);
     return prioQueue->nodes + index * prioQueue->nodeSize
         + prioQueue->elemOffset;
 }
@@ -438,7 +438,7 @@ SCU_API ScuPrioQueueEntry scu_prio_queue_iterator_deref(
     SCU_ASSERT(iterator);
     const ScuPrioQueue* prioQueue = iterator->prioQueue;
     isize index = iterator->index;
-    SCU_ASSERT((index >= 0) && (index < prioQueue->count));
+    SCU_ASSERT(index >= 0 && index < prioQueue->count);
     return (ScuPrioQueueEntry) {
         .elem = scu_node_elem(prioQueue, index),
         .prio = scu_node_prio(prioQueue, index)

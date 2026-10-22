@@ -158,7 +158,7 @@ SCU_API ScuAllocator* scu_default_allocator() {
 
 SCU_API void* scu_allocate(isize size, isize align, ScuAllocator* allocator) {
     SCU_ASSERT(size > 0);
-    SCU_ASSERT((align > 0) && stdc_has_single_bit((usize) align));
+    SCU_ASSERT(align > 0 && stdc_has_single_bit((usize) align));
     SCU_ASSERT(allocator);
     return allocator->allocate(allocator->context, size, align);
 }
@@ -169,7 +169,7 @@ SCU_API void* scu_allocate_zeroed(
     ScuAllocator* allocator
 ) {
     SCU_ASSERT(size > 0);
-    SCU_ASSERT((align > 0) && stdc_has_single_bit((usize) align));
+    SCU_ASSERT(align > 0 && stdc_has_single_bit((usize) align));
     SCU_ASSERT(allocator);
     if (allocator->allocateZeroed) {
         return allocator->allocateZeroed(allocator->context, size, align);
@@ -191,7 +191,7 @@ SCU_API bool scu_resize(
     SCU_ASSERT(block);
     SCU_ASSERT(oldSize > 0);
     SCU_ASSERT(newSize > 0);
-    SCU_ASSERT((align > 0) && stdc_has_single_bit((usize) align));
+    SCU_ASSERT(align > 0 && stdc_has_single_bit((usize) align));
     SCU_ASSERT(allocator);
     if (allocator->resize) {
         return allocator->resize(
@@ -212,9 +212,9 @@ SCU_API void* scu_resize_or_move(
     isize align,
     ScuAllocator* allocator
 ) {
-    SCU_ASSERT((!block && (oldSize == 0)) || (oldSize > 0));
+    SCU_ASSERT((!block && oldSize == 0) || oldSize > 0);
     SCU_ASSERT(newSize > 0);
-    SCU_ASSERT((align > 0) && stdc_has_single_bit((usize) align));
+    SCU_ASSERT(align > 0 && stdc_has_single_bit((usize) align));
     SCU_ASSERT(allocator);
     if (allocator->resizeOrMove) {
         return allocator->resizeOrMove(
@@ -255,7 +255,7 @@ SCU_API void scu_deallocate(
     ScuAllocator* allocator
 ) {
     SCU_ASSERT(size >= 0);
-    SCU_ASSERT((align > 0) && stdc_has_single_bit((usize) align));
+    SCU_ASSERT(align > 0 && stdc_has_single_bit((usize) align));
     SCU_ASSERT(allocator);
     if (block) {
         allocator->deallocate(allocator->context, block, size, align);

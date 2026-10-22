@@ -109,7 +109,7 @@ SCU_API ScuHashSet* scu_hash_set_new_with_capacity_impl(
     ScuAllocator* allocator
 ) {
     SCU_ASSERT(elemSize > 0);
-    SCU_ASSERT((capacity >= 0) && (capacity <= ISIZE_MAX / 2));
+    SCU_ASSERT(capacity >= 0 && capacity <= ISIZE_MAX / 2);
     SCU_ASSERT(hashFunc);
     SCU_ASSERT(equalFunc);
     SCU_ASSERT(allocator);
@@ -285,7 +285,7 @@ static inline isize scu_probe_distance(
     isize capacity
 ) {
     SCU_ASSERT(capacity > 0);
-    SCU_ASSERT((index >= 0) && (index < capacity));
+    SCU_ASSERT(index >= 0 && index < capacity);
     isize idealIndex = scu_ideal_index(hash, capacity);
     return scu_wrap_index(index - idealIndex, capacity);
 }
@@ -467,7 +467,7 @@ SCU_API ScuError scu_hash_set_try_add(
             return SCU_ERROR_NONE;
         }
         if (
-            (bucket->hash == scratch->hash)
+            bucket->hash == scratch->hash
                 && hashSet->equalFunc(
                     scu_bucket_elem(bucket, hashSet->elemOffset),
                     scu_bucket_elem(scratch, hashSet->elemOffset)
@@ -519,7 +519,7 @@ SCU_API bool scu_hash_set_contains(
             return false;
         }
         if (
-            (bucket->hash == hash)
+            bucket->hash == hash
                 && hashSet->equalFunc(
                     scu_bucket_elem(bucket, hashSet->elemOffset),
                     elem
@@ -562,7 +562,7 @@ SCU_API bool scu_hash_set_remove(
             return false;
         }
         if (
-            (bucket->hash == hash)
+            bucket->hash == hash
                 && hashSet->equalFunc(
                     scu_bucket_elem(bucket, hashSet->elemOffset),
                     elem
@@ -770,7 +770,7 @@ SCU_API void* scu_hash_set_iterator_deref(const ScuHashSetIterator* iterator) {
     SCU_ASSERT(iterator);
     ScuHashSet* hashSet = iterator->hashSet;
     isize index = iterator->index;
-    SCU_ASSERT((index >= 0) && (index < hashSet->capacity));
+    SCU_ASSERT(index >= 0 && index < hashSet->capacity);
     const ScuBucket* bucket = scu_bucket_at(
         hashSet->buckets,
         index,

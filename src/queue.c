@@ -384,7 +384,7 @@ SCU_API void* scu_queue_iterator_deref(const ScuQueueIterator* iterator) {
     SCU_ASSERT(iterator);
     const ScuQueue* queue = iterator->queue;
     isize index = iterator->index;
-    SCU_ASSERT((index >= 0) && (index < queue->count));
+    SCU_ASSERT(index >= 0 && index < queue->count);
     index = (queue->head + index) % queue->capacity;
     return queue->elems + queue->elemSize * index;
 }

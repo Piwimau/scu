@@ -127,7 +127,7 @@ SCU_API ScuHashMap* scu_hash_map_new_with_capacity_impl(
 ) {
     SCU_ASSERT(keySize > 0);
     SCU_ASSERT(valueSize > 0);
-    SCU_ASSERT((capacity >= 0) && (capacity <= ISIZE_MAX / 2));
+    SCU_ASSERT(capacity >= 0 && capacity <= ISIZE_MAX / 2);
     SCU_ASSERT(keyHashFunc);
     SCU_ASSERT(keyEqualFunc);
     SCU_ASSERT(valueEqualFunc);
@@ -320,7 +320,7 @@ static inline isize scu_probe_distance(
     isize capacity
 ) {
     SCU_ASSERT(capacity > 0);
-    SCU_ASSERT((index >= 0) && (index < capacity));
+    SCU_ASSERT(index >= 0 && index < capacity);
     isize idealIndex = scu_ideal_index(hash, capacity);
     return scu_wrap_index(index - idealIndex, capacity);
 }
@@ -527,7 +527,7 @@ SCU_API ScuError scu_hash_map_try_add(
             return SCU_ERROR_NONE;
         }
         if (
-            (bucket->hash == scratch->hash)
+            bucket->hash == scratch->hash
                 && hashMap->keyEqualFunc(
                     scu_bucket_key(bucket, hashMap->keyOffset),
                     scu_bucket_key(scratch, hashMap->keyOffset)
@@ -592,7 +592,7 @@ SCU_API bool scu_hash_map_try_get_impl(
             return false;
         }
         if (
-            (bucket->hash == hash)
+            bucket->hash == hash
                 && hashMap->keyEqualFunc(
                     scu_bucket_key(bucket, hashMap->keyOffset),
                     key
@@ -639,7 +639,7 @@ SCU_API ScuError scu_hash_map_set(
                 break;
             }
             if (
-                (bucket->hash == hash)
+                bucket->hash == hash
                     && hashMap->keyEqualFunc(
                         scu_bucket_key(bucket, hashMap->keyOffset),
                         key
@@ -743,7 +743,7 @@ SCU_API bool scu_hash_map_contains_key(
             return false;
         }
         if (
-            (bucket->hash == hash)
+            bucket->hash == hash
                 && hashMap->keyEqualFunc(
                     scu_bucket_key(bucket, hashMap->keyOffset),
                     key
@@ -814,7 +814,7 @@ SCU_API bool scu_hash_map_remove(
             return false;
         }
         if (
-            (bucket->hash == hash)
+            bucket->hash == hash
                 && hashMap->keyEqualFunc(
                     scu_bucket_key(bucket, hashMap->keyOffset),
                     key
@@ -1024,7 +1024,7 @@ SCU_API ScuHashMapEntry scu_hash_map_iterator_deref(
     SCU_ASSERT(iterator);
     ScuHashMap* hashMap = iterator->hashMap;
     isize index = iterator->index;
-    SCU_ASSERT((index >= 0) && (index < hashMap->capacity));
+    SCU_ASSERT(index >= 0 && index < hashMap->capacity);
     const ScuBucket* bucket = scu_bucket_at(
         hashMap->buckets,
         index,

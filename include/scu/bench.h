@@ -339,14 +339,14 @@ SCU_API void scu_bench_context_advance(ScuBenchContext* context);
         )                                                          \
             for (                                                  \
                 ;                                                  \
-                scuOnce && (scu_stopwatch_start(&scuStopwatch)     \
+                scuOnce && scu_stopwatch_start(&scuStopwatch)      \
                     ? true                                         \
                     : (                                            \
                         (result)->wallNs = -1,                     \
                         (result)->cpuNs = -1,                      \
                         (result)->error = SCU_ERROR_TIMING_FAILED, \
                         false                                      \
-                    ));                                            \
+                    );                                             \
                 scuOnce = false,                                   \
                 scu_stopwatch_stop(&scuStopwatch),                 \
                 *(result) = scu_stopwatch_elapsed(&scuStopwatch)   \

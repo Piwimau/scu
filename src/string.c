@@ -113,7 +113,7 @@ SCU_API isize scu_str_index_in_range(
     byte high = (byte) highInclusive;
     SCU_ASSERT(high >= low);
     for (isize i = 0; p[i] != '\0'; i++) {
-        if ((p[i] >= low) && (p[i] <= high)) {
+        if (p[i] >= low && p[i] <= high) {
             return i;
         }
     }
@@ -131,7 +131,7 @@ SCU_API isize scu_str_last_index_in_range(
     byte high = (byte) highInclusive;
     SCU_ASSERT(high >= low);
     for (isize i = scu_strlen(s) - 1; i >= 0; i--) {
-        if ((p[i] >= low) && (p[i] <= high)) {
+        if (p[i] >= low && p[i] <= high) {
             return i;
         }
     }
@@ -140,14 +140,14 @@ SCU_API isize scu_str_last_index_in_range(
 
 SCU_API bool scu_str_starts_with_byte(const char* s, char c) {
     SCU_ASSERT(s);
-    return (s[0] != '\0') && (s[0] == c);
+    return s[0] != '\0' && s[0] == c;
 }
 
 SCU_API bool scu_str_starts_with_str(const char* s, const char* prefix) {
     SCU_ASSERT(s);
     SCU_ASSERT(prefix);
     isize i = 0;
-    while ((prefix[i] != '\0') && (s[i] == prefix[i])) {
+    while (prefix[i] != '\0' && s[i] == prefix[i]) {
         i++;
     }
     return prefix[i] == '\0';
@@ -156,7 +156,7 @@ SCU_API bool scu_str_starts_with_str(const char* s, const char* prefix) {
 SCU_API bool scu_str_ends_with_byte(const char* s, char c) {
     SCU_ASSERT(s);
     isize length = scu_strlen(s);
-    return (length > 0) && (s[length - 1] == c);
+    return length > 0 && s[length - 1] == c;
 }
 
 SCU_API bool scu_str_ends_with_str(const char* s, const char* suffix) {
@@ -228,7 +228,7 @@ SCU_API isize scu_strncat(
 ) {
     SCU_ASSERT(size >= 0);
     SCU_ASSERT(count >= 0);
-    if ((size == 0) || (count == 0)) {
+    if (size == 0 || count == 0) {
         return 0;
     }
     SCU_ASSERT(dest);

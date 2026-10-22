@@ -191,7 +191,7 @@ SCU_API isize scu_fread(
     SCU_ASSERT(handle);
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(size >= 0);
-    if ((count == 0) || (size == 0)) {
+    if (count == 0 || size == 0) {
         return 0;
     }
     SCU_ASSERT(buffer);
@@ -214,7 +214,7 @@ SCU_API isize scu_fwrite(
     SCU_ASSERT(handle);
     SCU_ASSERT(count >= 0);
     SCU_ASSERT(size >= 0);
-    if ((count == 0) || (size == 0)) {
+    if (count == 0 || size == 0) {
         return 0;
     }
     SCU_ASSERT(buffer);
@@ -389,7 +389,7 @@ SCU_API ScuError scu_freadln(
         }
         isize read = scu_strlen(*buffer + used);
         used += read;
-        if (((*buffer)[used - 1] == '\n') || (read < (available - 1))) {
+        if ((*buffer)[used - 1] == '\n' || read < available - 1) {
             return SCU_ERROR_NONE;
         }
     }
@@ -564,7 +564,7 @@ SCU_API isize scu_vsnprintf(
     va_list args
 ) {
     SCU_ASSERT(size >= 0);
-    SCU_ASSERT((size == 0) || (buffer));
+    SCU_ASSERT(size == 0 || buffer);
     SCU_ASSERT(format);
     isize n = vsnprintf(buffer, (usize) size, format, args);
     if (n < 0) {
@@ -699,9 +699,9 @@ SCU_API ScuError scu_fseek(
     FILE* handle = scu_file_handle(file);
     SCU_ASSERT(handle);
     SCU_ASSERT(
-        (seekOrigin == SCU_SEEK_ORIGIN_SET)
-            || (seekOrigin == SCU_SEEK_ORIGIN_CUR)
-            || (seekOrigin == SCU_SEEK_ORIGIN_END)
+        seekOrigin == SCU_SEEK_ORIGIN_SET
+            || seekOrigin == SCU_SEEK_ORIGIN_CUR
+            || seekOrigin == SCU_SEEK_ORIGIN_END
     );
     int origin;
     switch (seekOrigin) {

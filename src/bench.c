@@ -228,7 +228,7 @@ SCU_API ScuTimingResult scu_stopwatch_elapsed(const ScuStopwatch* stopwatch) {
     }
     i64 wallNs = scu_wall_ns();
     i64 cpuNs = scu_cpu_ns(stopwatch->timingMode);
-    if ((wallNs == -1) || (cpuNs == -1)) {
+    if (wallNs == -1 || cpuNs == -1) {
         return (ScuTimingResult) {
             .wallNs = -1,
             .cpuNs = -1,

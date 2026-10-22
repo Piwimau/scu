@@ -310,6 +310,6 @@ SCU_API void* scu_stack_iterator_deref(const ScuStackIterator* iterator) {
     SCU_ASSERT(iterator);
     const ScuStack* stack = iterator->stack;
     isize index = iterator->index;
-    SCU_ASSERT((index >= 0) && (index < stack->count));
+    SCU_ASSERT(index >= 0 && index < stack->count);
     return stack->data + stack->elemSize * index;
 }

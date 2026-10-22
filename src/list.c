@@ -171,7 +171,7 @@ SCU_API ScuError scu_list_insert_at_impl(
 ) {
     SCU_ASSERT(list);
     ScuListHeader* header = scu_get_header(*list);
-    SCU_ASSERT((index >= 0) && (index <= header->count));
+    SCU_ASSERT(index >= 0 && index <= header->count);
     SCU_ASSERT(elem);
     ScuError error = scu_list_ensure_capacity_impl(list, header->count + 1);
     if (error != SCU_ERROR_NONE) {
@@ -195,7 +195,7 @@ SCU_API ScuError scu_list_insert_at_impl(
 
 SCU_API void scu_list_remove_at(void* list, isize index) {
     ScuListHeader* header = scu_get_header(list);
-    SCU_ASSERT((index >= 0) && (index < header->count));
+    SCU_ASSERT(index >= 0 && index < header->count);
     scu_memmove(
         header->data + header->elemSize * index,
         header->data + header->elemSize * (index + 1),
